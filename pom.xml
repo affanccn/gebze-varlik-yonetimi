@@ -24,10 +24,10 @@
     </properties>
 
     <dependencies>
-        <!-- Web Katmanı (REST API + Statik HTML/CSS/JS Sunumu) -->
+        <!-- Web Katmanı (REST API + Statik HTML/CSS/JS Sunumu - Spring Boot 4.x WebMVC) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
 
         <!-- Veri Erişim Katmanı (Spring Data JPA + Hibernate 7.4 + HikariCP 7.0) -->
