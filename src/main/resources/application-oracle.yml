@@ -1,11 +1,14 @@
 # Oracle 23ai aktif veritabanı profili (--spring.profiles.active=oracle)
 spring:
   datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@//${DB_HOST:localhost}:${DB_PORT:1521}/${DB_SERVICE:FREEPDB1}}
+    username: ${DB_USERNAME:varlik_app}
+    password: ${DB_PASSWORD:GebzeVarlik2026}
     hikari:
       initialization-fail-timeout: 30000
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     properties:
       hibernate:
         boot:

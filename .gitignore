@@ -10,6 +10,12 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
+# Yerel JDK / JRE kurulumları ve arşivleri
+oracleJdk-*/
+jdk*/
+*.zip
+*.tar.gz
+
 # Java / JVM logları
 hs_err_pid*
 replay_pid*
@@ -44,4 +50,3 @@ wallet/
 *.sso
 *.p12
 *.jks
-

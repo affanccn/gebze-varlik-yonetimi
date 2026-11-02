@@ -30,7 +30,8 @@ gebze-varlik-yonetimi/
 │   └── extensions.json
 ├── docs/
 │   ├── architecture.md
-│   └── oracle-setup.md
+│   ├── oracle-setup.md
+│   └── phase-1-asset-list.md
 ├── src/
 │   └── main/
 │       ├── java/
@@ -105,3 +106,4 @@ Uygulama varsayılan olarak `8080` portunda ayağa kalkar:
 ## İlgili Dokümanlar
 - [Başlangıç Mimarisi ve Teknik Kararlar](docs/architecture.md)
 - [Oracle 23ai Veritabanı Yapılandırması](docs/oracle-setup.md)
+- [Faz 1: Varlıklar Liste Ekranı (Demo Veri Kapsamı)](docs/phase-1-asset-list.md)

@@ -1,5 +1,5 @@
 # Gebze Belediyesi Varlık Yönetimi - Yerel Oracle Database 23ai Free Ortamı
-# Çalıştırmak için: DB_PASSWORD=<parola> docker compose up -d
+# Tek komutla çalıştırmak için: docker compose up -d
 services:
   oracle-db:
     image: gvenzl/oracle-free:23-slim-faststart
@@ -9,9 +9,9 @@ services:
       - "${DB_PORT:-1521}:1521"
     environment:
       ORACLE_DATABASE: ${DB_SERVICE:-FREEPDB1}
-      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:?Lutfen ORACLE_SYS_PASSWORD ortam degiskenini tanimlayin}
+      ORACLE_PASSWORD: ${ORACLE_SYS_PASSWORD:-GebzeSys2026}
       APP_USER: ${DB_USERNAME:-varlik_app}
-      APP_USER_PASSWORD: ${DB_PASSWORD:?Lutfen DB_PASSWORD ortam degiskenini tanimlayin}
+      APP_USER_PASSWORD: ${DB_PASSWORD:-GebzeVarlik2026}
       TZ: Europe/Istanbul
     volumes:
       - oracle23ai_data:/opt/oracle/oradata
