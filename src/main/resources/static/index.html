@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gebze Belediyesi Varlık Yönetimi - Başlangıç İskeleti</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <div>
+                <span class="badge">Başlangıç İskeleti</span>
+                <h1>Gebze Belediyesi Varlık Yönetimi</h1>
+                <p class="subtitle">Kurumsal varlık, hareket ve zimmet süreçleri için temel uygulama çatısı</p>
+            </div>
+            <div class="health-box" id="health-box" aria-live="polite">
+                <span class="status-dot" id="health-dot"></span>
+                <span id="health-text">Servis durumu kontrol ediliyor...</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container main-content">
+        <section class="notice-card">
+            <h2>Proje Durumu: Başlangıç İskeleti</h2>
+            <p>
+                Bu ekran, <strong>Gebze Belediyesi Varlık Yönetimi</strong> uygulamasının ilk teknik iskeletidir.
+                Gerçek belediye verisi veya uydurma gösterge sayıları içermez.
+                Arka uç, <strong>Java 25 LTS</strong>, <strong>Spring Boot 4.1.2</strong> ve en güncel
+                <strong>Oracle Database 23ai (ojdbc17, Hibernate 7.4, Flyway 12.4)</strong> altyapısıyla yapılandırılmıştır.
+            </p>
+        </section>
+
+        <section class="modules-section">
+            <h2>Planlanan Modül Yapısı</h2>
+            <div class="module-grid">
+                <article class="module-card">
+                    <h3><code>common</code></h3>
+                    <p>Ortak altyapı bileşenleri, sistem sağlık kontrolü (<code>/api/health</code>) ve paylaşılan yardımcılar.</p>
+                </article>
+                <article class="module-card">
+                    <h3><code>asset</code></h3>
+                    <p>Varlık ve envanter tanımlama modülü (iş kuralları netleştiğinde eklenecektir).</p>
+                </article>
+                <article class="module-card">
+                    <h3><code>movement</code></h3>
+                    <p>Varlık giriş, çıkış ve yer değişikliği hareketleri modülü (iş kuralları netleştiğinde eklenecektir).</p>
+                </article>
+                <article class="module-card">
+                    <h3><code>assignment</code></h3>
+                    <p>Zimmet ve sorumluluk atama modülü (iş kuralları netleştiğinde eklenecektir).</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="tech-section">
+            <h2>Teknik Altyapı Özeti</h2>
+            <ul class="tech-list">
+                <li><strong>Arka Uç (Backend):</strong> Java 25 LTS &amp; Spring Boot 4.1.2</li>
+                <li><strong>Ön Yüz (Frontend):</strong> Yalın HTML5, CSS3 ve Tarayıcı JavaScript (Framework bağımsız)</li>
+                <li><strong>Veritabanı Altyapısı:</strong> Oracle Database 23ai LTS (<code>ojdbc17 23.26.3.0.0</code>, Spring Data JPA / Hibernate 7.4, Flyway 12.4)</li>
+                <li><strong>Sağlık Kontrolü Uç Noktası:</strong> <a href="/api/health"><code>GET /api/health</code></a></li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>Gebze Belediyesi Varlık Yönetimi &mdash; Geliştirme Başlangıç İskeleti</p>
+        </div>
+    </footer>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

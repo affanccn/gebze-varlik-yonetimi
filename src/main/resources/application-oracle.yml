@@ -1,0 +1,14 @@
+# Oracle 23ai aktif veritabanı profili (--spring.profiles.active=oracle)
+spring:
+  datasource:
+    hikari:
+      initialization-fail-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        boot:
+          allow_jdbc_metadata_access: true
+  flyway:
+    enabled: true
