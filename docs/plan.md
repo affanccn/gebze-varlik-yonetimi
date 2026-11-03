@@ -707,10 +707,11 @@ Canlı veritabanından çalıştırılan doğrulama sorguları neticesinde aşa�
   - Eğer `system_users.department_id IS NULL` ise: Kurum geneli izleyici kabul edilir ve tüm belediye varlıklarını salt okunur görür (Örn: `kurum_izleyici`, Başkanlık Danışmanı, Teftiş Gözlemcisi).
   - Eğer `system_users.department_id IS NOT NULL` ise: Birim izleyicisi kabul edilir ve yalnızca bağlı olduğu müdürlüğün kayıtlarını salt okunur görür (Örn: Fen İşleri Stajyeri/İzleyicisi).
   - *Gerekçe:* Belediyelerde hem kurum genelini denetleyen bağımsız gözlemciler hem de yalnızca bir müdürlüğün işlemlerini takip etmesi gereken birim izleyicileri bulunur. Bu esnek tasarım sayesinde iki senaryo da tek bir rol ve sıfır kod değişikliği ile yönetilir.
+- **Varsayılan Reddet Kuralı (Deny-by-Default):** `department_id = NULL` olduğunda global görme kuralı YALNIZCA `ADMIN`, `AUDITOR` ve `VIEWER` için geçerlidir. Eğer `DEPT_MANAGER` kullanıcısının `department_id` değeri `NULL` ise veya `STAFF` kullanıcısının `personnel_id` değeri `NULL` ise, sisteme hiçbir kayıt dönmez (`1=0` şartı uygulanır). Böylece profildeki eksik bir alan asla belediye kayıtlarının ifşasına yol açamaz.
 
-#### 8. Yetkisiz Müdürlük Kaydı Erişiminde 403 vs 404 Kararı:
-- **Karar:** Tutarlı olarak **HTTP 403 Forbidden** dönülecektir.
-- *Gerekçe:* Kurumsal ERP sistemlerinde denetlenebilirlik ve yetki ihlali teşebbüslerinin açıkça tespiti esastır. Bir müdürlük kullanıcısının başka müdürlüğün varlık ID'sini sorguladığında (örneğin `GET /api/assets/15`), sistemin bunu "Böyle bir varlık yok (404)" diyerek gizlemesi yerine "Bu varlık üzerinde yetkiniz bulunmamaktadır (403)" demesi ve `SecurityAuditService` aracılığıyla `ACCESS_DENIED` logu oluşturması güvenlik denetimleri ve ISO 27001 gereğidir.
+#### 8. Yetkisiz Müdürlük Kaydı Erişiminde 403 vs 404 Kararı ve Liste Filtreleme Ayrımı:
+- **Liste Uç Noktaları:** Liste uç noktalarında (`GET /api/assets`, `GET /api/fleet`, `GET /api/stock` vb.) kullanıcının yetkisiz olduğu kayıtlar hata üretmeksizin sessizce filtrelenir; kullanıcı sadece yetkili olduğu kayıt kümesini görür.
+- **Tekil Erişim ve Yazma İşlemleri:** Tutarlı olarak **HTTP 403 Forbidden** dönülecektir. Bir müdürlük kullanıcısı yetkisiz bir varlık ID'sine doğrudan eriştiğinde (`GET /api/assets/{id}`) veya yetkisiz müdürlük ID'si ile ekleme/güncelleme/silme yaptığında 404 yerine `403 Forbidden` üretilir ve `SecurityAuditService` aracılığıyla `ACCESS_DENIED` olarak loglanır.
 
 #### 9. Merkezi Veri İzolasyon Motoru (`TenantQueryScope`):
 Repository'lerde her metoda elle `WHERE` yazmak yerine, merkezi bir `TenantQueryScope` bileşeni kurulur. Bu bileşen:
@@ -718,14 +719,20 @@ Repository'lerde her metoda elle `WHERE` yazmak yerine, merkezi bir `TenantQuery
   - `ADMIN`, `AUDITOR`: `1=1`
   - `VIEWER (deptId == null)`: `1=1`
   - `VIEWER (deptId != null)`: `department_id = :deptId`
-  - `DEPT_MANAGER`: `department_id = :deptId`
-  - `STAFF`: `id IN (SELECT asset_id FROM asset_assignments WHERE personnel_id = :persId AND status = 'AKTIF')`
+  - `DEPT_MANAGER (deptId != null)`: `department_id = :deptId`
+  - `DEPT_MANAGER (deptId == null)`: `1=0` (Varsayılan Reddet)
+  - `STAFF (persId != null)`: `id IN (SELECT asset_id FROM asset_assignments WHERE personnel_id = :persId AND status = 'AKTIF')`
+  - `STAFF (persId == null)`: `1=0` (Varsayılan Reddet)
 - Bağlı modüller için:
   - `asset_assignments`, `asset_maintenances`, `asset_movements`, `asset_documents`, `audit_scans` ➔ `JOIN assets a ON ...` üzerinden filtrelenir.
   - `stock_transactions` ➔ `JOIN stock_items si ON ...` üzerinden `si.department_id` ile filtrelenir.
   - `stock_items`, `fleet_vehicles`, `procurement_orders`, `inventory_audits` ➔ Kendi `department_id` sütunları üzerinden filtrelenir.
 - Mutasyon Denetimi: `create`, `update`, `delete`, zimmet, bakım ve transfer işlemlerinde hedef müdürlük kullanıcının yetki alanında değilse doğrudan `403 Forbidden` üretilir.
 - Toplu Uç Noktalar: Dashboard sayıları, hiyerarşi ağacı, raporlar ve dışa aktarımlar kullanıcının yetki kapsamına göre dinamik hesaplanır.
+
+#### 10. Açık Madde: 9 Zimmetli Varlığın 8'inde Zimmet Fişi Bulunmaması (Veri Uyumsuzluğu):
+Sistemde `status = 'Zimmetli'` (ve `lifecycle_status = 'ZIMMETLENDI'`) olan 9 adet varlık bulunmasına karşın, `asset_assignments` tablosunda yalnızca 1 adet kayıt (`ZMT-2026-0001`, `asset_id=1`, `assignee_name='Örnek Sorumlu 1'`) mevcuttur. Diğer 8 adet zimmetli varlığın ilişkili `asset_assignments` fiş kaydı mevcut değildir.
+STAFF filtreleme kuralı doğrudan `asset_assignments.personnel_id` tablosuna baktığı için, belediyeye canlı teslimat öncesinde (Faz 1C / 1D veri temizliği aşamasında) bu 8 varlık için gerçek personel zimmet kayıtlarının oluşturulması veya `assets.assignee_name` üzerinden eşleme yapılması gerekmektedir. Bu durum Faz 1B-2 kapsamı dışında tutulmuş, teslimat öncesi çözülecek **açık madde** olarak kaydedilmiştir.
 
 ---
 
