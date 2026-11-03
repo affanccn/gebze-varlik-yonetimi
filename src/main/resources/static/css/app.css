@@ -550,10 +550,14 @@ body {
 .page-main {
     flex: 1;
     width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 1.25rem;
+    max-width: 100%;
+    margin: 0;
+    padding: 1.25rem 1.5rem 2.5rem 1.5rem;
     box-sizing: border-box;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
 }
 
 .site-footer {
@@ -681,19 +685,14 @@ body {
 }
 
 /* ANA SAYFA DÜZENİ */
-.page-main {
-    flex: 1;
-    padding-top: 1.25rem;
-    padding-bottom: 2.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
 .app-view {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .demo-banner {
@@ -833,7 +832,7 @@ label code {
     flex: 1;
     height: 100%;
     overflow-y: auto;
-    overflow-x: auto;
+    overflow-x: hidden !important;
     border: none;
     box-shadow: none;
     border-radius: 0;
@@ -1253,29 +1252,36 @@ label code {
 .table-wrapper,
 .table-responsive {
     width: 100%;
-    overflow-x: auto;
+    max-width: 100%;
+    overflow-x: hidden !important;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     border-radius: 8px;
     border: 1px solid var(--gray-200);
     background-color: var(--white);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
 }
 
 .app-view > .table-responsive,
 #asset-table-wrapper {
-    min-height: 520px;
-    max-height: 660px;
+    min-height: 480px;
+    max-height: 680px;
     overflow-y: auto;
+    overflow-x: hidden !important;
 }
 
 .data-table,
 .asset-table {
     width: 100%;
+    max-width: 100%;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
     text-align: left;
     background-color: var(--white);
-    font-size: 0.85rem;
+    font-size: 0.81rem;
+    box-sizing: border-box;
 }
 
 .data-table thead,
@@ -1290,13 +1296,18 @@ label code {
 .asset-table thead th {
     background-color: var(--navy-900);
     color: var(--white);
-    font-size: 0.78rem;
-    font-weight: 600;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0.85rem 1rem;
+    letter-spacing: 0.03em;
+    padding: 0.6rem 0.45rem;
     border-bottom: 2px solid var(--teal-500);
-    white-space: nowrap;
+    white-space: normal !important;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 1.22;
+    vertical-align: middle;
+    box-sizing: border-box;
 }
 
 .data-table tbody tr,
@@ -1322,82 +1333,434 @@ label code {
 
 .data-table td,
 .asset-table td {
-    padding: 0.75rem 1rem;
-    font-size: 0.85rem;
+    padding: 0.52rem 0.45rem;
+    font-size: 0.79rem;
     color: var(--gray-700);
     vertical-align: middle;
     border-bottom: 1px solid var(--gray-200);
+    word-break: break-word;
+    overflow-wrap: break-word;
+    line-height: 1.3;
+    box-sizing: border-box;
 }
 
-/* 30 MÜDÜRLÜK DAĞILIM TABLOSU ÖZEL SÜTUN GENİŞLİKLERİ VE HİZALAMALARI */
+/* =============================================================================
+   KURUMSAL TABLOLAR - %100 SIĞDIRMA VE SÜTUN GENİŞLİKLERİ
+   Sağa-sola kaydırma kesinlikle engellenmiş olup sadece yukarı-aşağı kaydırılır.
+   ============================================================================= */
+
+/* 1. MÜDÜRLÜK DAĞILIM TABLOSU (#table-departments-summary) - 9 SÜTUN */
 #table-departments-summary {
     width: 100%;
-    table-layout: auto;
+    table-layout: fixed;
 }
-
 #table-departments-summary th,
 #table-departments-summary td {
-    padding: 0.75rem 0.95rem;
+    padding: 0.55rem 0.45rem;
 }
+#table-departments-summary th:nth-child(1),
+#table-departments-summary td:nth-child(1) { width: 7%; white-space: nowrap; }
+#table-departments-summary th:nth-child(2),
+#table-departments-summary td:nth-child(2) { width: 25%; font-weight: 600; color: var(--navy-900); }
+#table-departments-summary th:nth-child(3),
+#table-departments-summary td:nth-child(3) { width: 17%; color: var(--gray-600); }
+#table-departments-summary th:nth-child(4),
+#table-departments-summary td:nth-child(4) { width: 7%; text-align: center; font-weight: 700; }
+#table-departments-summary th:nth-child(5),
+#table-departments-summary td:nth-child(5) { width: 6%; text-align: center; }
+#table-departments-summary th:nth-child(6),
+#table-departments-summary td:nth-child(6) { width: 6%; text-align: center; }
+#table-departments-summary th:nth-child(7),
+#table-departments-summary td:nth-child(7) { width: 6%; text-align: center; }
+#table-departments-summary th:nth-child(8),
+#table-departments-summary td:nth-child(8) { width: 15%; text-align: right; white-space: nowrap; font-family: Consolas, Monaco, monospace; font-weight: 700; color: var(--navy-900); }
+#table-departments-summary th:nth-child(9),
+#table-departments-summary td:nth-child(9) { width: 11%; text-align: center; }
 
-#table-departments-summary .th-code,
-#table-departments-summary .td-code {
-    width: 85px;
-    min-width: 80px;
+/* 2. SATIN ALMA VE TEDARİK TABLOSU (#view-procurement) - 10 SÜTUN */
+#view-procurement .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-procurement .data-table th:nth-child(1),
+#view-procurement .data-table td:nth-child(1) { width: 9%; }
+#view-procurement .data-table th:nth-child(2),
+#view-procurement .data-table td:nth-child(2) { width: 21%; font-weight: 600; color: var(--navy-900); }
+#view-procurement .data-table th:nth-child(3),
+#view-procurement .data-table td:nth-child(3) { width: 13%; }
+#view-procurement .data-table th:nth-child(4),
+#view-procurement .data-table td:nth-child(4) { width: 10%; }
+#view-procurement .data-table th:nth-child(5),
+#view-procurement .data-table td:nth-child(5) { width: 13%; }
+#view-procurement .data-table th:nth-child(6),
+#view-procurement .data-table td:nth-child(6) { width: 8%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#view-procurement .data-table th:nth-child(7),
+#view-procurement .data-table td:nth-child(7) { width: 8%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--navy-900); }
+#view-procurement .data-table th:nth-child(8),
+#view-procurement .data-table td:nth-child(8) { width: 6%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#view-procurement .data-table th:nth-child(9),
+#view-procurement .data-table td:nth-child(9) { width: 6%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#view-procurement .data-table th:nth-child(10),
+#view-procurement .data-table td:nth-child(10) { width: 6%; text-align: center; }
+
+/* 3. BELGE VE EVRAK YÖNETİMİ TABLOSU (#view-documents) - 10 SÜTUN */
+#view-documents .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-documents .data-table th:nth-child(1),
+#view-documents .data-table td:nth-child(1) { width: 9%; }
+#view-documents .data-table th:nth-child(2),
+#view-documents .data-table td:nth-child(2) { width: 9%; }
+#view-documents .data-table th:nth-child(3),
+#view-documents .data-table td:nth-child(3) { width: 17%; font-weight: 600; color: var(--navy-900); }
+#view-documents .data-table th:nth-child(4),
+#view-documents .data-table td:nth-child(4) { width: 12%; }
+#view-documents .data-table th:nth-child(5),
+#view-documents .data-table td:nth-child(5) { width: 8%; }
+#view-documents .data-table th:nth-child(6),
+#view-documents .data-table td:nth-child(6) { width: 12%; }
+#view-documents .data-table th:nth-child(7),
+#view-documents .data-table td:nth-child(7) { width: 7%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#view-documents .data-table th:nth-child(8),
+#view-documents .data-table td:nth-child(8) { width: 10%; font-size: 0.74rem; word-break: break-all; }
+#view-documents .data-table th:nth-child(9),
+#view-documents .data-table td:nth-child(9) { width: 8%; text-align: center; white-space: nowrap; font-size: 0.74rem; }
+#view-documents .data-table th:nth-child(10),
+#view-documents .data-table td:nth-child(10) { width: 8%; text-align: center; }
+
+/* 4. RAPORLAMA & SABİT KIYMET AMORTİSMAN TABLOSU (#depreciation-table) - 11 SÜTUN */
+#depreciation-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#depreciation-table th:nth-child(1),
+#depreciation-table td:nth-child(1) { width: 8%; }
+#depreciation-table th:nth-child(2),
+#depreciation-table td:nth-child(2) { width: 18%; font-weight: 600; color: var(--navy-900); }
+#depreciation-table th:nth-child(3),
+#depreciation-table td:nth-child(3) { width: 10%; }
+#depreciation-table th:nth-child(4),
+#depreciation-table td:nth-child(4) { width: 12%; }
+#depreciation-table th:nth-child(5),
+#depreciation-table td:nth-child(5) { width: 8%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#depreciation-table th:nth-child(6),
+#depreciation-table td:nth-child(6) { width: 9%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#depreciation-table th:nth-child(7),
+#depreciation-table td:nth-child(7) { width: 6%; text-align: center; white-space: nowrap; }
+#depreciation-table th:nth-child(8),
+#depreciation-table td:nth-child(8) { width: 5%; text-align: center; white-space: nowrap; }
+#depreciation-table th:nth-child(9),
+#depreciation-table td:nth-child(9) { width: 9%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#depreciation-table th:nth-child(10),
+#depreciation-table td:nth-child(10) { width: 9%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--teal-600); }
+#depreciation-table th:nth-child(11),
+#depreciation-table td:nth-child(11) { width: 6%; text-align: center; }
+
+/* 5. ARAÇ & FİLO VE İŞ MAKİNELERİ (#view-fleet) - 12 SÜTUN */
+#view-fleet .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-fleet .data-table th:nth-child(1),
+#view-fleet .data-table td:nth-child(1) { width: 8%; }
+#view-fleet .data-table th:nth-child(2),
+#view-fleet .data-table td:nth-child(2) { width: 9%; }
+#view-fleet .data-table th:nth-child(3),
+#view-fleet .data-table td:nth-child(3) { width: 12%; font-weight: 600; color: var(--navy-900); }
+#view-fleet .data-table th:nth-child(4),
+#view-fleet .data-table td:nth-child(4) { width: 5%; text-align: center; }
+#view-fleet .data-table th:nth-child(5),
+#view-fleet .data-table td:nth-child(5) { width: 12%; }
+#view-fleet .data-table th:nth-child(6),
+#view-fleet .data-table td:nth-child(6) { width: 10%; }
+#view-fleet .data-table th:nth-child(7),
+#view-fleet .data-table td:nth-child(7) { width: 8%; text-align: right; white-space: nowrap; }
+#view-fleet .data-table th:nth-child(8),
+#view-fleet .data-table td:nth-child(8) { width: 6%; text-align: center; }
+#view-fleet .data-table th:nth-child(9),
+#view-fleet .data-table td:nth-child(9) { width: 8%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#view-fleet .data-table th:nth-child(10),
+#view-fleet .data-table td:nth-child(10) { width: 8%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#view-fleet .data-table th:nth-child(11),
+#view-fleet .data-table td:nth-child(11) { width: 7%; text-align: center; }
+#view-fleet .data-table th:nth-child(12),
+#view-fleet .data-table td:nth-child(12) { width: 7%; text-align: center; }
+
+/* 6. DEPO & STOK YÖNETİMİ (#view-stock) - 10 SÜTUN */
+#view-stock .data-table:first-of-type {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-stock .data-table:first-of-type th:nth-child(1),
+#view-stock .data-table:first-of-type td:nth-child(1) { width: 9%; }
+#view-stock .data-table:first-of-type th:nth-child(2),
+#view-stock .data-table:first-of-type td:nth-child(2) { width: 18%; font-weight: 600; color: var(--navy-900); }
+#view-stock .data-table:first-of-type th:nth-child(3),
+#view-stock .data-table:first-of-type td:nth-child(3) { width: 11%; }
+#view-stock .data-table:first-of-type th:nth-child(4),
+#view-stock .data-table:first-of-type td:nth-child(4) { width: 14%; }
+#view-stock .data-table:first-of-type th:nth-child(5),
+#view-stock .data-table:first-of-type td:nth-child(5) { width: 7%; text-align: center; font-weight: 700; }
+#view-stock .data-table:first-of-type th:nth-child(6),
+#view-stock .data-table:first-of-type td:nth-child(6) { width: 7%; text-align: center; }
+#view-stock .data-table:first-of-type th:nth-child(7),
+#view-stock .data-table:first-of-type td:nth-child(7) { width: 8%; text-align: right; white-space: nowrap; }
+#view-stock .data-table:first-of-type th:nth-child(8),
+#view-stock .data-table:first-of-type td:nth-child(8) { width: 9%; text-align: right; white-space: nowrap; font-weight: 700; color: var(--navy-900); }
+#view-stock .data-table:first-of-type th:nth-child(9),
+#view-stock .data-table:first-of-type td:nth-child(9) { width: 8%; text-align: center; }
+#view-stock .data-table:first-of-type th:nth-child(10),
+#view-stock .data-table:first-of-type td:nth-child(10) { width: 9%; text-align: center; }
+
+/* 7. STOK HAREKETLERİ TABLOSU (#view-stock .data-table:last-of-type) - 9 SÜTUN */
+#view-stock .data-table:last-of-type {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-stock .data-table:last-of-type th:nth-child(1),
+#view-stock .data-table:last-of-type td:nth-child(1) { width: 10%; }
+#view-stock .data-table:last-of-type th:nth-child(2),
+#view-stock .data-table:last-of-type td:nth-child(2) { width: 9%; text-align: center; font-size: 0.75rem; white-space: nowrap; }
+#view-stock .data-table:last-of-type th:nth-child(3),
+#view-stock .data-table:last-of-type td:nth-child(3) { width: 18%; font-weight: 600; }
+#view-stock .data-table:last-of-type th:nth-child(4),
+#view-stock .data-table:last-of-type td:nth-child(4) { width: 9%; }
+#view-stock .data-table:last-of-type th:nth-child(5),
+#view-stock .data-table:last-of-type td:nth-child(5) { width: 8%; text-align: center; font-weight: 700; }
+#view-stock .data-table:last-of-type th:nth-child(6),
+#view-stock .data-table:last-of-type td:nth-child(6) { width: 14%; }
+#view-stock .data-table:last-of-type th:nth-child(7),
+#view-stock .data-table:last-of-type td:nth-child(7) { width: 12%; }
+#view-stock .data-table:last-of-type th:nth-child(8),
+#view-stock .data-table:last-of-type td:nth-child(8) { width: 10%; }
+#view-stock .data-table:last-of-type th:nth-child(9),
+#view-stock .data-table:last-of-type td:nth-child(9) { width: 10%; }
+
+/* 8. DENETİM LOG TABLOSU (#view-audit) - 7 SÜTUN */
+#view-audit .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-audit .data-table th:nth-child(1),
+#view-audit .data-table td:nth-child(1) { width: 12%; white-space: nowrap; font-size: 0.75rem; }
+#view-audit .data-table th:nth-child(2),
+#view-audit .data-table td:nth-child(2) { width: 9%; }
+#view-audit .data-table th:nth-child(3),
+#view-audit .data-table td:nth-child(3) { width: 9%; }
+#view-audit .data-table th:nth-child(4),
+#view-audit .data-table td:nth-child(4) { width: 8%; }
+#view-audit .data-table th:nth-child(5),
+#view-audit .data-table td:nth-child(5) { width: 13%; }
+#view-audit .data-table th:nth-child(6),
+#view-audit .data-table td:nth-child(6) { width: 9%; font-family: Consolas, monospace; font-size: 0.76rem; }
+#view-audit .data-table th:nth-child(7),
+#view-audit .data-table td:nth-child(7) { width: 40%; word-break: break-word; }
+
+/* 9. VARLIKLAR ANA TABLOSU (#asset-table) - 9 SÜTUN */
+#asset-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#asset-table th:nth-child(1),
+#asset-table td:nth-child(1) { width: 10%; }
+#asset-table th:nth-child(2),
+#asset-table td:nth-child(2) { width: 18%; font-weight: 600; color: var(--navy-900); }
+#asset-table th:nth-child(3),
+#asset-table td:nth-child(3) { width: 10%; }
+#asset-table th:nth-child(4),
+#asset-table td:nth-child(4) { width: 14%; }
+#asset-table th:nth-child(5),
+#asset-table td:nth-child(5) { width: 14%; }
+#asset-table th:nth-child(6),
+#asset-table td:nth-child(6) { width: 12%; }
+#asset-table th:nth-child(7),
+#asset-table td:nth-child(7) { width: 8%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#asset-table th:nth-child(8),
+#asset-table td:nth-child(8) { width: 7%; text-align: center; }
+#asset-table th:nth-child(9),
+#asset-table td:nth-child(9) { width: 7%; text-align: center; }
+
+/* 10. ZİMMET TABLOSU (#view-assignments) - 9 SÜTUN */
+#view-assignments .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-assignments .data-table th:nth-child(1),
+#view-assignments .data-table td:nth-child(1) { width: 9%; }
+#view-assignments .data-table th:nth-child(2),
+#view-assignments .data-table td:nth-child(2) { width: 18%; font-weight: 600; color: var(--navy-900); }
+#view-assignments .data-table th:nth-child(3),
+#view-assignments .data-table td:nth-child(3) { width: 13%; }
+#view-assignments .data-table th:nth-child(4),
+#view-assignments .data-table td:nth-child(4) { width: 10%; }
+#view-assignments .data-table th:nth-child(5),
+#view-assignments .data-table td:nth-child(5) { width: 13%; }
+#view-assignments .data-table th:nth-child(6),
+#view-assignments .data-table td:nth-child(6) { width: 13%; }
+#view-assignments .data-table th:nth-child(7),
+#view-assignments .data-table td:nth-child(7) { width: 8%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#view-assignments .data-table th:nth-child(8),
+#view-assignments .data-table td:nth-child(8) { width: 7%; text-align: center; }
+#view-assignments .data-table th:nth-child(9),
+#view-assignments .data-table td:nth-child(9) { width: 9%; text-align: center; }
+
+/* 11. BAKIM & ONARIM TABLOSU (#view-maintenances) - 9 SÜTUN */
+#view-maintenances .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-maintenances .data-table th:nth-child(1),
+#view-maintenances .data-table td:nth-child(1) { width: 9%; }
+#view-maintenances .data-table th:nth-child(2),
+#view-maintenances .data-table td:nth-child(2) { width: 18%; font-weight: 600; color: var(--navy-900); }
+#view-maintenances .data-table th:nth-child(3),
+#view-maintenances .data-table td:nth-child(3) { width: 10%; }
+#view-maintenances .data-table th:nth-child(4),
+#view-maintenances .data-table td:nth-child(4) { width: 8%; text-align: center; }
+#view-maintenances .data-table th:nth-child(5),
+#view-maintenances .data-table td:nth-child(5) { width: 13%; }
+#view-maintenances .data-table th:nth-child(6),
+#view-maintenances .data-table td:nth-child(6) { width: 9%; text-align: right; white-space: nowrap; }
+#view-maintenances .data-table th:nth-child(7),
+#view-maintenances .data-table td:nth-child(7) { width: 8%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#view-maintenances .data-table th:nth-child(8),
+#view-maintenances .data-table td:nth-child(8) { width: 7%; text-align: center; }
+#view-maintenances .data-table th:nth-child(9),
+#view-maintenances .data-table td:nth-child(9) { width: 8%; text-align: center; }
+
+/* 12. HAREKETLER & TRANSFER TABLOSU (#view-movements) - 7 SÜTUN */
+#view-movements .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-movements .data-table th:nth-child(1),
+#view-movements .data-table td:nth-child(1) { width: 9%; text-align: center; white-space: nowrap; font-size: 0.75rem; }
+#view-movements .data-table th:nth-child(2),
+#view-movements .data-table td:nth-child(2) { width: 18%; font-weight: 600; color: var(--navy-900); }
+#view-movements .data-table th:nth-child(3),
+#view-movements .data-table td:nth-child(3) { width: 11%; }
+#view-movements .data-table th:nth-child(4),
+#view-movements .data-table td:nth-child(4) { width: 16%; }
+#view-movements .data-table th:nth-child(5),
+#view-movements .data-table td:nth-child(5) { width: 16%; }
+#view-movements .data-table th:nth-child(6),
+#view-movements .data-table td:nth-child(6) { width: 12%; }
+#view-movements .data-table th:nth-child(7),
+#view-movements .data-table td:nth-child(7) { width: 18%; }
+
+/* 13. PERSONEL YÖNETİMİ TABLOSU (#view-personnel) - 8 SÜTUN */
+#view-personnel .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-personnel .data-table th:nth-child(1),
+#view-personnel .data-table td:nth-child(1) { width: 9%; }
+#view-personnel .data-table th:nth-child(2),
+#view-personnel .data-table td:nth-child(2) { width: 16%; font-weight: 600; color: var(--navy-900); }
+#view-personnel .data-table th:nth-child(3),
+#view-personnel .data-table td:nth-child(3) { width: 13%; }
+#view-personnel .data-table th:nth-child(4),
+#view-personnel .data-table td:nth-child(4) { width: 15%; }
+#view-personnel .data-table th:nth-child(5),
+#view-personnel .data-table td:nth-child(5) { width: 14%; }
+#view-personnel .data-table th:nth-child(6),
+#view-personnel .data-table td:nth-child(6) { width: 13%; }
+#view-personnel .data-table th:nth-child(7),
+#view-personnel .data-table td:nth-child(7) { width: 13%; font-size: 0.76rem; }
+#view-personnel .data-table th:nth-child(8),
+#view-personnel .data-table td:nth-child(8) { width: 7%; text-align: center; }
+
+/* 14. SAYIM & DOĞRULAMA TABLOSU (#view-counting) - 8 SÜTUN */
+#view-counting .data-table {
+    width: 100%;
+    table-layout: fixed;
+}
+#view-counting .data-table th:nth-child(1),
+#view-counting .data-table td:nth-child(1) { width: 9%; font-size: 0.75rem; white-space: nowrap; text-align: center; }
+#view-counting .data-table th:nth-child(2),
+#view-counting .data-table td:nth-child(2) { width: 9%; }
+#view-counting .data-table th:nth-child(3),
+#view-counting .data-table td:nth-child(3) { width: 20%; font-weight: 600; color: var(--navy-900); }
+#view-counting .data-table th:nth-child(4),
+#view-counting .data-table td:nth-child(4) { width: 16%; }
+#view-counting .data-table th:nth-child(5),
+#view-counting .data-table td:nth-child(5) { width: 16%; }
+#view-counting .data-table th:nth-child(6),
+#view-counting .data-table td:nth-child(6) { width: 10%; text-align: center; }
+#view-counting .data-table th:nth-child(7),
+#view-counting .data-table td:nth-child(7) { width: 10%; }
+#view-counting .data-table th:nth-child(8),
+#view-counting .data-table td:nth-child(8) { width: 10%; }
+
+/* 15. DASHBOARD PANEL TABLOLARI */
+#table-buildings-summary { width: 100%; table-layout: fixed; }
+#table-buildings-summary th:nth-child(1), #table-buildings-summary td:nth-child(1) { width: 45%; }
+#table-buildings-summary th:nth-child(2), #table-buildings-summary td:nth-child(2) { width: 25%; }
+#table-buildings-summary th:nth-child(3), #table-buildings-summary td:nth-child(3) { width: 15%; text-align: center; }
+#table-buildings-summary th:nth-child(4), #table-buildings-summary td:nth-child(4) { width: 15%; text-align: center; font-weight: 700; color: var(--navy-900); }
+
+#table-top-rooms { width: 100%; table-layout: fixed; }
+#table-top-rooms th:nth-child(1), #table-top-rooms td:nth-child(1) { width: 45%; }
+#table-top-rooms th:nth-child(2), #table-top-rooms td:nth-child(2) { width: 25%; }
+#table-top-rooms th:nth-child(3), #table-top-rooms td:nth-child(3) { width: 18%; }
+#table-top-rooms th:nth-child(4), #table-top-rooms td:nth-child(4) { width: 12%; text-align: center; font-weight: 700; color: var(--navy-900); }
+
+#table-recent-transfers { width: 100%; table-layout: fixed; }
+#table-recent-transfers th:nth-child(1), #table-recent-transfers td:nth-child(1) { width: 25%; }
+#table-recent-transfers th:nth-child(2), #table-recent-transfers td:nth-child(2) { width: 20%; text-align: center; }
+#table-recent-transfers th:nth-child(3), #table-recent-transfers td:nth-child(3) { width: 35%; }
+#table-recent-transfers th:nth-child(4), #table-recent-transfers td:nth-child(4) { width: 20%; font-size: 0.74rem; text-align: center; }
+
+/* TABLO İÇİ BUTON VE BİLEŞEN SIKIŞTIRMALARI */
+.data-table .btn-action-sm,
+.asset-table .btn-action-sm,
+#table-departments-summary .btn-action-sm {
+    height: auto;
+    min-height: 1.65rem;
+    padding: 0.18rem 0.45rem;
+    font-size: 0.73rem;
+    line-height: 1.2;
     white-space: nowrap;
+    border-radius: 4px;
+    display: inline-block;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
-#table-departments-summary .th-name,
-#table-departments-summary .td-name {
-    min-width: 220px;
-    font-weight: 600;
-    color: var(--navy-900);
-}
-
-#table-departments-summary .th-manager,
-#table-departments-summary .td-manager {
-    min-width: 160px;
-    color: var(--gray-600);
-}
-
-#table-departments-summary .th-count,
-#table-departments-summary .td-count {
-    width: 90px;
-    text-align: center;
-}
-
-#table-departments-summary .th-active,
-#table-departments-summary .td-active {
-    width: 75px;
-    text-align: center;
-}
-
-#table-departments-summary .th-store,
-#table-departments-summary .td-store {
-    width: 75px;
-    text-align: center;
-}
-
-#table-departments-summary .th-maint,
-#table-departments-summary .td-maint {
-    width: 75px;
-    text-align: center;
-}
-
-#table-departments-summary .th-val,
-#table-departments-summary .td-val {
-    width: 140px;
+.data-table td.value-cell,
+.asset-table td.value-cell {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
     text-align: right;
+    font-weight: 600;
+}
+
+.data-table .category-badge,
+.asset-table .category-badge {
+    display: inline-block;
+    max-width: 100%;
     white-space: nowrap;
-    font-family: Consolas, Monaco, monospace;
-    font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background-color: var(--gray-100);
+    border: 1px solid var(--gray-300);
     color: var(--navy-900);
 }
 
-#table-departments-summary .th-action,
-#table-departments-summary .td-action {
-    width: 110px;
-    text-align: center;
+.data-table .status-badge,
+.asset-table .status-badge {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
 }
 
 .asset-code {
@@ -1940,9 +2303,9 @@ label code {
 /* BİNALAR & ODALAR EKRANI */
 .building-pills-bar {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
     margin-bottom: 0.75rem;
 }
 
