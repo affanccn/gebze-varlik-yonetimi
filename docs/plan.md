@@ -361,9 +361,10 @@ flowchart TD
   END;
   ```
 
-#### 2. `V10__conditional_unique_indexes.sql` (Koşullu Tekil İndeksler):
+#### 2. `V10__conditional_unique_indexes.sql` (Koşullu Tekil İndeksler ve Arama İndeksleri):
 - Hard constraint'lerin güvenle kaldırılması (`uk_assets_code`, `uk_personnel_reg`, `uk_fleet_plate`, `uk_fleet_code`, `uk_stock_items_code`).
-- Oracle B-Tree `CASE WHEN is_deleted = 0 THEN ... ELSE NULL END` formülüne dayalı indekslerin oluşturulması:
+- Oracle B-Tree `CASE WHEN is_deleted = 0 THEN ... ELSE NULL END` formülüne dayalı koşullu tekil indekslerin oluşturulması.
+- **Düz (Koşulsuz) Arama İndeksleri:** Tekil kısıtlar kalktığında `WHERE code = :code` veya `WHERE barcode = :b` gibi doğrudan arama sorgularının tablo taramasına (Full Table Scan) düşmemesi için B-Tree arama indekslerinin eklenmesi:
   ```sql
   -- assets tablosu:
   ALTER TABLE assets DROP CONSTRAINT uk_assets_code;
@@ -373,12 +374,16 @@ flowchart TD
   CREATE UNIQUE INDEX uk_assets_active_barcode ON assets (
       CASE WHEN is_deleted = 0 AND barcode IS NOT NULL THEN barcode ELSE NULL END
   );
+  -- Doğrudan arama sorguları için düz B-Tree indeksler:
+  CREATE INDEX idx_assets_code ON assets (code);
+  CREATE INDEX idx_assets_barcode ON assets (barcode);
 
   -- personnel tablosu:
   ALTER TABLE personnel DROP CONSTRAINT uk_personnel_reg;
   CREATE UNIQUE INDEX uk_personnel_active_reg ON personnel (
       CASE WHEN is_deleted = 0 THEN registration_number ELSE NULL END
   );
+  CREATE INDEX idx_personnel_reg ON personnel (registration_number);
 
   -- fleet_vehicles tablosu:
   ALTER TABLE fleet_vehicles DROP CONSTRAINT uk_fleet_plate;
@@ -389,12 +394,14 @@ flowchart TD
   CREATE UNIQUE INDEX uk_fleet_active_code ON fleet_vehicles (
       CASE WHEN is_deleted = 0 THEN vehicle_code ELSE NULL END
   );
+  CREATE INDEX idx_fleet_plate ON fleet_vehicles (plate_number);
 
   -- stock_items tablosu:
   ALTER TABLE stock_items DROP CONSTRAINT uk_stock_items_code;
   CREATE UNIQUE INDEX uk_stock_items_active_code ON stock_items (
       CASE WHEN is_deleted = 0 THEN item_code ELSE NULL END
   );
+  CREATE INDEX idx_stock_items_code ON stock_items (item_code);
   ```
 
 #### 3. İndeks Öncesi Mükerrer Veri Kontrol Raporu (Empirik Doğrulama):
@@ -438,13 +445,14 @@ Uygulamanın ilk kurulumunda veya temiz veri tabanında yönetici hesabı oluşt
 
 1. **Konfigürasyon Parametreleri (`application.yml` / Ortam Değişkenleri):**
    - `APP_ADMIN_USERNAME` (varsayılan: `admin`)
-   - `APP_ADMIN_PASSWORD` (varsayılan: `GebzeAdmin2026!`, production ortamında zorunlu ortam değişkeni)
+   - `APP_ADMIN_PASSWORD` (**Varsayılan değer YOKTUR!** Güvenlik gereği Git'e şifre sızmasını önlemek için varsayılan atanmamıştır. Ortam değişkeni verilmemişse admin kullanıcısı oluşturulmaz, konsola ve loglara `[UYARI] APP_ADMIN_PASSWORD ortam değişkeni tanımlanmadığı için ilk yönetici hesabı oluşturulmadı.` uyarısı yazılarak uygulama normal şekilde çalışmaya devam eder).
    - `APP_ADMIN_EMAIL` (varsayılan: `admin@gebze.bel.tr`)
 
 2. **Çalışma Protokolü:**
    - Spring Boot başlangıcında veritabanı taranır: `systemUserRepository.countByRole("ADMIN") == 0` kontrolü yapılır.
    - Eğer hiç admin yoksa:
-     - Girilen şifre `BCryptPasswordEncoder(12)` ile hash'lenir.
+     - `APP_ADMIN_PASSWORD` ortam değişkeni kontrol edilir. Değer `null` veya boşsa oluşturma yapılmaz, uyarı logu yazılır ve devam edilir.
+     - Değer dolu ise şifre `BCryptPasswordEncoder(12)` ile hash'lenir.
      - `role = "ADMIN"`, `department_id = NULL` (Tüm belediye kapsamı), `personnel_id = NULL`.
      - `must_change_password = 1` olarak atanır.
      - `system_users` tablosuna kaydedilir.
@@ -732,38 +740,47 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 
 ### FAZ 1A: Veritabanı Migrasyonları (V9, V10, V11) & Admin Bootstrap
 - **`V9__core_schema_and_lifecycle.sql`:** Sütunların eklenmesi (`is_deleted`, `deleted_at`, `deleted_by`, `lifecycle_status`, `specifications JSON`, `system_audit_logs JSON alanları`) ve 74 varlığın UPDATE ile dönüştürülmesi.
-- **`V10__conditional_unique_indexes.sql`:** Eski kısıtların DROP edilip koşullu tekil indekslerin oluşturulması.
+- **`V10__conditional_unique_indexes.sql`:** Eski kısıtların DROP edilip koşullu tekil indekslerin ve doğrudan arama sorguları için düz B-Tree indekslerin (`idx_assets_code`, `idx_assets_barcode`, `idx_personnel_reg`, `idx_fleet_plate`, `idx_stock_items_code`) oluşturulması.
 - **`V11__create_system_users.sql`:** `system_users` tablosunun DDL olarak oluşturulması (kullanıcı eklenmeden).
-- **`AdminUserBootstrap`:** Uygulama açılışında `APP_ADMIN_USERNAME` ve `APP_ADMIN_PASSWORD` ile ilk yöneticinin `must_change_password=1` olarak oluşturulması.
-- **1A Test Kriteri:** Uygulama hatasız başlar, Flyway tablosunda V9, V10, V11 kaydı `success = 1` olur; bootstrap admin kullanıcısı veritabanında oluşur; doğrulama sorgularının öncesi ve sonrası çıktıları birebir aynıdır.
+- **`AdminUserBootstrap`:** Uygulama açılışında `APP_ADMIN_USERNAME` ve `APP_ADMIN_PASSWORD` ortam değişkenlerini kontrol ederek:
+  - Değişken varsa ilk yöneticiyi `must_change_password=1` olarak oluşturur.
+  - Değişken yoksa admin oluşturmaz, uyarı logu yazar ve uygulama normal çalışmaya devam eder.
+- **1A Test ve Doğrulama Kriterleri:**
+  1. `flyway_schema_history` tablosunda V9, V10, V11 migrasyonları `success = 1` olarak tamamlanır.
+  2. V9 öncesi ve V9 sonrası snapshot karşılaştırmasında 74 varlık için **fark 0** çıkar.
+  3. Varlık listesi (`/api/assets`), varlık detayı (`/api/assets/{id}`) ve dashboard (`/api/dashboard/summary`) hâlâ hatasız açılır.
+  4. Mevcut JDBC RowMapper ve sorgular yeni `specifications JSON` kolonu yüzünden bozulmaz.
+  5. Bootstrap admin hesabı `APP_ADMIN_PASSWORD` ile oluşturulduğunda `must_change_password = 1` olur; ortam değişkeni verilmediğinde uygulama yine hatasız ayağa kalkar.
 
 ---
 
 ### FAZ 1B: Kimlik Doğrulama, SPA CSRF, Roller, Yeni Modüller ve STAFF/Müdürlük İzolasyonu
-- Spring Security + Session login + SPA Cookie CSRF (`CsrfTokenRequestAttributeHandler` + `CsrfCookieFilter`).
+- Spring Security + Session login + SPA Cookie CSRF (`SpaCsrfTokenRequestHandler` / `CsrfTokenRequestAttributeHandler` + `CsrfCookieFilter`).
 - `system_users` üzerinden BCrypt doğrulaması (`/api/auth/login`).
 - `must_change_password` durumunda arayüzde zorunlu şifre değiştirme modalı.
-- `SecurityScopeProvider`, `TenantQueryScope` ile:
-  - `assets` ve bağlı tablolarda (`assignments`, `maintenances`, `movements`, `documents`) müdürlük izolasyonu.
-  - `stock_items`, `stock_transactions`, `fleet_vehicles`, `procurement_orders`, `inventory_audits` uç noktalarında müdürlük filtrelemesi.
-  - `STAFF` kullanıcıları için `personnel_id` üzerinden sadece kendi zimmetli varlıklarını filtreleme.
-  - Dashboard, hiyerarşi ağacı, rapor ve denetim günlüğü uç noktalarında rol/müdürlük kapsamı.
+- **Müdürlük ve Varlık Sahipliği Düzeltmeleri:**
+  - `asset_assignments` tablosuna `personnel_id NUMBER(19) FK` eklenmesi; mevcut kayıtların personel adından doldurulması.
+  - `stock_transactions.department_id` alanı malzemeyi teslim alan birimdir; stok mülkiyeti filtresi `stock_items.department_id` üzerinden uygulanır.
+  - `procurement_orders.department_id` ve `inventory_audits.department_id` alanları doğrudan talep eden / denetlenen müdürlük sahipliğidir.
+  - `department_id IS NULL` analizi: Canlı veritabanında `assets` (0), `fleet_vehicles` (0), `stock_items` (0) NULL kayıt içermemektedir. Olası NULL kayıtlar yalnızca genel belediye yöneticilerine (`ADMIN`, `AUDITOR`, `VIEWER`) görünür.
+- **Rol Yetki Zorlaması ve Salt Okunurluk:**
+  - `AUDITOR` ve `VIEWER` rolleri için güvenlik katmanında (`SecurityGuard` / Filter) HTTP GET dışındaki tüm istekler (`POST`, `PUT`, `DELETE`, `PATCH`) `403 Forbidden` ile engellenir.
+  - `STAFF` kullanıcıları için SQL filtresi doğrudan `aa.personnel_id = :userPersonnelId` bağına bağlanır (aynı isimli personel karışıklığını ve `OR a.department_id` hatasını önler).
+- **Test ve Geliştirme Kullanıcıları:**
+  - Dev profilinde çalışan `DevUsersSeed` bileşeni ile test amaçlı her role uygun (Fen İşleri Müdürü, Destek Personeli, Denetçi, İzleyici) örnek kullanıcılar oluşturulur.
 - `GlobalExceptionHandler` içine `DataIntegrityViolationException` kısıt hata eşlemesinin eklenmesi.
-- **1B Test Kriteri:**
-  1. Fen İşleri Müdürü girişi ile sadece Fen İşleri varlık/stok/filo/zimmet kayıtları görünür.
-  2. Bir personel (`STAFF`) girişi yaptığında sadece kendine zimmetli demirbaşları listeler.
-  3. URL manipülasyonunda veya yetkisiz erişimde `403 Forbidden` döner.
-  4. Mükerrer barkod veya sicil no girildiğinde 500 yerine anlaşılır Türkçe hata mesajı döner.
-  5. CSRF token olmadan yapılan POST istekleri engellenir.
 
 ---
 
 ### FAZ 1C: Varlık Yaşam Döngüsü Servisi, 11 Durum Makinesi ve Doğrulayıcı
 - `AssetLifecycleStatus` 11'li enum ve `AssetLifecycleValidator` sınıfı.
 - Tüm servislerdeki (`AssignmentService`, `MaintenanceService`, `MovementService`, `AssetService`) doğrudan durum güncellemelerinin `AssetLifecycleService.transitionState` metoduna yönlendirilmesi.
-- Durum makinesi geçiş matrisinin zorlanması (`ZIMMETLENDI -> KAYDEDILDI`, `ZIMMETLENDI -> BAKIMDA`, `BAKIMDA -> KAYDEDILDI`, `PASIF_ASKIDA`, `ZAYIAT_CALINMA`).
-- Durum değiştiğinde `assets.status` alanının otomatik senkronizasyonu ve `system_audit_logs` tablosuna varsayılan transaction ile JSON diff yazılması.
-- **1C Test Kriteri:** Geçersiz durum geçişleri (örn. `SATIN_ALINDI` ➔ `HURDAYA_AYRILDI`) engellenir; geçerli geçişlerde audit logda eski ve yeni durum JSON formatında doğrulanır.
+- **Yaşam Döngüsü ve Durum Kuralları:**
+  - **Soft Delete Bağımsızlığı:** Silme işlemi (`delete`) durum geçişi değildir; `lifecycle_status` değiştirilmez, yalnızca `is_deleted = 1, deleted_at, deleted_by, is_active = 0` güncellenir.
+  - **Son Durumların Faal Olmama Kuralı:** `DEVREDILDI`, `BAGISLANDI`, `SATILDI`, `ZAYIAT_CALINMA` durumlarına geçen varlıklarda `is_active = 0` yapılır (listelerde aktif görünmezler).
+  - **Konum Transferi:** `MovementService.TRANSFER` oda/bina nakliyesidir; durum geçişi sayılmaz ve validator çağırmaz.
+  - **Bakım Sonrası Önceki Duruma Dönüş:** `asset_maintenances` tablosuna `previous_lifecycle_status` eklenir; bakım tamamlandığında cihaz önceki durumuna (`ZIMMETLENDI` veya `KULLANIMDA` veya `KAYDEDILDI`) güvenle döndürülür.
+  - **Bilinçli Mevzuat Kuralı:** Kurumlararası devir, bağış ve hurda satışı yalnızca ambardaki (`KAYDEDILDI`) varlıklar üzerinden yapılabilir; sahadaki veya personeldeki varlık önce ambara iade alınmalıdır.
 
 ---
 
@@ -777,38 +794,54 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 
 ## BÖLÜM 4: Öncesi / Sonrası Karşılaştırmalı Bütünlük Doğrulama Yöntemi
 
-Migrasyonlar öncesinde veritabanı anlık görüntüsü (snapshot) alınacak ve migrasyonlar sonrasında aşağıdaki sorgular çalıştırılarak 0 fark olduğu kanıtlanacaktır:
+V9 öncesinde `is_deleted` ve `lifecycle_status` kolonları henüz bulunmadığından, **öncesi snapshot sorguları yalnızca V1-V8 mevcut kolonlarını okuyacak şekilde çalıştırılır ve çıktısı dosyaya saklanır**. V9-V11 sonrasında aynı kolonlar karşılaştırılarak 0 fark olduğu kanıtlanır; `lifecycle_status` ise ayrıca doğrulanır.
 
 ```sql
--- SORGUSAL KARŞILAŞTIRMA SETİ (PRE-MIGRATION SNAPSHOT vs. POST-MIGRATION VERIFICATION)
+-- =============================================================================
+-- 1. V9 ÖNCESİ ÇALIŞTIRILACAK SNAPSHOT SORGULARI (PRE-MIGRATION SNAPSHOT)
+-- (Bu sorgularda henüz var olmayan is_deleted veya lifecycle_status kolonları kullanılmaz)
+-- =============================================================================
 
--- Kontrol 1: Toplam Varlık Sayısı ve Finansal Değer Eşitliği
+-- Öncesi Kontrol 1: Toplam Varlık Sayısı ve Finansal Değer
 SELECT COUNT(*) AS total_count,
-       SUM(estimated_value) AS total_financial_value
-FROM assets
-WHERE is_deleted = 0;
--- Sonuç öncesi ve sonrası birebir eşit olmalıdır (74 adet, 48.298.300 TL).
+       NVL(SUM(estimated_value), 0) AS total_financial_value
+FROM assets;
+-- Çıktı: 74 adet, 48.298.300 TL
 
--- Kontrol 2: 30 Müdürlük Bazında Varlık Sayıları Dağılım Matrisi
+-- Öncesi Kontrol 2: 30 Müdürlük Bazında Varlık Dağılımı
 SELECT d.id AS dept_id, d.code AS dept_code, COUNT(a.id) AS asset_count, NVL(SUM(a.estimated_value), 0) AS dept_val
 FROM departments d
-LEFT JOIN assets a ON a.department_id = d.id AND a.is_deleted = 0
+LEFT JOIN assets a ON a.department_id = d.id
 GROUP BY d.id, d.code
 ORDER BY d.id;
--- V9-V11 öncesi çıktı ile sonrası çıktı diff yapılır (0 fark beklenir).
 
--- Kontrol 3: 16 Kategori Bazında Varlık Dağılım Matrisi
+-- Öncesi Kontrol 3: 16 Kategori Bazında Varlık Dağılımı
 SELECT c.id AS cat_id, c.code AS cat_code, COUNT(a.id) AS asset_count
 FROM asset_categories c
-LEFT JOIN assets a ON a.category_id = c.id AND a.is_deleted = 0
+LEFT JOIN assets a ON a.category_id = c.id
 GROUP BY c.id, c.code
 ORDER BY c.id;
--- V9-V11 öncesi ve sonrası çıktısı birebir aynı olmalıdır.
 
--- Kontrol 4: Varlık Bazlı Temel Alanların Birebir Eşitliği
-SELECT id, code, barcode, name, department_id, building_id, floor_id, room_id, status, lifecycle_status
+-- Öncesi Kontrol 4: 74 Varlığın Birebir Kayıt Detayları (Snapshot Dosyasına Yazılır)
+SELECT id, code, barcode, name, department_id, building_id, floor_id, room_id, status
 FROM assets
-WHERE is_deleted = 0
 ORDER BY id;
--- Tüm 74 satırın ID, kod, barkod, müdürlük, lokasyon ve türetilen lifecycle_status değerleri doğrulanır.
+
+
+-- =============================================================================
+-- 2. V9-V11 SONRASI ÇALIŞTIRILACAK KARŞILAŞTIRMA SORGULARI (POST-MIGRATION VERIFICATION)
+-- =============================================================================
+
+-- Sonrası Kontrol 1: V9 Öncesi Snapshot ile Birebir Karşılaştırma (Fark 0 Beklenir)
+SELECT id, code, barcode, name, department_id, building_id, floor_id, room_id, status
+FROM assets
+ORDER BY id;
+-- Öncesi JSON çıktısı ile karşılaştırılır (birebir eşleşmelidir).
+
+-- Sonrası Kontrol 2: Yeni lifecycle_status Kolonunun 74 Varlık İçin Doğrulanması
+SELECT id, code, status, lifecycle_status, is_deleted
+FROM assets
+ORDER BY id;
+-- Depoda -> KAYDEDILDI, Zimmetli -> ZIMMETLENDI, Aktif -> KULLANIMDA, Bakımda -> BAKIMDA
+-- Tüm kayıtlarda is_deleted = 0 olmalıdır.
 ```
