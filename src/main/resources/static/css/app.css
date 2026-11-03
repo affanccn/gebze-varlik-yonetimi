@@ -204,74 +204,410 @@ body {
     font-weight: 700;
 }
 
-/* ÜST BAR VE NAVİGASYON */
+/* =============================================================================
+   KURUMSAL SOL MENÜ (SIDEBAR) & YENİ APP LAYOUT
+   ============================================================================= */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--gray-100);
+}
+
+/* SOL MENÜ (SIDEBAR) */
+.app-sidebar {
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
+    background: linear-gradient(180deg, var(--navy-950) 0%, var(--navy-900) 100%);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 950;
+    border-right: 1px solid var(--navy-800);
+    transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), transform 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--navy-800);
+    min-height: 58px;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.sidebar-logo-icon {
+    font-size: 1.45rem;
+    flex-shrink: 0;
+}
+
+.sidebar-brand-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.sidebar-app-name {
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: var(--white);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-app-sub {
+    font-size: 0.68rem;
+    color: var(--teal-400);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.sidebar-collapse-btn {
+    background: var(--navy-800);
+    border: 1px solid var(--navy-700);
+    color: var(--gray-300);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.sidebar-collapse-btn:hover {
+    background: var(--teal-600);
+    color: var(--white);
+    border-color: var(--teal-500);
+}
+
+.collapse-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.65rem 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--navy-700) transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 5px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: var(--navy-700);
+    border-radius: 4px;
+}
+
+.sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.sidebar-group-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--gray-400);
+    letter-spacing: 0.06em;
+    padding: 0.35rem 0.55rem 0.2rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.52rem 0.75rem;
+    border-radius: 7px;
+    color: var(--gray-200);
+    background: transparent;
+    border: 1px solid transparent;
+    font-size: 0.83rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.sidebar-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--white);
+}
+
+.sidebar-item.active {
+    background: var(--teal-600);
+    color: var(--white);
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.4);
+    border-color: var(--teal-500);
+}
+
+.sidebar-icon {
+    font-size: 1.05rem;
+    width: 22px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.sidebar-label {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-footer {
+    padding: 0.65rem 0.9rem;
+    border-top: 1px solid var(--navy-800);
+    background: var(--navy-950);
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+}
+
+.sidebar-footer-info {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.73rem;
+    color: var(--gray-300);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* DARALTILMIŞ (COLLAPSED) MOD - SADECE İKON */
+.app-sidebar.collapsed {
+    width: 68px;
+    min-width: 68px;
+    max-width: 68px;
+}
+
+.app-sidebar.collapsed .sidebar-brand-text {
+    display: none;
+}
+
+.app-sidebar.collapsed .sidebar-header {
+    justify-content: center;
+    padding: 0.85rem 0.4rem;
+}
+
+.app-sidebar.collapsed .sidebar-collapse-btn {
+    margin-left: 0;
+}
+
+.app-sidebar.collapsed .sidebar-collapse-btn .collapse-icon {
+    transform: rotate(180deg);
+}
+
+.app-sidebar.collapsed .sidebar-group-label {
+    font-size: 0;
+    height: 1px;
+    background: var(--navy-800);
+    margin: 0.35rem 0.4rem;
+    padding: 0;
+}
+
+.app-sidebar.collapsed .sidebar-item {
+    justify-content: center;
+    padding: 0.52rem 0;
+    width: 100%;
+}
+
+.app-sidebar.collapsed .sidebar-label {
+    display: none;
+}
+
+.app-sidebar.collapsed .sidebar-footer-text {
+    display: none;
+}
+
+.app-sidebar.collapsed .sidebar-footer-info {
+    justify-content: center;
+    width: 100%;
+}
+
+/* SAĞ ANA ÇALIŞMA ALANI & ÜST BAR */
+.app-main-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 100vh;
+}
+
 .top-bar {
     background-color: var(--navy-900);
     color: var(--white);
     border-bottom: 3px solid var(--teal-500);
-    padding: 0.65rem 0;
+    padding: 0.65rem 1.25rem;
     position: sticky;
     top: 0;
     z-index: 900;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .top-bar-inner {
     display: flex;
-    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    gap: 0.75rem;
+    gap: 1rem;
+    width: 100%;
 }
 
-.brand-area {
+.top-bar-left {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.85rem;
+    min-width: 0;
 }
 
-.app-label {
-    font-size: 0.96rem;
-    font-weight: 700;
-    color: var(--white);
-}
-
-.demo-pill {
-    display: inline-block;
-    background-color: var(--teal-600);
-    color: var(--white);
-    font-size: 0.68rem;
-    font-weight: 700;
-    padding: 0.18rem 0.55rem;
-    border-radius: 999px;
-    letter-spacing: 0.04em;
-}
-
-.main-nav {
+.top-bar-view-info {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.nav-tab {
-    background: transparent;
-    color: var(--gray-200);
-    border: 1px solid transparent;
-    padding: 0.42rem 0.75rem;
+.top-bar-view-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--teal-400);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.top-bar-view-sep {
+    color: var(--gray-400);
+    font-size: 0.95rem;
+}
+
+.top-bar-view-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--white);
+    margin: 0;
+    white-space: nowrap;
+}
+
+.hamburger-btn {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 32px;
+    height: 32px;
+    background: var(--navy-800);
+    border: 1px solid var(--navy-700);
     border-radius: 6px;
-    font-size: 0.83rem;
-    font-weight: 600;
+    padding: 6px 7px;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
-.nav-tab:hover {
-    background-color: var(--navy-800);
-    color: var(--white);
+.hamburger-btn:hover {
+    background: var(--teal-600);
+    border-color: var(--teal-500);
 }
 
-.nav-tab.active {
-    background-color: var(--teal-600);
-    color: var(--white);
+.hamburger-line {
+    width: 100%;
+    height: 2px;
+    background-color: var(--white);
+    border-radius: 2px;
+}
+
+.page-main {
+    flex: 1;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1.25rem;
+    box-sizing: border-box;
+}
+
+.site-footer {
+    background: var(--white);
+    border-top: 1px solid var(--gray-200);
+    padding: 0.85rem 1.25rem;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    margin-top: auto;
+    text-align: center;
+}
+
+/* RESPONSIVE: MOBİL VE TABLET ÇEKMECE MODU */
+@media (max-width: 992px) {
+    .app-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 270px;
+        min-width: 270px;
+        max-width: 270px;
+        z-index: 1200;
+        transform: translateX(-100%);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .app-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.22s ease;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .hamburger-btn {
+        display: flex;
+    }
+
+    .sidebar-collapse-btn {
+        display: none;
+    }
 }
 
 .user-bar {

@@ -57,55 +57,174 @@
         </div>
     </div>
 
-    <!-- ÜST BAR -->
-    <header class="top-bar">
-        <div class="container top-bar-inner">
-            <div class="brand-area">
-                <span class="app-label">Gebze Belediyesi &bull; Varlık Yönetimi</span>
-                <span class="demo-pill" id="db-badge">Oracle 23ai Canlı</span>
-            </div>
-
-            <nav class="main-nav" aria-label="Ana modül menüsü">
-                <button type="button" class="nav-tab active" data-view="dashboard">📊 Ana Ekran</button>
-                <button type="button" class="nav-tab" data-view="tree">🌳 Kurumsal &amp; Fiziksel Ağaç</button>
-                <button type="button" class="nav-tab" data-view="assets">📦 Varlıklar</button>
-                <button type="button" class="nav-tab" data-view="locations">🏢 Binalar &amp; Odalar</button>
-                <button type="button" class="nav-tab" data-view="departments">🏛️ Müdürlükler</button>
-                <button type="button" class="nav-tab" data-view="personnel">👥 Personel Yönetimi</button>
-                <button type="button" class="nav-tab" data-view="categories">🏷️ Kategoriler</button>
-                <button type="button" class="nav-tab" data-view="assignments">🤝 Zimmet</button>
-                <button type="button" class="nav-tab" data-view="maintenances">🔧 Bakım &amp; Onarım</button>
-                <button type="button" class="nav-tab" data-view="movements">📜 Hareketler &amp; Transfer</button>
-                <button type="button" class="nav-tab" data-view="stock">🏬 Depo &amp; Stok</button>
-                <button type="button" class="nav-tab" data-view="fleet">🚘 Araç &amp; Filo</button>
-                <button type="button" class="nav-tab" data-view="procurement">🛒 Satın Alma &amp; Tedarik</button>
-                <button type="button" class="nav-tab" data-view="counting">📋 Sayım &amp; Kontrol</button>
-                <button type="button" class="nav-tab" data-view="qrcodes">🏷️ QR Kod &amp; Etiketler</button>
-                <button type="button" class="nav-tab" data-view="documents">📁 Belge Yönetimi</button>
-                <button type="button" class="nav-tab" data-view="reports">📈 Raporlama &amp; Analiz</button>
-                <button type="button" class="nav-tab" data-view="audit">🛡️ Denetim &amp; Onay</button>
-                <button type="button" class="nav-tab" data-view="settings">⚙️ Sistem Yönetimi</button>
-            </nav>
-
-            <div class="user-bar">
-                <div class="health-indicator" id="health-box" aria-live="polite" title="Veritabanı bağlantı durumu">
-                    <span class="status-dot" id="health-dot"></span>
-                    <span id="health-text">Oracle 23ai Bağlı</span>
-                </div>
-                <div class="user-badge" id="user-badge">
-                    <span id="current-user-name">Sistem Yöneticisi</span>
-                    <span class="role-tag" id="current-user-role">ADMIN</span>
-                </div>
-                <button type="button" id="btn-logout" class="btn-logout">Çıkış</button>
-            </div>
-        </div>
-    </header>
-
     <!-- BİLDİRİM TOAST ALANI -->
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-    <!-- ANA ÇALIŞMA ALANI -->
-    <main id="main-workspace" class="container page-main">
+    <!-- ANA UYGULAMA DÜZENİ (APP SHELL) -->
+    <div class="app-layout" id="app-layout">
+        <!-- SOL MENÜ (SIDEBAR) -->
+        <aside class="app-sidebar" id="app-sidebar" aria-label="Ana Menü">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <span class="sidebar-logo-icon">🏛️</span>
+                    <div class="sidebar-brand-text">
+                        <span class="sidebar-app-name">GEBZE BELEDİYESİ</span>
+                        <span class="sidebar-app-sub">Varlık &amp; Kaynak Sistemi</span>
+                    </div>
+                </div>
+                <button type="button" class="sidebar-collapse-btn" id="btn-collapse-sidebar" title="Menüyü Daralt / Genişlet" aria-label="Menüyü daralt">
+                    <span class="collapse-icon">◀</span>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav" id="sidebar-nav">
+                <!-- 1. Grup: Genel Bakış -->
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">📌 GENEL BAKIŞ</div>
+                    <button type="button" class="nav-tab sidebar-item active" data-view="dashboard" title="Ana Ekran">
+                        <span class="sidebar-icon">📊</span>
+                        <span class="sidebar-label">Ana Ekran</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="tree" title="Kurumsal &amp; Fiziksel Ağaç">
+                        <span class="sidebar-icon">🌳</span>
+                        <span class="sidebar-label">Kurumsal &amp; Fiziksel Ağaç</span>
+                    </button>
+                </div>
+
+                <!-- 2. Grup: Kurumsal Yapı -->
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">🏛️ KURUMSAL YAPI</div>
+                    <button type="button" class="nav-tab sidebar-item" data-view="locations" title="Binalar &amp; Odalar">
+                        <span class="sidebar-icon">🏢</span>
+                        <span class="sidebar-label">Binalar &amp; Odalar</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="departments" title="30 Müdürlük">
+                        <span class="sidebar-icon">🏛️</span>
+                        <span class="sidebar-label">30 Müdürlük</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="personnel" title="Personel Yönetimi">
+                        <span class="sidebar-icon">👥</span>
+                        <span class="sidebar-label">Personel Yönetimi</span>
+                    </button>
+                </div>
+
+                <!-- 3. Grup: Demirbaş & Varlık -->
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">📦 DEMİRBAŞ &amp; VARLIK</div>
+                    <button type="button" class="nav-tab sidebar-item" data-view="assets" title="Varlıklar (Demirbaşlar)">
+                        <span class="sidebar-icon">📦</span>
+                        <span class="sidebar-label">Varlıklar</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="categories" title="16 Kategori">
+                        <span class="sidebar-icon">🏷️</span>
+                        <span class="sidebar-label">16 Kategori</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="assignments" title="Zimmet İşlemleri">
+                        <span class="sidebar-icon">🤝</span>
+                        <span class="sidebar-label">Zimmet</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="maintenances" title="Bakım &amp; Onarım">
+                        <span class="sidebar-icon">🔧</span>
+                        <span class="sidebar-label">Bakım &amp; Onarım</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="movements" title="Hareketler &amp; Transfer">
+                        <span class="sidebar-icon">📜</span>
+                        <span class="sidebar-label">Hareketler &amp; Transfer</span>
+                    </button>
+                </div>
+
+                <!-- 4. Grup: Lojistik & Filo -->
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">🏬 LOJİSTİK &amp; FİLO</div>
+                    <button type="button" class="nav-tab sidebar-item" data-view="stock" title="Depo &amp; Stok">
+                        <span class="sidebar-icon">🏬</span>
+                        <span class="sidebar-label">Depo &amp; Stok</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="fleet" title="Araç &amp; Filo (İş Makineleri Dahil)">
+                        <span class="sidebar-icon">🚘</span>
+                        <span class="sidebar-label">Araç &amp; Filo</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="procurement" title="Satın Alma &amp; Tedarik">
+                        <span class="sidebar-icon">🛒</span>
+                        <span class="sidebar-label">Satın Alma &amp; Tedarik</span>
+                    </button>
+                </div>
+
+                <!-- 5. Grup: Denetim & Kontrol -->
+                <div class="sidebar-group">
+                    <div class="sidebar-group-label">📋 DENETİM &amp; KONTROL</div>
+                    <button type="button" class="nav-tab sidebar-item" data-view="counting" title="Sayım &amp; Kontrol">
+                        <span class="sidebar-icon">📋</span>
+                        <span class="sidebar-label">Sayım &amp; Kontrol</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="qrcodes" title="QR Kod &amp; Etiketler">
+                        <span class="sidebar-icon">🏷️</span>
+                        <span class="sidebar-label">QR Kod &amp; Etiketler</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="documents" title="Belge Yönetimi">
+                        <span class="sidebar-icon">📁</span>
+                        <span class="sidebar-label">Belge Yönetimi</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="reports" title="Raporlama &amp; Analiz">
+                        <span class="sidebar-icon">📈</span>
+                        <span class="sidebar-label">Raporlama &amp; Analiz</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="audit" title="Denetim &amp; Onay">
+                        <span class="sidebar-icon">🛡️</span>
+                        <span class="sidebar-label">Denetim &amp; Onay</span>
+                    </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="settings" title="Sistem Yönetimi">
+                        <span class="sidebar-icon">⚙️</span>
+                        <span class="sidebar-label">Sistem Yönetimi</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-info">
+                    <span class="status-dot ok"></span>
+                    <span class="sidebar-footer-text">Oracle 23ai Bağlı</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MOBİL ÇEKMECE İÇİN KARARTMA OVERLAY'İ -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- SAĞ ANA ÇALIŞMA ALANI SARMALAYICI -->
+        <div class="app-main-wrapper">
+            <!-- ÜST BAR (SADELEŞTİRİLMİŞ) -->
+            <header class="top-bar">
+                <div class="top-bar-inner">
+                    <div class="top-bar-left">
+                        <button type="button" class="hamburger-btn" id="btn-mobile-menu" aria-label="Menüyü aç/kapat" title="Menü">
+                            <span class="hamburger-line"></span>
+                            <span class="hamburger-line"></span>
+                            <span class="hamburger-line"></span>
+                        </button>
+                        <div class="top-bar-view-info">
+                            <span class="top-bar-view-label">Gebze EKYS</span>
+                            <span class="top-bar-view-sep">&rsaquo;</span>
+                            <h2 class="top-bar-view-title" id="top-bar-current-view">Ana Ekran</h2>
+                        </div>
+                    </div>
+
+                    <div class="user-bar">
+                        <div class="health-indicator" id="health-box" aria-live="polite" title="Veritabanı bağlantı durumu">
+                            <span class="status-dot" id="health-dot"></span>
+                            <span id="health-text">Oracle 23ai Bağlı</span>
+                        </div>
+                        <div class="user-badge" id="user-badge">
+                            <span id="current-user-name">Sistem Yöneticisi</span>
+                            <span class="role-tag" id="current-user-role">ADMIN</span>
+                        </div>
+                        <button type="button" id="btn-logout" class="btn-logout">Çıkış</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- ANA ÇALIŞMA ALANI -->
+            <main id="main-workspace" class="page-main">
         <div class="demo-banner" role="note">
             <strong>Gebze Belediyesi Kurumsal ve Fiziksel Envanter Altyapısı:</strong>
             Sistemde 30 müdürlük, şeflikler, 12 hizmet binası ve şantiye, katlar, odalar ve 16 ana kategori Oracle 23ai veritabanında hiyerarşik olarak yönetilmektedir. Bir varlığın hangi binada, hangi katta ve hangi odada olduğu anlık takip edilir.
@@ -1266,6 +1385,14 @@
         </section>
     </main>
 
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <p>Gebze Belediyesi Varlık Yönetimi Sistemi &mdash; Java 25 LTS &bull; Spring Boot 4.1.2 &bull; Oracle Database 23ai</p>
+        </div>
+    </footer>
+    </div> <!-- /.app-main-wrapper -->
+    </div> <!-- /.app-layout -->
+
     <!-- ======================================================== -->
     <!-- MODAL PENCERELER                                         -->
     <!-- ======================================================== -->
@@ -1857,12 +1984,6 @@
             </form>
         </div>
     </div>
-
-    <footer class="site-footer">
-        <div class="container footer-inner">
-            <p>Gebze Belediyesi Varlık Yönetimi Sistemi &mdash; Java 25 LTS &bull; Spring Boot 4.1.2 &bull; Oracle Database 23ai</p>
-        </div>
-    </footer>
 
     <script src="/js/app.js"></script>
 </body>

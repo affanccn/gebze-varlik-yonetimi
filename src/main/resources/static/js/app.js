@@ -184,6 +184,40 @@
             tabs[j].classList.toggle("active", tabs[j].getAttribute("data-view") === viewName);
         }
 
+        var viewTitles = {
+            "dashboard": "Ana Ekran & Dashboard",
+            "tree": "Kurumsal & Fiziksel Ağaç",
+            "assets": "Demirbaş ve Varlık Envanteri",
+            "locations": "Binalar, Katlar ve Odalar",
+            "departments": "30 Kurumsal Müdürlük",
+            "personnel": "Personel Yönetimi",
+            "categories": "16 Ana Varlık Kategorisi",
+            "assignments": "Zimmet İşlemleri ve Fişler",
+            "maintenances": "Bakım & Onarım İş Emirleri",
+            "movements": "Hareketler ve Konum Transferi",
+            "stock": "Depo ve Stok Yönetimi",
+            "fleet": "Araç & Filo (İş Makineleri Dahil)",
+            "procurement": "Satın Alma & Tedarik Süreçleri",
+            "counting": "Fiziksel Sayım & Kontrol",
+            "qrcodes": "QR Kod & Etiket Yönetimi",
+            "documents": "Belge & Evrak Arşivi",
+            "reports": "Raporlama & Amortisman Analizi",
+            "audit": "Sistem Denetim ve Onay Günlüğü",
+            "settings": "Sistem Ayarları & Yetki Matrisi"
+        };
+        var currentViewTitleEl = document.getElementById("top-bar-current-view");
+        if (currentViewTitleEl && viewTitles[viewName]) {
+            currentViewTitleEl.textContent = viewTitles[viewName];
+        }
+
+        // Mobil çekmece açıksa kapat
+        var appSidebar = document.getElementById("app-sidebar");
+        var sidebarOverlay = document.getElementById("sidebar-overlay");
+        if (appSidebar && appSidebar.classList.contains("open")) {
+            appSidebar.classList.remove("open");
+            if (sidebarOverlay) sidebarOverlay.classList.remove("active");
+        }
+
         if (skipLoad) return;
 
         if (viewName === "dashboard") loadDashboard();
@@ -1575,6 +1609,39 @@
         for (var i = 0; i < navTabs.length; i++) {
             navTabs[i].addEventListener("click", function () {
                 switchView(this.getAttribute("data-view"));
+            });
+        }
+
+        // Sidebar daraltma (collapse/expand) butonu
+        var collapseBtn = document.getElementById("btn-collapse-sidebar");
+        var appSidebar = document.getElementById("app-sidebar");
+        if (collapseBtn && appSidebar) {
+            collapseBtn.addEventListener("click", function () {
+                var isCollapsed = appSidebar.classList.toggle("collapsed");
+                try {
+                    localStorage.setItem("gebze_sidebar_collapsed", isCollapsed ? "1" : "0");
+                } catch (e) {}
+            });
+            try {
+                if (localStorage.getItem("gebze_sidebar_collapsed") === "1") {
+                    appSidebar.classList.add("collapsed");
+                }
+            } catch (e) {}
+        }
+
+        // Mobil hamburger menü butonu ve karartma overlay'i
+        var mobileMenuBtn = document.getElementById("btn-mobile-menu");
+        var sidebarOverlay = document.getElementById("sidebar-overlay");
+        if (mobileMenuBtn && appSidebar) {
+            mobileMenuBtn.addEventListener("click", function () {
+                var isOpen = appSidebar.classList.toggle("open");
+                if (sidebarOverlay) sidebarOverlay.classList.toggle("active", isOpen);
+            });
+        }
+        if (sidebarOverlay && appSidebar) {
+            sidebarOverlay.addEventListener("click", function () {
+                appSidebar.classList.remove("open");
+                sidebarOverlay.classList.remove("active");
             });
         }
 
