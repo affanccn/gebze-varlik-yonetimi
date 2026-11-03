@@ -1,7 +1,8 @@
 {
   "recommendations": [
     "vscjava.vscode-java-pack",
-    "vmware.vscode-boot-dev-pack"
+    "vmware.vscode-boot-dev-pack",
+    "oracle.sql-developer"
   ]
 }
 

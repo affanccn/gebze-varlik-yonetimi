@@ -1,121 +1,218 @@
 package tr.gov.gebze.varlik.common;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tr.gov.gebze.varlik.asset.Asset;
-import tr.gov.gebze.varlik.asset.AssetService;
-import tr.gov.gebze.varlik.assignment.AssetAssignment;
-import tr.gov.gebze.varlik.assignment.AssignmentService;
 import tr.gov.gebze.varlik.movement.AssetMovement;
-import tr.gov.gebze.varlik.movement.MaintenanceRecord;
-import tr.gov.gebze.varlik.movement.MaintenanceService;
-import tr.gov.gebze.varlik.movement.MovementService;
+import tr.gov.gebze.varlik.movement.MovementRepository;
 
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
 
-    private final AssetService assetService;
-    private final MovementService movementService;
-    private final AssignmentService assignmentService;
-    private final MaintenanceService maintenanceService;
+    private final JdbcClient jdbcClient;
+    private final MovementRepository movementRepository;
 
-    public DashboardController(
-            AssetService assetService,
-            MovementService movementService,
-            AssignmentService assignmentService,
-            MaintenanceService maintenanceService
-    ) {
-        this.assetService = assetService;
-        this.movementService = movementService;
-        this.assignmentService = assignmentService;
-        this.maintenanceService = maintenanceService;
+    public DashboardController(JdbcClient jdbcClient, MovementRepository movementRepository) {
+        this.jdbcClient = jdbcClient;
+        this.movementRepository = movementRepository;
     }
 
     @GetMapping
     public Map<String, Object> getSummary() {
-        List<Asset> allAssets = assetService.findAllRaw();
-        List<AssetMovement> allMovements = movementService.findAll(null, null);
-        List<AssetAssignment> activeAssignments = assignmentService.findAll(null, "AKTIF");
-        List<MaintenanceRecord> openMaintenances = maintenanceService.findAll(null, "DEVAM_EDIYOR");
+        // 1. ÖZET SAYILAR (TAMAMI ORACLE VERİTABANINDAN)
+        long totalAssets = queryCount("SELECT COUNT(*) FROM assets WHERE is_active = 1");
+        long totalBuildings = queryCount("SELECT COUNT(*) FROM buildings WHERE is_active = 1");
+        long totalDepartments = queryCount("SELECT COUNT(*) FROM departments WHERE is_active = 1");
+        long totalSubUnits = queryCount("SELECT COUNT(*) FROM sub_units WHERE is_active = 1");
+        long totalFloors = queryCount("SELECT COUNT(*) FROM floors WHERE is_active = 1");
+        long totalRooms = queryCount("SELECT COUNT(*) FROM rooms WHERE is_active = 1");
 
-        long activeCount = allAssets.stream().filter(a -> "Aktif".equalsIgnoreCase(a.status())).count();
-        long inStorageCount = allAssets.stream().filter(a -> "Depoda".equalsIgnoreCase(a.status())).count();
-        long maintenanceCount = allAssets.stream().filter(a -> "Bakımda".equalsIgnoreCase(a.status())).count();
+        long activeCount = queryCount("SELECT COUNT(*) FROM assets WHERE is_active = 1 AND (status = 'Aktif' OR status = 'Zimmetli')");
+        long inStorageCount = queryCount("SELECT COUNT(*) FROM assets WHERE is_active = 1 AND status = 'Depoda'");
+        long maintenanceCount = queryCount("SELECT COUNT(*) FROM assets WHERE is_active = 1 AND status = 'Bakımda'");
+        long inactiveCount = queryCount("SELECT COUNT(*) FROM assets WHERE is_active = 1 AND (status = 'Kullanım Dışı' OR status = 'Hurda')");
 
-        double totalEstimatedValue = allAssets.stream()
-                .mapToDouble(a -> a.estimatedValue() == null ? 0.0 : a.estimatedValue())
-                .sum();
+        Double totalEstimatedValue = jdbcClient.sql("SELECT COALESCE(SUM(estimated_value), 0) FROM assets WHERE is_active = 1")
+                .query(Double.class).single();
 
-        LocalDate today = LocalDate.now();
-        List<Asset> warrantyAlerts = allAssets.stream()
-                .filter(a -> {
-                    LocalDate end = AssetService.parseDateSafe(a.warrantyEndDate());
-                    return end != null && !end.isAfter(today.plusDays(90));
-                })
-                .toList();
+        // 2. 30 MÜDÜRLÜĞÜN TAMAMI VE VARLIK DAĞILIMI
+        List<Map<String, Object>> departmentsSummary = jdbcClient.sql("""
+            SELECT d.id, d.code, d.name, d.manager_name,
+                   COUNT(a.id) AS total_count,
+                   SUM(CASE WHEN a.status = 'Aktif' OR a.status = 'Zimmetli' THEN 1 ELSE 0 END) AS active_count,
+                   SUM(CASE WHEN a.status = 'Depoda' THEN 1 ELSE 0 END) AS storage_count,
+                   SUM(CASE WHEN a.status = 'Bakımda' THEN 1 ELSE 0 END) AS maintenance_count,
+                   COALESCE(SUM(a.estimated_value), 0) AS total_value
+            FROM departments d
+            LEFT JOIN assets a ON a.department_id = d.id AND a.is_active = 1
+            WHERE d.is_active = 1
+            GROUP BY d.id, d.code, d.name, d.manager_name, d.display_order
+            ORDER BY d.display_order ASC, d.id ASC
+        """).query((rs, rowNum) -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", rs.getLong("id"));
+            m.put("code", rs.getString("code"));
+            m.put("unit", rs.getString("name"));
+            m.put("name", rs.getString("name"));
+            m.put("managerName", rs.getString("manager_name"));
+            m.put("totalCount", rs.getLong("total_count"));
+            m.put("activeCount", rs.getLong("active_count"));
+            m.put("storageCount", rs.getLong("storage_count"));
+            m.put("maintenanceCount", rs.getLong("maintenance_count"));
+            m.put("totalValue", rs.getDouble("total_value"));
+            return m;
+        }).list();
 
-        List<Asset> conditionAlerts = allAssets.stream()
-                .filter(a -> "Orta".equalsIgnoreCase(a.condition()) || "Onarım Gerekli".equalsIgnoreCase(a.condition()))
-                .toList();
+        // 3. BİNALARA GÖRE DAĞILIM
+        List<Map<String, Object>> buildingsDistribution = jdbcClient.sql("""
+            SELECT b.id, b.code, b.name, b.building_type,
+                   COUNT(DISTINCT r.id) AS room_count,
+                   COUNT(DISTINCT a.id) AS asset_count
+            FROM buildings b
+            LEFT JOIN rooms r ON r.building_id = b.id AND r.is_active = 1
+            LEFT JOIN assets a ON a.building_id = b.id AND a.is_active = 1
+            WHERE b.is_active = 1
+            GROUP BY b.id, b.code, b.name, b.building_type
+            ORDER BY asset_count DESC, b.id ASC
+        """).query((rs, rowNum) -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", rs.getLong("id"));
+            m.put("code", rs.getString("code"));
+            m.put("name", rs.getString("name"));
+            m.put("type", rs.getString("building_type"));
+            m.put("roomCount", rs.getLong("room_count"));
+            m.put("assetCount", rs.getLong("asset_count"));
+            return m;
+        }).list();
 
-        Map<String, Long> byCategory = allAssets.stream()
-                .collect(Collectors.groupingBy(Asset::category, LinkedHashMap::new, Collectors.counting()));
+        // 4. KATEGORİLERE GÖRE DAĞILIM (16 ANA KATEGORİ)
+        List<Map<String, Object>> categoriesDistribution = jdbcClient.sql("""
+            SELECT c.id, c.code, c.name, c.icon,
+                   COUNT(a.id) AS count,
+                   COALESCE(SUM(a.estimated_value), 0) AS total_value
+            FROM asset_categories c
+            LEFT JOIN assets a ON (a.category_id = c.id OR a.category = c.name) AND a.is_active = 1
+            WHERE c.is_active = 1
+            GROUP BY c.id, c.code, c.name, c.icon
+            ORDER BY c.code ASC
+        """).query((rs, rowNum) -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", rs.getLong("id"));
+            m.put("code", rs.getString("code"));
+            m.put("name", rs.getString("name"));
+            m.put("icon", rs.getString("icon") == null ? "category" : rs.getString("icon"));
+            m.put("count", rs.getLong("count"));
+            m.put("totalValue", rs.getDouble("total_value"));
+            return m;
+        }).list();
 
-        Map<String, Long> byUnit = allAssets.stream()
-                .collect(Collectors.groupingBy(Asset::unit, LinkedHashMap::new, Collectors.counting()));
+        // 5. DURUMLARA VE KONDİSYONA GÖRE DAĞILIM
+        Map<String, Long> byStatus = new LinkedHashMap<>();
+        jdbcClient.sql("SELECT status, COUNT(*) AS cnt FROM assets WHERE is_active = 1 GROUP BY status ORDER BY cnt DESC")
+                .query((rs, r) -> byStatus.put(rs.getString("status"), rs.getLong("cnt"))).list();
 
-        Map<String, Long> byCondition = allAssets.stream()
-                .collect(Collectors.groupingBy(Asset::condition, LinkedHashMap::new, Collectors.counting()));
+        Map<String, Long> byCondition = new LinkedHashMap<>();
+        jdbcClient.sql("SELECT condition_status, COUNT(*) AS cnt FROM assets WHERE is_active = 1 GROUP BY condition_status ORDER BY cnt DESC")
+                .query((rs, r) -> byCondition.put(rs.getString("condition_status"), rs.getLong("cnt"))).list();
 
-        // Birim Bazlı Detaylı Envanter Özeti Tablosu
-        Map<String, List<Asset>> groupedByUnit = allAssets.stream()
-                .collect(Collectors.groupingBy(Asset::unit, LinkedHashMap::new, Collectors.toList()));
+        // 6. EN ÇOK DEMİRBAŞ BULUNAN ODALAR
+        List<Map<String, Object>> topRooms = jdbcClient.sql("""
+            SELECT r.id, r.room_number, r.name, r.room_type, b.name AS bld_name, COUNT(a.id) AS asset_count
+            FROM rooms r
+            JOIN buildings b ON r.building_id = b.id
+            LEFT JOIN assets a ON a.room_id = r.id AND a.is_active = 1
+            WHERE r.is_active = 1
+            GROUP BY r.id, r.room_number, r.name, r.room_type, b.name
+            ORDER BY asset_count DESC
+            FETCH FIRST 10 ROWS ONLY
+        """).query((rs, rowNum) -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("roomId", rs.getLong("id"));
+            m.put("roomNumber", rs.getString("room_number"));
+            m.put("roomName", rs.getString("name"));
+            m.put("roomType", rs.getString("room_type"));
+            m.put("buildingName", rs.getString("bld_name"));
+            m.put("assetCount", rs.getLong("asset_count"));
+            return m;
+        }).list();
 
-        List<Map<String, Object>> unitSummaries = new ArrayList<>();
-        for (Map.Entry<String, List<Asset>> entry : groupedByUnit.entrySet()) {
-            List<Asset> uAssets = entry.getValue();
-            long uActive = uAssets.stream().filter(a -> "Aktif".equalsIgnoreCase(a.status())).count();
-            long uStorage = uAssets.stream().filter(a -> "Depoda".equalsIgnoreCase(a.status())).count();
-            long uMaint = uAssets.stream().filter(a -> "Bakımda".equalsIgnoreCase(a.status())).count();
-            double uValue = uAssets.stream()
-                    .mapToDouble(a -> a.estimatedValue() == null ? 0.0 : a.estimatedValue())
-                    .sum();
-            unitSummaries.add(Map.of(
-                    "unit", entry.getKey(),
-                    "totalCount", uAssets.size(),
-                    "activeCount", uActive,
-                    "storageCount", uStorage,
-                    "maintenanceCount", uMaint,
-                    "totalValue", uValue
-            ));
-        }
+        // 7. GARANTİSİ BİTECEK / BİTMİŞ VARLIKLAR
+        List<Map<String, Object>> warrantyAlerts = jdbcClient.sql("""
+            SELECT a.id, a.code, a.name, a.unit_name, a.location_info,
+                   TO_CHAR(a.warranty_end_date, 'YYYY-MM-DD') AS war_date
+            FROM assets a
+            WHERE a.is_active = 1
+              AND a.warranty_end_date IS NOT NULL
+              AND a.warranty_end_date <= (CURRENT_DATE + 90)
+            ORDER BY a.warranty_end_date ASC
+            FETCH FIRST 10 ROWS ONLY
+        """).query((rs, rowNum) -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", rs.getLong("id"));
+            m.put("code", rs.getString("code"));
+            m.put("name", rs.getString("name"));
+            m.put("unit", rs.getString("unit_name") == null ? "" : rs.getString("unit_name"));
+            m.put("location", rs.getString("location_info") == null ? "" : rs.getString("location_info"));
+            m.put("warrantyEndDate", rs.getString("war_date") == null ? "" : rs.getString("war_date"));
+            return m;
+        }).list();
+
+        // 8. BAKIM VE ONARIM BEKLEYENLER
+        List<Map<String, Object>> conditionAlerts = jdbcClient.sql("""
+            SELECT a.id, a.code, a.name, a.unit_name, a.location_info, a.condition_status
+            FROM assets a
+            WHERE a.is_active = 1
+              AND (a.condition_status = 'Onarım Gerekli' OR a.condition_status = 'Orta')
+            ORDER BY a.id DESC
+            FETCH FIRST 10 ROWS ONLY
+        """).query((rs, rowNum) -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("id", rs.getLong("id"));
+            m.put("code", rs.getString("code"));
+            m.put("name", rs.getString("name"));
+            m.put("unit", rs.getString("unit_name") == null ? "" : rs.getString("unit_name"));
+            m.put("location", rs.getString("location_info") == null ? "" : rs.getString("location_info"));
+            m.put("condition", rs.getString("condition_status") == null ? "" : rs.getString("condition_status"));
+            return m;
+        }).list();
+
+        // 9. SON HAREKETLER
+        List<AssetMovement> recentMovements = movementRepository.findAll(null, null).stream().limit(10).toList();
 
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("totalAssets", allAssets.size());
-        response.put("activeAssets", activeCount);
-        response.put("storageAssets", inStorageCount);
-        response.put("maintenanceAssets", maintenanceCount);
+        response.put("totalAssets", totalAssets);
+        response.put("totalBuildings", totalBuildings);
+        response.put("totalDepartments", totalDepartments);
+        response.put("totalSubUnits", totalSubUnits);
+        response.put("totalFloors", totalFloors);
+        response.put("totalRooms", totalRooms);
+        response.put("activeCount", activeCount);
+        response.put("inStorageCount", inStorageCount);
+        response.put("maintenanceCount", maintenanceCount);
+        response.put("inactiveCount", inactiveCount);
         response.put("totalEstimatedValue", totalEstimatedValue);
-        response.put("activeAssignmentsCount", activeAssignments.size());
-        response.put("openMaintenancesCount", openMaintenances.size());
-        response.put("totalMovementsCount", allMovements.size());
-        response.put("warrantyAlertsCount", warrantyAlerts.size());
+
+        // Grafikler ve Listeler
+        response.put("byCategory", categoriesDistribution);
+        response.put("byStatus", byStatus);
+        response.put("byCondition", byCondition);
+        response.put("unitSummaries", departmentsSummary);
+        response.put("buildingsDistribution", buildingsDistribution);
+        response.put("topRooms", topRooms);
         response.put("warrantyAlerts", warrantyAlerts);
         response.put("conditionAlerts", conditionAlerts);
-        response.put("unitSummaries", unitSummaries);
-        response.put("byCategory", byCategory);
-        response.put("byUnit", byUnit);
-        response.put("byCondition", byCondition);
-        response.put("recentMovements", allMovements.stream().limit(7).toList());
-        response.put("recentAssignments", activeAssignments.stream().limit(5).toList());
+        response.put("recentMovements", recentMovements);
+
         return response;
+    }
+
+    private long queryCount(String sql) {
+        Long c = jdbcClient.sql(sql).query(Long.class).single();
+        return c == null ? 0 : c;
     }
 }

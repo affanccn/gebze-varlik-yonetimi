@@ -13,9 +13,9 @@
     <div id="login-screen" class="login-screen" role="dialog" aria-labelledby="login-title" aria-modal="true">
         <div class="login-card">
             <div class="login-card-header">
-                <span class="demo-pill">DEMO SÜRÜMÜ &bull; TAM İŞLEVSEL PROTOTİP</span>
+                <span class="demo-pill">ORACLE 23ai &bull; KURUMSAL EN BÜYÜK ALTYAPI</span>
                 <h1 id="login-title">Varlık Yönetimi Sistemi</h1>
-                <p>Envanter, TİF, Zimmet, Bakım/Kalibrasyon ve Sayım Yönetim Platformu</p>
+                <p>30 Müdürlük, 12 Hizmet Binası, Katlar, Odalar, Ambarlar ve Fiziksel Demirbaş Platformu</p>
             </div>
 
             <form id="login-form" class="login-form" novalidate>
@@ -35,22 +35,21 @@
             </form>
 
             <div class="quick-login-section">
-                <h2>Tek Tıkla Hızlı Demo Rol Girişi</h2>
-                <p class="quick-login-hint">Farklı yetki seviyelerini test etmek için aşağıdaki demo profillerden birini seçin:</p>
+                <h2>Tek Tıkla Hızlı Rol Girişi</h2>
                 <div class="quick-role-grid">
                     <button type="button" class="role-card-btn" data-user="admin" data-pass="demo123">
                         <strong>Sistem Yöneticisi</strong>
-                        <span>Tam Yetki (Varlık, Zimmet, Bakım, Transfer, Envanter Düşümü)</span>
+                        <span>Tam Yetki (Varlık, Lokasyon, Hiyerarşi, Zimmet, Bakım)</span>
                         <code>admin / demo123</code>
                     </button>
                     <button type="button" class="role-card-btn" data-user="tasinir" data-pass="demo123">
                         <strong>Taşınır Kayıt ve Kontrol Yetkilisi</strong>
-                        <span>Operasyon Yetkisi (Kayıt, Zimmet Fişi, Bakım, Transfer)</span>
+                        <span>Operasyon (Kayıt, Zimmet Fişi, Transfer, Ambar)</span>
                         <code>tasinir / demo123</code>
                     </button>
                     <button type="button" class="role-card-btn" data-user="uzman" data-pass="demo123">
                         <strong>Birim Sorumlusu / Denetçi</strong>
-                        <span>Salt Okunur İnceleme, Barkod Sorgulama ve Raporlama</span>
+                        <span>Salt Okunur İnceleme, Ağaç Gezinimi ve Raporlama</span>
                         <code>uzman / demo123</code>
                     </button>
                 </div>
@@ -63,22 +62,25 @@
         <div class="container top-bar-inner">
             <div class="brand-area">
                 <span class="app-label">Gebze Belediyesi &bull; Varlık Yönetimi</span>
-                <span class="demo-pill">DEMO ORTAMI</span>
+                <span class="demo-pill" id="db-badge">Oracle 23ai Canlı</span>
             </div>
 
             <nav class="main-nav" aria-label="Ana modül menüsü">
-                <button type="button" class="nav-tab active" data-view="dashboard">Ana Ekran</button>
-                <button type="button" class="nav-tab" data-view="assets">Varlıklar</button>
-                <button type="button" class="nav-tab" data-view="assignments">Zimmet İşlemleri</button>
-                <button type="button" class="nav-tab" data-view="maintenances">Bakım &amp; Kalibrasyon</button>
-                <button type="button" class="nav-tab" data-view="movements">Hareketler &amp; Transfer</button>
-                <button type="button" class="nav-tab" data-view="reports">Sayım &amp; Raporlar</button>
+                <button type="button" class="nav-tab active" data-view="dashboard">📊 Ana Ekran</button>
+                <button type="button" class="nav-tab" data-view="tree">🌳 Kurumsal &amp; Fiziksel Ağaç</button>
+                <button type="button" class="nav-tab" data-view="assets">📦 Varlıklar</button>
+                <button type="button" class="nav-tab" data-view="locations">🏢 Binalar &amp; Odalar</button>
+                <button type="button" class="nav-tab" data-view="departments">🏛️ 30 Müdürlük</button>
+                <button type="button" class="nav-tab" data-view="categories">🏷️ 16 Kategori</button>
+                <button type="button" class="nav-tab" data-view="assignments">🤝 Zimmet</button>
+                <button type="button" class="nav-tab" data-view="maintenances">🔧 Bakım &amp; Onarım</button>
+                <button type="button" class="nav-tab" data-view="movements">📜 Hareketler &amp; Transfer</button>
             </nav>
 
             <div class="user-bar">
-                <div class="health-indicator" id="health-box" aria-live="polite" title="Arka uç sağlık durumu">
+                <div class="health-indicator" id="health-box" aria-live="polite" title="Veritabanı bağlantı durumu">
                     <span class="status-dot" id="health-dot"></span>
-                    <span id="health-text">Bağlanıyor...</span>
+                    <span id="health-text">Oracle 23ai Bağlı</span>
                 </div>
                 <div class="user-badge" id="user-badge">
                     <span id="current-user-name">Sistem Yöneticisi</span>
@@ -95,40 +97,51 @@
     <!-- ANA ÇALIŞMA ALANI -->
     <main id="main-workspace" class="container page-main">
         <div class="demo-banner" role="note">
-            <strong>Kapsamlı Demo Çalışma Modu:</strong>
-            Envanter kayıtları, TİF ve barkod etiketleri, zimmet fişleri, periyodik bakım/kalibrasyon iş emirleri, transfer hareketleri ve birim bazlı maliyet raporları arka uç servisleri üzerinden canlı çalışmaktadır. Tüm kayıtlar (<code>DEMO-*</code>) kurgusaldır.
+            <strong>Gebze Belediyesi Kurumsal ve Fiziksel Envanter Altyapısı:</strong>
+            Sistemde 30 müdürlük, şeflikler, 12 hizmet binası ve şantiye, katlar, odalar ve 16 ana kategori Oracle 23ai veritabanında hiyerarşik olarak yönetilmektedir. Bir varlığın hangi binada, hangi katta ve hangi odada olduğu anlık takip edilir.
         </div>
 
         <!-- 1. GÖRÜNÜM: ANA EKRAN (DASHBOARD) -->
         <section id="view-dashboard" class="app-view">
             <div class="page-header">
                 <div>
-                    <h1>Ana Ekran &mdash; Kurumsal Envanter Özeti</h1>
-                    <p class="page-description">Toplam envanter değeri, aktif zimmetler, açık bakım iş emirleri, garanti uyarıları ve son hareketler.</p>
+                    <h1>Ana Ekran &mdash; Kurumsal ve Fiziksel Envanter Özeti</h1>
+                    <p class="page-description">Gerçek Oracle 23ai veritabanı kayıtlarından hesaplanan toplam varlık, bina, müdürlük ve oda dağılımları.</p>
                 </div>
                 <div class="quick-actions-bar write-only">
                     <button type="button" class="btn-primary" id="dash-btn-new-asset">+ Yeni Varlık</button>
                     <button type="button" class="btn-secondary" id="dash-btn-new-assign">+ Zimmet Ata</button>
                     <button type="button" class="btn-secondary" id="dash-btn-new-maint">+ Bakım İş Emri</button>
-                    <button type="button" class="btn-secondary" id="dash-btn-new-move">+ Transfer Kaydı</button>
+                    <button type="button" class="btn-secondary" id="dash-btn-new-move">+ Lokasyon Transferi</button>
                 </div>
             </div>
 
+            <!-- KPI KARTLARI -->
             <div class="kpi-grid kpi-grid-6">
                 <article class="kpi-card">
-                    <span class="kpi-label">Toplam Kayıtlı Varlık</span>
+                    <span class="kpi-label">Toplam Varlık</span>
                     <strong class="kpi-value" id="kpi-total-assets">0</strong>
-                    <span class="kpi-foot">Tüm envanter kalemleri</span>
+                    <span class="kpi-foot">Kayıtlı demirbaş</span>
                 </article>
-                <article class="kpi-card kpi-value-card">
-                    <span class="kpi-label">Toplam Envanter Değeri</span>
-                    <strong class="kpi-value kpi-value-sm" id="kpi-total-value">0 ₺</strong>
-                    <span class="kpi-foot">Tahmini kayıtlı bedel</span>
+                <article class="kpi-card">
+                    <span class="kpi-label">Hizmet Binası &amp; Tesis</span>
+                    <strong class="kpi-value" id="kpi-total-buildings">0</strong>
+                    <span class="kpi-foot">Şantiye, garaj ve binalar</span>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-label">Kurumsal Müdürlük</span>
+                    <strong class="kpi-value" id="kpi-total-departments">30</strong>
+                    <span class="kpi-foot">Belediye müdürlükleri</span>
+                </article>
+                <article class="kpi-card">
+                    <span class="kpi-label">Tanımlı Oda &amp; Depo</span>
+                    <strong class="kpi-value" id="kpi-total-rooms">0</strong>
+                    <span class="kpi-foot">Çalışma alanı &amp; ambar</span>
                 </article>
                 <article class="kpi-card kpi-active">
-                    <span class="kpi-label">Aktif Kullanımda</span>
+                    <span class="kpi-label">Aktif / Zimmetli</span>
                     <strong class="kpi-value" id="kpi-active-assets">0</strong>
-                    <span class="kpi-foot">Birim ve sorumlularda</span>
+                    <span class="kpi-foot">Personelde kullanımda</span>
                 </article>
                 <article class="kpi-card kpi-storage">
                     <span class="kpi-label">Depoda Hazır</span>
@@ -136,533 +149,824 @@
                     <span class="kpi-foot">Atanmaya uygun</span>
                 </article>
                 <article class="kpi-card kpi-maint">
-                    <span class="kpi-label">Bakım &amp; Kalibrasyon</span>
+                    <span class="kpi-label">Bakımda / Onarımda</span>
                     <strong class="kpi-value" id="kpi-maint-assets">0</strong>
-                    <span class="kpi-foot">Açık iş emirleri</span>
+                    <span class="kpi-foot">Servis &amp; atölye</span>
                 </article>
-                <article class="kpi-card kpi-alert">
-                    <span class="kpi-label">Garanti / Kondisyon Uyarısı</span>
-                    <strong class="kpi-value" id="kpi-warranty-alerts">0</strong>
-                    <span class="kpi-foot">Yaklaşan veya süresi dolan</span>
+                <article class="kpi-card kpi-value-card">
+                    <span class="kpi-label">Toplam Envanter Değeri</span>
+                    <strong class="kpi-value kpi-value-sm" id="kpi-total-value">0 ₺</strong>
+                    <span class="kpi-foot">Kayıtlı tahmini değer</span>
                 </article>
             </div>
 
-            <div class="dashboard-columns">
-                <section class="panel-card">
+            <!-- 30 MÜDÜRLÜK DAĞILIM TABLOSU -->
+            <div class="panel-card" style="margin-top: 1.5rem;">
+                <div class="panel-card-header">
+                    <div>
+                        <h2>Gebze Belediyesi 30 Müdürlüğü &mdash; Varlık ve Stok Dağılımı</h2>
+                        <p class="panel-sub">Tüm müdürlüklerin envanter durumu doğrudan Oracle veritabanından dinamik hesaplanmaktadır.</p>
+                    </div>
+                    <div class="search-box-inline">
+                        <input type="text" id="dash-dept-search" placeholder="Müdürlük ara..." class="input-sm">
+                    </div>
+                </div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="data-table" id="table-departments-summary">
+                        <thead>
+                            <tr>
+                                <th>Kod</th>
+                                <th>Müdürlük Adı</th>
+                                <th>Müdür / Sorumlu</th>
+                                <th style="text-align: right;">Toplam Varlık</th>
+                                <th style="text-align: right;">Aktif</th>
+                                <th style="text-align: right;">Depoda</th>
+                                <th style="text-align: right;">Bakımda</th>
+                                <th style="text-align: right;">Toplam Değer</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dash-departments-tbody">
+                            <tr><td colspan="9" class="loading-cell">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="dashboard-columns" style="margin-top: 1.5rem;">
+                <!-- Binalar Dağılımı -->
+                <div class="panel-card">
                     <div class="panel-card-header">
-                        <h2>Kategori, Birim ve Kondisyon Dağılımı</h2>
+                        <h2>Hizmet Binaları ve Yerleşkeler</h2>
                     </div>
-                    <div class="breakdown-section">
-                        <h3>Kategorilere Göre Varlıklar</h3>
-                        <div id="category-breakdown" class="breakdown-list"></div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Bina / Yerleşke</th>
+                                    <th>Tür</th>
+                                    <th style="text-align: right;">Oda</th>
+                                    <th style="text-align: right;">Varlık</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-buildings-tbody">
+                                <tr><td colspan="4" class="loading-cell">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="breakdown-section">
-                        <h3>Birimlere Göre Varlıklar</h3>
-                        <div id="unit-breakdown" class="breakdown-list"></div>
-                    </div>
-                    <div class="breakdown-section">
-                        <h3>Fiziksel Kondisyon Durumu</h3>
-                        <div id="condition-breakdown" class="breakdown-list"></div>
-                    </div>
-                </section>
+                </div>
 
-                <div class="dashboard-right-stack">
-                    <section class="panel-card">
-                        <div class="panel-card-header">
-                            <h2>Dikkat Gerektiren Varlıklar (Garanti &amp; Kondisyon)</h2>
-                            <button type="button" class="btn-link" data-jump-view="reports">Raporlara Git &rarr;</button>
-                        </div>
-                        <div id="dashboard-alerts-list" class="activity-feed"></div>
-                    </section>
+                <!-- 16 Kategori Dağılımı -->
+                <div class="panel-card">
+                    <div class="panel-card-header">
+                        <h2>16 Ana Kategori Dağılımı</h2>
+                    </div>
+                    <div id="dash-categories-list" class="category-pill-grid">
+                        <!-- JS ile dolar -->
+                    </div>
+                </div>
+            </div>
 
-                    <section class="panel-card">
-                        <div class="panel-card-header">
-                            <h2>Son Envanter Hareketleri</h2>
-                            <button type="button" class="btn-link" data-jump-view="movements">Tümünü Gör &rarr;</button>
-                        </div>
-                        <div id="dashboard-recent-movements" class="activity-feed"></div>
-                    </section>
+            <!-- En Çok Demirbaş Bulunan Odalar ve Son Hareketler -->
+            <div class="dashboard-columns" style="margin-top: 1.5rem;">
+                <div class="panel-card">
+                    <div class="panel-card-header">
+                        <h2>En Çok Demirbaş Olan Odalar (Tıkla &amp; İncele)</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Oda No &amp; Adı</th>
+                                    <th>Bina</th>
+                                    <th>Tür</th>
+                                    <th style="text-align: right;">Demirbaş</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-top-rooms-tbody">
+                                <tr><td colspan="4" class="loading-cell">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-card-header">
+                        <h2>Son Transfer ve Lokasyon Hareketleri</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Varlık</th>
+                                    <th>İşlem</th>
+                                    <th>Nereden &rarr; Nereye</th>
+                                    <th>Tarih</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-movements-tbody">
+                                <tr><td colspan="4" class="loading-cell">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- 2. GÖRÜNÜM: VARLIKLAR (ENVANTER LİSTESİ VE YÖNETİMİ) -->
-        <section id="view-assets" class="app-view" hidden>
+        <!-- 2. GÖRÜNÜM: AĞAÇ GÖRÜNÜMÜ (TREE VIEW) -->
+        <section id="view-tree" class="app-view" hidden>
             <div class="page-header">
                 <div>
-                    <h1>Varlıklar</h1>
-                    <p class="page-description">TİF kodu, barkod, kategori, birim, kondisyon ve garanti durumuna göre gelişmiş envanter yönetimi.</p>
+                    <h1>Kurumsal ve Fiziksel Hiyerarşi Ağacı</h1>
+                    <p class="page-description">Belediyenin binalarını, katlarını, müdürlüklerini ve odalarını hiyerarşik ağaç yapısında inceleyin. Herhangi bir odaya tıklayarak odadaki varlıkları ve QR kodunu görüntüleyin.</p>
                 </div>
-                <div class="quick-actions-bar">
-                    <button type="button" class="btn-secondary" id="btn-export-csv">CSV / Excel İndir</button>
-                    <button type="button" class="btn-primary write-only" id="btn-open-create-asset">+ Yeni Varlık Ekle</button>
+                <div class="tree-controls">
+                    <div class="btn-group">
+                        <button type="button" class="btn-tab active" id="tree-mode-physical">🏢 Fiziksel Lokasyon Ağacı</button>
+                        <button type="button" class="btn-tab" id="tree-mode-corporate">🏛️ Kurumsal Müdürlük Ağacı</button>
+                    </div>
+                    <button type="button" class="btn-secondary btn-sm" id="btn-tree-expand-all">Tümünü Aç</button>
+                    <button type="button" class="btn-secondary btn-sm" id="btn-tree-collapse-all">Tümünü Kapat</button>
                 </div>
             </div>
 
-            <section class="filter-panel" aria-labelledby="filter-heading">
-                <div class="filter-panel-header">
-                    <h2 id="filter-heading">Gelişmiş Arama, Filtreleme ve Sıralama</h2>
+            <div class="tree-layout">
+                <!-- Sol Kolon: Ağaç Yapısı -->
+                <div class="tree-sidebar-panel">
+                    <div class="tree-search-bar">
+                        <input type="text" id="tree-search-input" placeholder="Ağaçta ara (bina, kat, oda, müdürlük)...">
+                    </div>
+                    <div id="tree-container" class="tree-scroll-container">
+                        <div class="loading-cell">Ağaç yapısı yükleniyor...</div>
+                    </div>
                 </div>
 
-                <form id="asset-filter-form" class="filter-form-advanced" role="search" novalidate>
-                    <div class="form-field form-field-wide">
-                        <label for="filter-query">Kod, TİF, Barkod, Ad, Marka/Model, Seri No veya Sorumlu</label>
-                        <input
-                            type="search"
-                            id="filter-query"
-                            placeholder="Örn: DEMO-VRK-001, 255.02, GBZ-8690, ThinkBook, SN-DEMO..."
-                            autocomplete="off"
-                        >
+                <!-- Sağ Kolon: Tıklanan Düğüm Detayı (Oda / Varlık Dökümü) -->
+                <div class="tree-detail-panel" id="tree-detail-panel">
+                    <div class="empty-placeholder" id="tree-detail-empty">
+                        <span class="empty-icon">👈</span>
+                        <h3>İncelemek İçin Sol Ağaçtan Bir Oda veya Düğüm Seçin</h3>
+                        <p>Odaya tıkladığınızda o odada bulunan tüm bilgisayarlar, mobilyalar, teknik cihazlar ve odanın QR kodu burada listelenir.</p>
                     </div>
 
+                    <div id="tree-detail-content" hidden>
+                        <div class="room-hero-card">
+                            <div class="room-hero-header">
+                                <div>
+                                    <span class="room-type-tag" id="td-room-type">Personel Ofisi</span>
+                                    <h2 id="td-room-title">Oda 302 &mdash; Yazılım ve Uygulama Geliştirme Ofisi</h2>
+                                    <p class="room-breadcrumb" id="td-room-breadcrumb">Ana Hizmet Binası &gt; 3. Kat &gt; Bilgi İşlem Müdürlüğü</p>
+                                </div>
+                                <div class="room-qr-box">
+                                    <div class="qr-placeholder" id="td-qr-visual">QR</div>
+                                    <code id="td-room-qr-text">GBZ-ROOM-ANA-K3-302</code>
+                                </div>
+                            </div>
+                            <div class="room-meta-grid">
+                                <div><strong>Sorumlu Personel:</strong> <span id="td-responsible">-</span></div>
+                                <div><strong>Kapasite:</strong> <span id="td-capacity">-</span> kişi</div>
+                                <div><strong>Bağlı Birim:</strong> <span id="td-subunit">-</span></div>
+                                <div><strong>Toplam Demirbaş:</strong> <span id="td-asset-count" class="badge-count">0</span></div>
+                            </div>
+                        </div>
+
+                        <div class="room-assets-section">
+                            <div class="section-title-bar">
+                                <h3>Bu Odada Bulunan Demirbaşlar</h3>
+                                <button type="button" class="btn-primary btn-sm write-only" id="btn-add-asset-to-this-room">+ Bu Odaya Varlık Ekle</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Kod</th>
+                                            <th>Varlık Adı</th>
+                                            <th>Kategori</th>
+                                            <th>Marka / Model</th>
+                                            <th>Zimmetli Personel</th>
+                                            <th>Durum</th>
+                                            <th>İşlem</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="td-assets-tbody">
+                                        <tr><td colspan="7">Bu odada kayıtlı varlık bulunmamaktadır.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. GÖRÜNÜM: VARLIKLAR (ENVANTER) -->
+        <section id="view-assets" class="app-view" hidden>
+            <div class="page-header">
+                <div>
+                    <h1>Demirbaş ve Fiziksel Varlık Envanteri</h1>
+                    <p class="page-description">Bina, kat, oda, müdürlük ve kategori bazlı filtreleme ve envanter yönetimi.</p>
+                </div>
+                <div class="quick-actions-bar write-only">
+                    <button type="button" class="btn-primary" id="btn-open-new-asset">+ Yeni Varlık Kaydı</button>
+                    <button type="button" class="btn-secondary" id="btn-export-assets-csv">Excel / CSV İndir</button>
+                </div>
+            </div>
+
+            <!-- GELİŞMİŞ FİLTRE PANELİ -->
+            <form id="asset-filter-form" class="filter-panel" novalidate>
+                <div class="filter-grid-enterprise">
+                    <div class="form-field">
+                        <label for="filter-query">Arama</label>
+                        <input type="text" id="filter-query" placeholder="Kod, ad, barkod, seri no...">
+                    </div>
+                    <div class="form-field">
+                        <label for="filter-department">Müdürlük</label>
+                        <select id="filter-department">
+                            <option value="">Tüm Müdürlükler (30)</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="filter-building">Hizmet Binası</label>
+                        <select id="filter-building">
+                            <option value="">Tüm Binalar</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="filter-room">Oda / Ambar</label>
+                        <select id="filter-room">
+                            <option value="">Tüm Odalar</option>
+                        </select>
+                    </div>
                     <div class="form-field">
                         <label for="filter-category">Kategori</label>
                         <select id="filter-category">
-                            <option value="">Tüm Kategoriler</option>
+                            <option value="">Tüm Kategoriler (16)</option>
                         </select>
                     </div>
-
-                    <div class="form-field">
-                        <label for="filter-unit">Birim</label>
-                        <select id="filter-unit">
-                            <option value="">Tüm Birimler</option>
-                        </select>
-                    </div>
-
                     <div class="form-field">
                         <label for="filter-status">Durum</label>
                         <select id="filter-status">
                             <option value="">Tüm Durumlar</option>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Depoda">Depoda</option>
+                            <option value="Bakımda">Bakımda</option>
+                            <option value="Kullanım Dışı">Kullanım Dışı / Hurda</option>
                         </select>
                     </div>
-
-                    <div class="form-field">
-                        <label for="filter-condition">Fiziksel Kondisyon</label>
-                        <select id="filter-condition">
-                            <option value="">Tüm Kondisyonlar</option>
-                            <option value="Çok İyi">Çok İyi</option>
-                            <option value="İyi">İyi</option>
-                            <option value="Orta">Orta</option>
-                            <option value="Onarım Gerekli">Onarım Gerekli</option>
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="filter-warranty">Garanti Durumu</label>
-                        <select id="filter-warranty">
-                            <option value="">Tümü</option>
-                            <option value="ACTIVE">Garantisi Devam Edenler</option>
-                            <option value="EXPIRED_OR_SOON">Garantisi Biten / Yaklaşanlar</option>
-                        </select>
-                    </div>
-
-                    <div class="form-field">
-                        <label for="filter-sort">Sıralama Ölçütü</label>
-                        <select id="filter-sort">
-                            <option value="code">Varlık Koduna Göre (A-Z)</option>
-                            <option value="value_desc">Tahmini Değere Göre (Azalan)</option>
-                            <option value="value_asc">Tahmini Değere Göre (Artan)</option>
-                            <option value="date_desc">Edinme Tarihine Göre (En Yeni)</option>
-                            <option value="name">Varlık Adına Göre (A-Z)</option>
-                        </select>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" id="btn-clear-filters" class="btn-secondary">Filtreleri Temizle</button>
-                    </div>
-                </form>
-            </section>
-
-            <section class="list-section" aria-labelledby="list-heading">
-                <div class="list-toolbar">
-                    <h2 id="list-heading" class="visually-hidden">Varlık Listesi Tablosu</h2>
-                    <p id="result-count" class="result-count" aria-live="polite">Kayıtlar yükleniyor...</p>
-                    <span class="scroll-hint">Dar ekranda tabloyu yana kaydırabilirsiniz &rarr;</span>
                 </div>
 
-                <div class="table-wrapper" id="asset-table-wrapper" role="region" aria-labelledby="list-heading" tabindex="0">
-                    <table class="asset-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Kod / TİF</th>
-                                <th scope="col">Varlık adı</th>
-                                <th scope="col">Kategori</th>
-                                <th scope="col">Birim</th>
-                                <th scope="col">Konum</th>
-                                <th scope="col">Sorumlu</th>
-                                <th scope="col">Değer</th>
-                                <th scope="col">Durum</th>
-                                <th scope="col">İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody id="asset-table-body"></tbody>
-                    </table>
+                <div class="filter-actions-bar">
+                    <span id="result-count" class="result-count-badge" aria-live="polite">0 varlık listeleniyor</span>
+                    <button type="button" id="btn-clear-filters" class="btn-secondary btn-sm">Filtreleri Sıfırla</button>
                 </div>
+            </form>
 
-                <div id="empty-state" class="empty-state" role="status" aria-live="polite" hidden>
-                    <h3>Eşleşen demo varlık kaydı bulunamadı</h3>
-                    <p>Arama sözcüğünü veya seçili filtreleri değiştirerek tekrar deneyebilirsiniz.</p>
-                    <button type="button" id="btn-empty-reset" class="btn-primary">Tüm Filtreleri Sıfırla</button>
-                </div>
-            </section>
+            <!-- TABLO -->
+            <div id="asset-table-wrapper" class="table-responsive">
+                <table class="data-table" id="asset-table">
+                    <thead>
+                        <tr>
+                            <th>Kod &amp; Barkod</th>
+                            <th>Varlık Adı</th>
+                            <th>Kategori</th>
+                            <th>Bina &amp; Kat</th>
+                            <th>Oda / Konum</th>
+                            <th>Müdürlük &amp; Birim</th>
+                            <th>Sorumlu Personel</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="asset-table-body">
+                        <tr><td colspan="9" class="loading-cell">Varlıklar yükleniyor...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="empty-state" class="empty-card" hidden>
+                <span class="empty-icon">🔍</span>
+                <h3>Arama kriterlerine uygun varlık bulunamadı</h3>
+                <p>Filtreleri temizleyerek tüm belediye demirbaşlarını listeleyebilirsiniz.</p>
+                <button type="button" class="btn-primary btn-sm" id="btn-empty-reset">Filtreleri Temizle</button>
+            </div>
         </section>
 
-        <!-- 3. GÖRÜNÜM: ZİMMET İŞLEMLERİ -->
+        <!-- 4. GÖRÜNÜM: BİNALAR & ODALAR -->
+        <section id="view-locations" class="app-view" hidden>
+            <div class="page-header">
+                <div>
+                    <h1>Hizmet Binaları, Katlar ve Odalar</h1>
+                    <p class="page-description">Gebze Belediyesi'nin tüm fiziksel tesisleri, atölyeleri, ambarları ve çalışma odaları.</p>
+                </div>
+                <div class="quick-actions-bar write-only">
+                    <button type="button" class="btn-primary" id="btn-open-new-room">+ Yeni Oda Ekle</button>
+                    <button type="button" class="btn-secondary" id="btn-open-new-bld">+ Yeni Bina Ekle</button>
+                </div>
+            </div>
+
+            <!-- Bina Seçim Sekmeleri -->
+            <div class="building-pills-bar" id="building-pills-bar">
+                <!-- JS ile bina butonları gelir -->
+            </div>
+
+            <!-- Seçili Bina Özeti ve Odalar Grid -->
+            <div id="locations-active-bld-info" class="panel-card" style="margin-top: 1rem;">
+                <div class="panel-card-header">
+                    <div>
+                        <h2 id="loc-bld-name">Ana Hizmet Binası</h2>
+                        <p id="loc-bld-address" class="panel-sub">Mevlana Mah. Issıkgöl Cad. No:1 Gebze/Kocaeli</p>
+                    </div>
+                    <div id="loc-bld-stats" class="bld-stats-badge">
+                        <span>6 Kat</span> &bull; <span>Odalar</span>
+                    </div>
+                </div>
+
+                <div class="room-filters-bar">
+                    <label>Oda Türü Filtresi:
+                        <select id="loc-room-type-filter" class="input-sm">
+                            <option value="">Tüm Oda Türleri</option>
+                            <option value="Müdür Odası">Müdür Odası</option>
+                            <option value="Personel Ofisi">Personel Ofisi</option>
+                            <option value="Toplantı Odası">Toplantı Odası</option>
+                            <option value="Sistem Odası">Sistem Odası</option>
+                            <option value="Arşiv">Arşiv</option>
+                            <option value="Depo / Ambar">Depo / Ambar</option>
+                            <option value="Teknik Oda">Teknik Oda</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="rooms-grid" id="rooms-grid">
+                    <!-- JS ile oda kartları dökülür -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. GÖRÜNÜM: 30 MÜDÜRLÜK -->
+        <section id="view-departments" class="app-view" hidden>
+            <div class="page-header">
+                <div>
+                    <h1>Gebze Belediyesi &mdash; 30 Kurumsal Müdürlük</h1>
+                    <p class="page-description">Tüm müdürlükler, bağlı şeflikler, birim sorumluları ve demirbaş sayıları.</p>
+                </div>
+                <div class="quick-actions-bar write-only">
+                    <button type="button" class="btn-primary" id="btn-open-new-subunit">+ Yeni Alt Birim / Şeflik</button>
+                </div>
+            </div>
+
+            <div class="departments-grid" id="departments-grid">
+                <!-- JS ile 30 müdürlük kartı dökülür -->
+            </div>
+        </section>
+
+        <!-- 6. GÖRÜNÜM: 16 KATEGORİ -->
+        <section id="view-categories" class="app-view" hidden>
+            <div class="page-header">
+                <div>
+                    <h1>16 Ana Varlık Kategorisi</h1>
+                    <p class="page-description">Bilişim, mobilya, iş makineleri, iklimlendirme ve diğer tüm demirbaş kategorileri.</p>
+                </div>
+            </div>
+
+            <div class="categories-large-grid" id="categories-large-grid">
+                <!-- JS ile 16 kategori kartı dökülür -->
+            </div>
+        </section>
+
+        <!-- 7. GÖRÜNÜM: ZİMMET İŞLEMLERİ -->
         <section id="view-assignments" class="app-view" hidden>
             <div class="page-header">
                 <div>
-                    <h1>Zimmet İşlemleri</h1>
-                    <p class="page-description">Personel ve birim zimmet fişlerini görüntüleyin, yazdırın, yeni zimmet atayın veya iade alın.</p>
+                    <h1>Zimmet ve Teslim-Tesellüm Yönetimi</h1>
+                    <p class="page-description">Personele tahsis edilen demirbaşlar, zimmet fişleri ve iade süreçleri.</p>
                 </div>
-                <div class="write-only">
-                    <button type="button" class="btn-primary" id="btn-open-assign-modal">+ Yeni Zimmet Ata</button>
+                <div class="quick-actions-bar write-only">
+                    <button type="button" class="btn-primary" id="btn-open-new-assign">+ Yeni Zimmet Ata</button>
                 </div>
             </div>
 
-            <div class="sub-filter-bar">
-                <div class="form-field">
-                    <label for="assign-status-filter">Zimmet Durumu</label>
-                    <select id="assign-status-filter">
-                        <option value="">Tüm Zimmet Kayıtları</option>
-                        <option value="AKTIF">Yalnızca Aktif Zimmetler</option>
-                        <option value="IADE_EDILDI">İade Edilmiş Zimmetler</option>
-                    </select>
-                </div>
-                <p id="assign-result-count" class="result-count" aria-live="polite"></p>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Fiş No</th>
+                            <th>Varlık</th>
+                            <th>Zimmetli Personel</th>
+                            <th>Unvan</th>
+                            <th>Birim</th>
+                            <th>Konum / Oda</th>
+                            <th>Tahsis Tarihi</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assignments-table-body">
+                        <tr><td colspan="9" class="loading-cell">Zimmetler yükleniyor...</td></tr>
+                    </tbody>
+                </table>
             </div>
-
-            <section class="list-section">
-                <div class="table-wrapper" tabindex="0">
-                    <table class="asset-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Fiş No</th>
-                                <th scope="col">Varlık</th>
-                                <th scope="col">Zimmetlenen Sorumlu</th>
-                                <th scope="col">Birim / Konum</th>
-                                <th scope="col">Veriliş Tarihi</th>
-                                <th scope="col">İade Tarihi</th>
-                                <th scope="col">Durum</th>
-                                <th scope="col">İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody id="assignment-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
         </section>
 
-        <!-- 4. GÖRÜNÜM: BAKIM VE KALİBRASYON -->
+        <!-- 8. GÖRÜNÜM: BAKIM & ONARIM -->
         <section id="view-maintenances" class="app-view" hidden>
             <div class="page-header">
                 <div>
-                    <h1>Bakım, Onarım &amp; Kalibrasyon</h1>
-                    <p class="page-description">Arıza onarım, periyodik bakım ve kalibrasyon iş emirlerini yönetin ve servis maliyetlerini takip edin.</p>
+                    <h1>Bakım, Onarım ve Kalibrasyon İş Emirleri</h1>
+                    <p class="page-description">Arızalı veya periyodik bakımda olan cihazların servis süreçleri ve maliyetleri.</p>
                 </div>
-                <div class="write-only">
-                    <button type="button" class="btn-primary" id="btn-open-maint-modal">+ Yeni Bakım / Kalibrasyon Kaydı</button>
+                <div class="quick-actions-bar write-only">
+                    <button type="button" class="btn-primary" id="btn-open-new-maint">+ Yeni Bakım İş Emri</button>
                 </div>
             </div>
 
-            <div class="sub-filter-bar">
-                <div class="form-field">
-                    <label for="maint-status-filter">İş Emri Durumu</label>
-                    <select id="maint-status-filter">
-                        <option value="">Tüm Bakım Kayıtları</option>
-                        <option value="DEVAM_EDIYOR">Devam Eden Bakımlar</option>
-                        <option value="TAMAMLANDI">Tamamlanan Bakımlar</option>
-                    </select>
-                </div>
-                <p id="maint-result-count" class="result-count" aria-live="polite"></p>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>İş Emri No</th>
+                            <th>Varlık</th>
+                            <th>İşlem Türü</th>
+                            <th>Öncelik</th>
+                            <th>Servis / Teknisyen</th>
+                            <th>Maliyet</th>
+                            <th>Başlangıç</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="maintenances-table-body">
+                        <tr><td colspan="9" class="loading-cell">Bakım kayıtları yükleniyor...</td></tr>
+                    </tbody>
+                </table>
             </div>
-
-            <section class="list-section">
-                <div class="table-wrapper" tabindex="0">
-                    <table class="asset-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">İş Emri No</th>
-                                <th scope="col">Varlık</th>
-                                <th scope="col">Tür &amp; Öncelik</th>
-                                <th scope="col">Servis / Teknisyen</th>
-                                <th scope="col">Arıza / İşlem Açıklaması</th>
-                                <th scope="col">Maliyet</th>
-                                <th scope="col">Başlangıç / Bitiş</th>
-                                <th scope="col">Durum &amp; İşlem</th>
-                            </tr>
-                        </thead>
-                        <tbody id="maintenance-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
         </section>
 
-        <!-- 5. GÖRÜNÜM: HAREKETLER VE TRANSFER -->
+        <!-- 9. GÖRÜNÜM: HAREKETLER & TRANSFER -->
         <section id="view-movements" class="app-view" hidden>
             <div class="page-header">
                 <div>
-                    <h1>Hareketler &amp; Transfer</h1>
-                    <p class="page-description">Envanter giriş, birim/konum transferi, bakım gönderimi ve zimmet hareketleri kayıt defteri.</p>
-                </div>
-                <div class="write-only">
-                    <button type="button" class="btn-primary" id="btn-open-movement-modal">+ Yeni Transfer / Hareket Kaydet</button>
+                    <h1>Varlık Hareketleri ve Lokasyon Geçmişi</h1>
+                    <p class="page-description">Bir varlığın hangi odadan hangi odaya transfer edildiğini ve tüm tarihçeyi izleyin.</p>
                 </div>
             </div>
 
-            <div class="sub-filter-bar">
-                <div class="form-field">
-                    <label for="movement-type-filter">Hareket Türü</label>
-                    <select id="movement-type-filter">
-                        <option value="">Tüm Hareket Türleri</option>
-                        <option value="ILK_KAYIT">Envanter Girişi</option>
-                        <option value="ZIMMET_ATAMA">Zimmet Atama</option>
-                        <option value="ZIMMET_IADE">Zimmet İadesi</option>
-                        <option value="TRANSFER">Birim / Konum Transferi</option>
-                        <option value="BAKIMA_GONDERIM">Bakıma Gönderim</option>
-                        <option value="BAKIMDAN_DONUS">Bakımdan Dönüş</option>
-                        <option value="DEPOYA_CEKME">Depoya Çekme</option>
-                    </select>
-                </div>
-                <p id="movement-result-count" class="result-count" aria-live="polite"></p>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>Varlık Kodu &amp; Adı</th>
+                            <th>Hareket Türü</th>
+                            <th>Çıkış Birimi / Konumu</th>
+                            <th>Varış Birimi / Konumu (Hedef Oda)</th>
+                            <th>İşlemi Yapan</th>
+                            <th>Açıklama</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movements-table-body">
+                        <tr><td colspan="7" class="loading-cell">Hareketler yükleniyor...</td></tr>
+                    </tbody>
+                </table>
             </div>
-
-            <section class="list-section">
-                <div class="table-wrapper" tabindex="0">
-                    <table class="asset-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Tarih / Saat</th>
-                                <th scope="col">Hareket Türü</th>
-                                <th scope="col">Varlık</th>
-                                <th scope="col">Kaynak Birim / Konum</th>
-                                <th scope="col">Hedef Birim / Konum</th>
-                                <th scope="col">İşlemi Yapan</th>
-                                <th scope="col">Açıklama</th>
-                            </tr>
-                        </thead>
-                        <tbody id="movement-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
-        </section>
-
-        <!-- 6. GÖRÜNÜM: SAYIM VE RAPORLAR -->
-        <section id="view-reports" class="app-view" hidden>
-            <div class="page-header">
-                <div>
-                    <h1>Envanter Sayım Doğrulama &amp; Birim Raporları</h1>
-                    <p class="page-description">Barkod / seri numarası ile anlık saha sayım sorgulaması ve birim bazlı mali envanter dağılım tablosu.</p>
-                </div>
-            </div>
-
-            <section class="panel-card">
-                <div class="panel-card-header">
-                    <h2>Hızlı Barkod / Kod / Seri No ile Envanter Sayım Sorgulama</h2>
-                </div>
-                <form id="lookup-form" class="lookup-bar" novalidate>
-                    <div class="form-field form-field-wide">
-                        <label for="lookup-input">Barkod No, Varlık Kodu veya Seri Numarası Okutun / Yazın</label>
-                        <input type="text" id="lookup-input" placeholder="Örn: GBZ-869020260001 veya DEMO-VRK-004 veya SN-DEMO-992011">
-                    </div>
-                    <button type="submit" class="btn-primary">Sorgula &amp; Doğrula</button>
-                </form>
-                <div class="quick-sample-chips">
-                    <span>Hızlı Örnek Sorgular:</span>
-                    <button type="button" class="chip-btn" data-sample-code="GBZ-869020260001">GBZ-869020260001</button>
-                    <button type="button" class="chip-btn" data-sample-code="DEMO-VRK-004">DEMO-VRK-004</button>
-                    <button type="button" class="chip-btn" data-sample-code="SN-DEMO-992011">SN-DEMO-992011</button>
-                    <button type="button" class="chip-btn" data-sample-code="DEMO-VRK-009">DEMO-VRK-009</button>
-                </div>
-                <div id="lookup-result-box" class="lookup-result-box" hidden></div>
-            </section>
-
-            <section class="list-section">
-                <div class="list-toolbar">
-                    <h2 class="result-count">Birim Bazlı Envanter ve Maliyet Özeti Tablosu</h2>
-                </div>
-                <div class="table-wrapper" tabindex="0">
-                    <table class="asset-table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Birim Adı</th>
-                                <th scope="col">Toplam Varlık</th>
-                                <th scope="col">Aktif Kullanımda</th>
-                                <th scope="col">Depoda</th>
-                                <th scope="col">Bakımda</th>
-                                <th scope="col">Toplam Tahmini Değer (₺)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="unit-report-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
         </section>
     </main>
 
-    <!-- MODAL 1: VARLIK EKLE / DÜZENLE -->
+    <!-- ======================================================== -->
+    <!-- MODAL PENCERELER                                         -->
+    <!-- ======================================================== -->
+
+    <!-- MODAL 1: ODA DETAYI VE ODADAKİ DEMİRBAŞLAR (QR DAHİL) -->
+    <div id="modal-room-detail" class="modal-backdrop" hidden>
+        <div class="modal-dialog modal-lg" role="dialog" aria-labelledby="m-room-title" aria-modal="true">
+            <div class="modal-header">
+                <h2 id="m-room-title">Oda Detayı &mdash; Varlık Listesi</h2>
+                <button type="button" class="modal-close" data-close-modal="modal-room-detail" aria-label="Kapat">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="room-hero-card">
+                    <div class="room-hero-header">
+                        <div>
+                            <span class="room-type-tag" id="mr-type">Personel Ofisi</span>
+                            <h3 id="mr-name" style="font-size: 1.3rem; margin: 0.3rem 0;">Oda 302</h3>
+                            <p class="room-breadcrumb" id="mr-breadcrumb">Ana Hizmet Binası &gt; 3. Kat</p>
+                        </div>
+                        <div class="room-qr-box">
+                            <div class="qr-placeholder" id="mr-qr-visual">QR</div>
+                            <code id="mr-qr-code">GBZ-ROOM-ANA-K3-302</code>
+                        </div>
+                    </div>
+                    <div class="room-meta-grid" style="margin-top: 0.8rem;">
+                        <div><strong>Müdürlük:</strong> <span id="mr-dept">-</span></div>
+                        <div><strong>Sorumlu:</strong> <span id="mr-resp">-</span></div>
+                        <div><strong>Kapasite:</strong> <span id="mr-cap">-</span></div>
+                        <div><strong>Varlık Sayısı:</strong> <span id="mr-count" class="badge-count">0</span></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h4 style="font-size: 1.1rem; color: var(--navy-900);">Bu Odadaki Demirbaşlar</h4>
+                        <button type="button" class="btn-primary btn-sm write-only" id="mr-btn-add-asset">+ Bu Odaya Varlık Ekle</button>
+                    </div>
+                    <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Kod</th>
+                                    <th>Varlık Adı</th>
+                                    <th>Kategori</th>
+                                    <th>Zimmetli</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mr-assets-tbody">
+                                <tr><td colspan="5">Yükleniyor...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" data-close-modal="modal-room-detail">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: YENİ VARLIK / VARLIK DÜZENLEME -->
     <div id="modal-asset-form" class="modal-backdrop" hidden>
         <div class="modal-dialog modal-lg" role="dialog" aria-labelledby="modal-asset-title" aria-modal="true">
             <div class="modal-header">
-                <h2 id="modal-asset-title">Yeni Demo Varlık Ekle</h2>
+                <h2 id="modal-asset-title">Yeni Varlık Kaydı</h2>
                 <button type="button" class="modal-close" data-close-modal="modal-asset-form" aria-label="Kapat">&times;</button>
             </div>
             <form id="form-asset" class="modal-body" novalidate>
                 <input type="hidden" id="asset-id">
-                <div class="form-grid-3">
-                    <div class="form-field">
-                        <label for="asset-code">Varlık Kodu (<code>DEMO-VRK-*</code>)</label>
-                        <input type="text" id="asset-code" placeholder="Otomatik üretilir">
+
+                <fieldset class="form-section">
+                    <legend>Temel Varlık Bilgileri</legend>
+                    <div class="form-grid-3">
+                        <div class="form-field">
+                            <label for="asset-code">Varlık Kodu *</label>
+                            <input type="text" id="asset-code" placeholder="Örn: GBZ-VRK-2026-001">
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-barcode">Barkod No</label>
+                            <input type="text" id="asset-barcode" placeholder="GBZ-869020260001">
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-tif">TİF / Taşınır Kodu</label>
+                            <input type="text" id="asset-tif" placeholder="255.02.01.01">
+                        </div>
                     </div>
-                    <div class="form-field">
-                        <label for="asset-tif">TİF Hesap Kodu</label>
-                        <input type="text" id="asset-tif" placeholder="Örn: 255.02.01.01" value="255.02.01.01">
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="asset-name">Varlık Adı *</label>
+                            <input type="text" id="asset-name" required placeholder="Örn: Taşınabilir İş İstasyonu">
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-category">Ana Kategori (16 Kategori) *</label>
+                            <select id="asset-category" required>
+                                <option value="">Kategori Seçin...</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-field">
-                        <label for="asset-barcode">Barkod Numarası</label>
-                        <input type="text" id="asset-barcode" placeholder="Boşsa otomatik GBZ-...">
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="asset-brand">Marka / Model</label>
+                            <input type="text" id="asset-brand" placeholder="Örn: ThinkBook Pro 16 G6">
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-serial">Seri Numarası</label>
+                            <input type="text" id="asset-serial" placeholder="SN-DEMO-900142">
+                        </div>
                     </div>
-                </div>
-                <div class="form-grid-2">
-                    <div class="form-field">
-                        <label for="asset-name">Varlık Adı *</label>
-                        <input type="text" id="asset-name" required placeholder="Örn: Masaüstü İş İstasyonu (Örnek)">
+                </fieldset>
+
+                <fieldset class="form-section">
+                    <legend>Kurumsal &amp; Fiziksel Konumlandırma</legend>
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label for="asset-department">Bağlı Müdürlük (30 Müdürlük) *</label>
+                            <select id="asset-department" required>
+                                <option value="">Müdürlük Seçin...</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-subunit">Bağlı Alt Birim / Şeflik</label>
+                            <select id="asset-subunit">
+                                <option value="">Önce Müdürlük Seçin...</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-field">
-                        <label for="asset-category">Kategori *</label>
-                        <select id="asset-category" required>
-                            <option value="Bilişim Ekipmanı">Bilişim Ekipmanı</option>
-                            <option value="Ofis Mobilyası">Ofis Mobilyası</option>
-                            <option value="Teknik Cihaz">Teknik Cihaz</option>
-                            <option value="İklimlendirme & Enerji">İklimlendirme &amp; Enerji</option>
-                            <option value="Görsel & Ses Sistemi">Görsel &amp; Ses Sistemi</option>
-                            <option value="Güvenlik & Kamera Sistemi">Güvenlik &amp; Kamera Sistemi</option>
-                            <option value="Hizmet Ekipmanı">Hizmet Ekipmanı</option>
-                        </select>
+
+                    <div class="form-grid-3">
+                        <div class="form-field">
+                            <label for="asset-building">Hizmet Binası / Tesis *</label>
+                            <select id="asset-building" required>
+                                <option value="">Bina Seçin...</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-floor">Bina Katı *</label>
+                            <select id="asset-floor" required>
+                                <option value="">Önce Bina Seçin...</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-room">Oda / Ambar / Ofis *</label>
+                            <select id="asset-room" required>
+                                <option value="">Önce Kat Seçin...</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-field">
-                        <label for="asset-brand">Marka / Model</label>
-                        <input type="text" id="asset-brand" placeholder="Örn: Kurumsal Seri Model X (Demo)">
+                </fieldset>
+
+                <fieldset class="form-section">
+                    <legend>Durum, Sorumlu &amp; Finansal</legend>
+                    <div class="form-grid-3">
+                        <div class="form-field">
+                            <label for="asset-status">İşletim Durumu *</label>
+                            <select id="asset-status" required>
+                                <option value="Aktif">Aktif (Kullanımda)</option>
+                                <option value="Depoda">Depoda (Ambar)</option>
+                                <option value="Bakımda">Bakımda (Servis)</option>
+                                <option value="Kullanım Dışı">Kullanım Dışı</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-condition">Fiziksel Kondisyon</label>
+                            <select id="asset-condition">
+                                <option value="Çok İyi">Çok İyi</option>
+                                <option value="İyi">İyi</option>
+                                <option value="Orta">Orta</option>
+                                <option value="Onarım Gerekli">Onarım Gerekli</option>
+                            </select>
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-assignee">Sorumlu Personel</label>
+                            <input type="text" id="asset-assignee" placeholder="Örn: Ahmet Yılmaz">
+                        </div>
                     </div>
-                    <div class="form-field">
-                        <label for="asset-serial">Seri Numarası</label>
-                        <input type="text" id="asset-serial" placeholder="Örn: SN-DEMO-880123">
+
+                    <div class="form-grid-3">
+                        <div class="form-field">
+                            <label for="asset-value">Tahmini Değer (₺)</label>
+                            <input type="number" id="asset-value" step="100" min="0" placeholder="68500">
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-acq-date">Edinim Tarihi</label>
+                            <input type="date" id="asset-acq-date">
+                        </div>
+                        <div class="form-field">
+                            <label for="asset-warranty-date">Garanti Bitiş Tarihi</label>
+                            <input type="date" id="asset-warranty-date">
+                        </div>
                     </div>
-                    <div class="form-field">
-                        <label for="asset-unit">Birim *</label>
-                        <input type="text" id="asset-unit" list="unit-suggestions" required placeholder="Örn: Demo Birim A (Bilgi Sistemleri)">
-                        <datalist id="unit-suggestions">
-                            <option value="Demo Birim A (Bilgi Sistemleri)"></option>
-                            <option value="Demo Birim B (İdari İşler)"></option>
-                            <option value="Demo Birim C (Destek Hizmetleri)"></option>
-                            <option value="Demo Birim D (Saha Operasyon)"></option>
-                            <option value="Demo Birim E (Kültür ve Sosyal İşler)"></option>
-                        </datalist>
-                    </div>
-                    <div class="form-field">
-                        <label for="asset-location">Konum *</label>
-                        <input type="text" id="asset-location" required placeholder="Örn: Demo Yerleşke - A Blok Kat 1">
-                    </div>
-                    <div class="form-field">
-                        <label for="asset-status">Durum *</label>
-                        <select id="asset-status" required>
-                            <option value="Depoda">Depoda</option>
-                            <option value="Aktif">Aktif</option>
-                            <option value="Bakımda">Bakımda</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="asset-condition">Fiziksel Kondisyon *</label>
-                        <select id="asset-condition" required>
-                            <option value="Çok İyi">Çok İyi</option>
-                            <option value="İyi">İyi</option>
-                            <option value="Orta">Orta</option>
-                            <option value="Onarım Gerekli">Onarım Gerekli</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="asset-assignee">Sorumlu Kişi / Görevli</label>
-                        <input type="text" id="asset-assignee" placeholder="Örn: Atanmamış (Depo Sorumlusu - Demo)">
-                    </div>
-                    <div class="form-field">
-                        <label for="asset-value">Tahmini Birim Değer (₺)</label>
-                        <input type="number" id="asset-value" step="100" min="0" value="25000">
-                    </div>
-                    <div class="form-field">
-                        <label for="asset-date">Edinme / Giriş Tarihi</label>
-                        <input type="date" id="asset-date">
-                    </div>
-                    <div class="form-field">
-                        <label for="asset-warranty">Garanti Bitiş Tarihi</label>
-                        <input type="date" id="asset-warranty">
-                    </div>
-                </div>
-                <div class="form-grid-2">
-                    <div class="form-field">
-                        <label for="asset-supplier">Temin / Edinme Yöntemi</label>
-                        <select id="asset-supplier">
-                            <option value="DMO (Devlet Malzeme Ofisi - Demo)">DMO (Devlet Malzeme Ofisi - Demo)</option>
-                            <option value="Açık İhale Alımı (Demo)">Açık İhale Alımı (Demo)</option>
-                            <option value="Doğrudan Temin (Demo)">Doğrudan Temin (Demo)</option>
-                            <option value="Kurumsal Hibe / Devir (Demo)">Kurumsal Hibe / Devir (Demo)</option>
-                        </select>
-                    </div>
+
                     <div class="form-field">
                         <label for="asset-notes">Açıklama / Notlar</label>
-                        <input type="text" id="asset-notes" placeholder="Kurgusal demo varlık notu...">
+                        <textarea id="asset-notes" rows="2" placeholder="Demirbaş hakkında ek açıklamalar..."></textarea>
                     </div>
-                </div>
+                </fieldset>
+
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" data-close-modal="modal-asset-form">Vazgeç</button>
-                    <button type="submit" class="btn-primary">Kaydet</button>
+                    <button type="submit" class="btn-primary" id="btn-save-asset">Varlığı Kaydet</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 2: VARLIK DETAY VE GEÇMİŞ -->
-    <div id="modal-asset-detail" class="modal-backdrop" hidden>
-        <div class="modal-dialog modal-lg" role="dialog" aria-labelledby="detail-asset-title" aria-modal="true">
+    <!-- MODAL 3: LOKASYON & ODA TRANSFERİ -->
+    <div id="modal-transfer-form" class="modal-backdrop" hidden>
+        <div class="modal-dialog" role="dialog" aria-labelledby="modal-transfer-title" aria-modal="true">
             <div class="modal-header">
-                <h2 id="detail-asset-title">Varlık Kartı ve Yaşam Döngüsü Geçmişi</h2>
-                <button type="button" class="modal-close" data-close-modal="modal-asset-detail" aria-label="Kapat">&times;</button>
+                <h2 id="modal-transfer-title">Varlık Lokasyon &amp; Oda Transferi</h2>
+                <button type="button" class="modal-close" data-close-modal="modal-transfer-form" aria-label="Kapat">&times;</button>
             </div>
-            <div class="modal-body">
-                <div id="detail-asset-summary" class="detail-grid"></div>
+            <form id="form-transfer" class="modal-body" novalidate>
+                <input type="hidden" id="trans-asset-id">
+                <div class="modal-info-text" id="trans-asset-summary">
+                    <strong>Varlık:</strong> <span id="trans-asset-name">-</span><br>
+                    <strong>Mevcut Konum:</strong> <span id="trans-current-loc">-</span>
+                </div>
 
-                <h3 class="detail-section-title">Bu Varlığa Ait Bakım &amp; Kalibrasyon Kayıtları</h3>
-                <div id="detail-asset-maintenances" class="activity-feed"></div>
+                <div class="form-field">
+                    <label for="trans-building">Hedef Hizmet Binası *</label>
+                    <select id="trans-building" required></select>
+                </div>
 
-                <h3 class="detail-section-title">Bu Varlığa Ait Hareket Geçmişi</h3>
-                <div id="detail-asset-movements" class="activity-feed"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" data-close-modal="modal-asset-detail">Kapat</button>
-            </div>
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label for="trans-floor">Hedef Kat *</label>
+                        <select id="trans-floor" required>
+                            <option value="">Önce Bina Seçin...</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="trans-room">Hedef Oda / Ambar *</label>
+                        <select id="trans-room" required>
+                            <option value="">Önce Kat Seçin...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="trans-note">Transfer Gerekçesi / Açıklama</label>
+                    <textarea id="trans-note" rows="2" placeholder="Örn: Yeni çalışma ofisine taşındı."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-close-modal="modal-transfer-form">Vazgeç</button>
+                    <button type="submit" class="btn-primary">Transferi Onayla</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL 3: BARKOD / ENVANTER ETİKETİ YAZDIRMA & ZİMMET FİŞİ ÖNİZLEME -->
-    <div id="modal-print-preview" class="modal-backdrop" hidden>
-        <div class="modal-dialog" role="dialog" aria-labelledby="print-modal-title" aria-modal="true">
+    <!-- MODAL 4: YENİ ODA EKLE -->
+    <div id="modal-new-room" class="modal-backdrop" hidden>
+        <div class="modal-dialog" role="dialog" aria-labelledby="m-newroom-title" aria-modal="true">
             <div class="modal-header">
-                <h2 id="print-modal-title">Belge / Etiket Önizleme</h2>
-                <button type="button" class="modal-close" data-close-modal="modal-print-preview" aria-label="Kapat">&times;</button>
+                <h2 id="m-newroom-title">Yeni Oda / Çalışma Alanı Tanımla</h2>
+                <button type="button" class="modal-close" data-close-modal="modal-new-room" aria-label="Kapat">&times;</button>
             </div>
-            <div class="modal-body">
-                <div id="print-preview-content" class="printable-sheet"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary" data-close-modal="modal-print-preview">Kapat</button>
-                <button type="button" class="btn-primary" id="btn-print-sheet">Yazdır</button>
-            </div>
+            <form id="form-new-room" class="modal-body" novalidate>
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label for="nr-building">Hizmet Binası *</label>
+                        <select id="nr-building" required></select>
+                    </div>
+                    <div class="form-field">
+                        <label for="nr-floor">Kat *</label>
+                        <select id="nr-floor" required>
+                            <option value="">Önce Bina Seçin...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label for="nr-number">Oda Numarası *</label>
+                        <input type="text" id="nr-number" required placeholder="Örn: 305">
+                    </div>
+                    <div class="form-field">
+                        <label for="nr-name">Oda Adı *</label>
+                        <input type="text" id="nr-name" required placeholder="Örn: Proje ve Analiz Ofisi">
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label for="nr-type">Oda Türü *</label>
+                        <select id="nr-type" required>
+                            <option value="Personel Ofisi">Personel Ofisi</option>
+                            <option value="Müdür Odası">Müdür Odası</option>
+                            <option value="Toplantı Odası">Toplantı Odası</option>
+                            <option value="Sistem Odası">Sistem Odası</option>
+                            <option value="Arşiv">Arşiv</option>
+                            <option value="Depo / Ambar">Depo / Ambar</option>
+                            <option value="Teknik Oda">Teknik Oda</option>
+                            <option value="Ortak Alan">Ortak Alan</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="nr-dept">Bağlı Müdürlük</label>
+                        <select id="nr-dept"></select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label for="nr-resp">Sorumlu Personel</label>
+                        <input type="text" id="nr-resp" placeholder="Örn: Mehmet Can">
+                    </div>
+                    <div class="form-field">
+                        <label for="nr-capacity">Kapasite</label>
+                        <input type="number" id="nr-capacity" min="1" value="4">
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <label for="nr-desc">Açıklama</label>
+                    <textarea id="nr-desc" rows="2" placeholder="Oda hakkında detay..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-close-modal="modal-new-room">Vazgeç</button>
+                    <button type="submit" class="btn-primary">Odayı Kaydet</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- MODAL 4: ZİMMET ATAMA -->
+    <!-- MODAL 5: YENİ ZİMMET FORMU -->
     <div id="modal-assign-form" class="modal-backdrop" hidden>
         <div class="modal-dialog" role="dialog" aria-labelledby="modal-assign-title" aria-modal="true">
             <div class="modal-header">
-                <h2 id="modal-assign-title">Varlık Zimmet Atama</h2>
+                <h2 id="modal-assign-title">Yeni Varlık Zimmet Ataması</h2>
                 <button type="button" class="modal-close" data-close-modal="modal-assign-form" aria-label="Kapat">&times;</button>
             </div>
             <form id="form-assign" class="modal-body" novalidate>
@@ -672,214 +976,55 @@
                 </div>
                 <div class="form-grid-2">
                     <div class="form-field">
-                        <label for="assign-person">Zimmetlenecek Sorumlu (Demo Ad) *</label>
-                        <input type="text" id="assign-person" required placeholder="Örn: Örnek Sorumlu 6 (Demo Kayıt)">
+                        <label for="assign-person">Zimmetlenecek Personel *</label>
+                        <input type="text" id="assign-person" required placeholder="Personel Adı Soyadı">
                     </div>
                     <div class="form-field">
-                        <label for="assign-title">Unvan / Görev</label>
-                        <input type="text" id="assign-title" placeholder="Örn: Birim Uzmanı (Demo)">
+                        <label for="assign-title">Personel Unvanı</label>
+                        <input type="text" id="assign-title" placeholder="Örn: Bilgisayar Mühendisi">
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label for="assign-unit">Müdürlük / Birim *</label>
+                        <input type="text" id="assign-unit" required placeholder="Örn: Bilgi İşlem Müdürlüğü">
                     </div>
                     <div class="form-field">
-                        <label for="assign-unit">Teslim Birimi *</label>
-                        <input type="text" id="assign-unit" list="unit-suggestions" required placeholder="Örn: Demo Birim A (Bilgi Sistemleri)">
-                    </div>
-                    <div class="form-field">
-                        <label for="assign-location">Teslim Konumu / Oda *</label>
-                        <input type="text" id="assign-location" required placeholder="Örn: Demo Yerleşke - A Blok Oda 205">
+                        <label for="assign-location">Konum / Oda *</label>
+                        <input type="text" id="assign-location" required placeholder="Örn: Ana Bina - Kat 3 - Oda 302">
                     </div>
                 </div>
                 <div class="form-field">
-                    <label for="assign-note">Zimmet Teslim Notu</label>
-                    <textarea id="assign-note" rows="2" placeholder="Zimmet teslim açıklaması..."></textarea>
+                    <label for="assign-note">Zimmet Fişi Notu</label>
+                    <textarea id="assign-note" rows="2" placeholder="Görevlendirme ve tahsis açıklaması..."></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-secondary" data-close-modal="modal-assign-form">Vazgeç</button>
-                    <button type="submit" class="btn-primary">Zimmet Fişi Oluştur</button>
+                    <button type="submit" class="btn-primary">Zimmet Fişini Kes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- MODAL 5: ZİMMET İADE ALMA -->
-    <div id="modal-return-form" class="modal-backdrop" hidden>
-        <div class="modal-dialog" role="dialog" aria-labelledby="modal-return-title" aria-modal="true">
+    <!-- MODAL 6: VARLIK DETAY POPUP -->
+    <div id="modal-detail" class="modal-backdrop" hidden>
+        <div class="modal-dialog modal-lg" role="dialog" aria-labelledby="detail-modal-title" aria-modal="true">
             <div class="modal-header">
-                <h2 id="modal-return-title">Zimmet İade Alma</h2>
-                <button type="button" class="modal-close" data-close-modal="modal-return-form" aria-label="Kapat">&times;</button>
+                <h2 id="detail-modal-title">Demirbaş Kimlik Kartı &amp; Geçmişi</h2>
+                <button type="button" class="modal-close" data-close-modal="modal-detail" aria-label="Kapat">&times;</button>
             </div>
-            <form id="form-return" class="modal-body" novalidate>
-                <input type="hidden" id="return-assignment-id">
-                <p id="return-summary-text" class="modal-info-text"></p>
-                <div class="form-grid-2">
-                    <div class="form-field">
-                        <label for="return-status">İade Sonrası Varlık Durumu *</label>
-                        <select id="return-status" required>
-                            <option value="Depoda">Depoda (Atanmaya Hazır)</option>
-                            <option value="Bakımda">Bakımda (Kontrol / Onarım Gerekli)</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="return-location">Teslim Alınan Depo / Konum *</label>
-                        <input type="text" id="return-location" required value="Demo Depo Alanı - Merkez İade Rafı">
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label for="return-note">İade Teslim Tutanağı Notu</label>
-                    <textarea id="return-note" rows="2" placeholder="Örn: Cihaz eksiksiz ve çalışır durumda teslim alındı."></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-close-modal="modal-return-form">Vazgeç</button>
-                    <button type="submit" class="btn-primary">İadeyi Tamamla</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 6: YENİ BAKIM / KALİBRASYON İŞ EMRİ -->
-    <div id="modal-maint-form" class="modal-backdrop" hidden>
-        <div class="modal-dialog" role="dialog" aria-labelledby="modal-maint-title" aria-modal="true">
-            <div class="modal-header">
-                <h2 id="modal-maint-title">Yeni Bakım / Kalibrasyon İş Emri</h2>
-                <button type="button" class="modal-close" data-close-modal="modal-maint-form" aria-label="Kapat">&times;</button>
+            <div class="modal-body" id="detail-modal-body">
+                <!-- JS ile dolar -->
             </div>
-            <form id="form-maint" class="modal-body" novalidate>
-                <div class="form-field">
-                    <label for="maint-asset-id">Bakıma Alınacak Varlık *</label>
-                    <select id="maint-asset-id" required></select>
-                </div>
-                <div class="form-grid-2">
-                    <div class="form-field">
-                        <label for="maint-type">İşlem Türü *</label>
-                        <select id="maint-type" required>
-                            <option value="Periyodik Bakım">Periyodik Bakım</option>
-                            <option value="Arıza Onarım">Arıza Onarım</option>
-                            <option value="Yıllık Kalibrasyon">Yıllık Kalibrasyon</option>
-                            <option value="Garanti Kapsamında Servis">Garanti Kapsamında Servis</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="maint-priority">Öncelik Seviyesi *</label>
-                        <select id="maint-priority" required>
-                            <option value="Normal">Normal</option>
-                            <option value="Yüksek">Yüksek</option>
-                            <option value="Acil">Acil</option>
-                            <option value="Düşük">Düşük</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="maint-vendor">Servis / Atölye / Teknisyen *</label>
-                        <input type="text" id="maint-vendor" required placeholder="Örn: Kurum İçi Teknik Atölye (Demo)">
-                    </div>
-                    <div class="form-field">
-                        <label for="maint-cost">Tahmini Servis Maliyeti (₺)</label>
-                        <input type="number" id="maint-cost" step="50" min="0" value="1500">
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label for="maint-desc">Arıza / Bakım Gerekçesi *</label>
-                    <textarea id="maint-desc" rows="2" required placeholder="Yapılacak bakım veya tespit edilen arıza detayı..."></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-close-modal="modal-maint-form">Vazgeç</button>
-                    <button type="submit" class="btn-primary">İş Emri Oluştur</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 7: BAKIMI TAMAMLAMA -->
-    <div id="modal-maint-complete" class="modal-backdrop" hidden>
-        <div class="modal-dialog" role="dialog" aria-labelledby="modal-maint-comp-title" aria-modal="true">
-            <div class="modal-header">
-                <h2 id="modal-maint-comp-title">Bakım / Kalibrasyon İşlemini Tamamla</h2>
-                <button type="button" class="modal-close" data-close-modal="modal-maint-complete" aria-label="Kapat">&times;</button>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" data-close-modal="modal-detail">Kapat</button>
             </div>
-            <form id="form-maint-complete" class="modal-body" novalidate>
-                <input type="hidden" id="comp-maint-id">
-                <p id="comp-maint-summary" class="modal-info-text"></p>
-                <div class="form-grid-2">
-                    <div class="form-field">
-                        <label for="comp-target-status">Dönüş Sonrası Varlık Durumu *</label>
-                        <select id="comp-target-status" required>
-                            <option value="Aktif">Aktif (Birimde Kullanıma Al)</option>
-                            <option value="Depoda">Depoda (Merkez Depoya Al)</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="comp-target-condition">Güncel Fiziksel Kondisyon *</label>
-                        <select id="comp-target-condition" required>
-                            <option value="Çok İyi">Çok İyi</option>
-                            <option value="İyi">İyi</option>
-                            <option value="Orta">Orta</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="comp-return-location">Teslim Edilen Konum *</label>
-                        <input type="text" id="comp-return-location" required value="Demo Yerleşke - Birim Teslim Noktası">
-                    </div>
-                    <div class="form-field">
-                        <label for="comp-final-cost">Gerçekleşen Toplam Maliyet (₺)</label>
-                        <input type="number" id="comp-final-cost" step="50" min="0" value="0">
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label for="comp-resolution">Yapılan İşlem ve Servis Sonuç Raporu *</label>
-                    <textarea id="comp-resolution" rows="2" required placeholder="Örn: Parça değişimi ve kalibrasyon testleri başarıyla tamamlandı."></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-close-modal="modal-maint-complete">Vazgeç</button>
-                    <button type="submit" class="btn-primary">Bakımı Kapat ve Varlığı Güncelle</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 8: YENİ TRANSFER / HAREKET KAYDI -->
-    <div id="modal-movement-form" class="modal-backdrop" hidden>
-        <div class="modal-dialog" role="dialog" aria-labelledby="modal-movement-title" aria-modal="true">
-            <div class="modal-header">
-                <h2 id="modal-movement-title">Varlık Transfer ve Durum Hareketi</h2>
-                <button type="button" class="modal-close" data-close-modal="modal-movement-form" aria-label="Kapat">&times;</button>
-            </div>
-            <form id="form-movement" class="modal-body" novalidate>
-                <div class="form-grid-2">
-                    <div class="form-field">
-                        <label for="move-asset-id">İlgili Varlık *</label>
-                        <select id="move-asset-id" required></select>
-                    </div>
-                    <div class="form-field">
-                        <label for="move-type">Hareket Türü *</label>
-                        <select id="move-type" required>
-                            <option value="TRANSFER">Birim / Konum Transferi</option>
-                            <option value="BAKIMA_GONDERIM">Bakıma / Onarıma Gönderim</option>
-                            <option value="BAKIMDAN_DONUS">Bakımdan Dönüş (Aktife/Depoya Al)</option>
-                            <option value="DEPOYA_CEKME">Depoya Çekme</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label for="move-to-unit">Hedef Birim *</label>
-                        <input type="text" id="move-to-unit" list="unit-suggestions" required placeholder="Örn: Demo Birim C (Destek Hizmetleri)">
-                    </div>
-                    <div class="form-field">
-                        <label for="move-to-location">Hedef Konum / Servis Noktası *</label>
-                        <input type="text" id="move-to-location" required placeholder="Örn: Demo Yerleşke - B Blok Kat 2">
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label for="move-note">Hareket Açıklaması / Gerekçe</label>
-                    <textarea id="move-note" rows="2" placeholder="Transfer veya bakım işleminin açıklaması..."></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" data-close-modal="modal-movement-form">Vazgeç</button>
-                    <button type="submit" class="btn-primary">Hareketi Kaydet</button>
-                </div>
-            </form>
         </div>
     </div>
 
     <footer class="site-footer">
         <div class="container footer-inner">
-            <p>Gebze Belediyesi Varlık Yönetimi Sistemi &mdash; Java 25 LTS &bull; Spring Boot 4.1.2 &bull; Oracle 23ai Altyapısı</p>
+            <p>Gebze Belediyesi Varlık Yönetimi Sistemi &mdash; Java 25 LTS &bull; Spring Boot 4.1.2 &bull; Oracle Database 23ai</p>
         </div>
     </footer>
 

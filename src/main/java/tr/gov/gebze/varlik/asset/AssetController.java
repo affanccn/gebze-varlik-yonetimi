@@ -52,9 +52,18 @@ public class AssetController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String condition,
             @RequestParam(required = false) String warrantyFilter,
-            @RequestParam(required = false) String sortBy
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long subUnitId,
+            @RequestParam(required = false) Long buildingId,
+            @RequestParam(required = false) Long floorId,
+            @RequestParam(required = false) Long roomId,
+            @RequestParam(required = false) Long categoryId
     ) {
-        return assetService.findAll(query, category, unit, status, condition, warrantyFilter, sortBy);
+        return assetService.findAllDetailed(
+                query, category, unit, status, condition, warrantyFilter, sortBy,
+                departmentId, subUnitId, buildingId, floorId, roomId, categoryId
+        );
     }
 
     @GetMapping("/lookup")
@@ -88,62 +97,78 @@ public class AssetController {
             @RequestBody AssetRequest request
     ) {
         UserSession session = authService.requireWriteAccess(token);
-        Asset created = assetService.create(request);
-        movementService.recordSystemMovement(
-                created,
-                "ILK_KAYIT",
-                "Envanter Girişi",
-                "Yeni Kayıt (" + created.supplier() + ")",
-                "Kabul Noktası",
-                created.unit(),
-                created.location(),
-                session.fullName(),
-                "Yeni demo varlık kaydı oluşturuldu (TİF: " + created.tifCode() + ")."
-        );
-        return created;
+        return assetService.create(request);
     }
 
     @PutMapping("/{id}")
     public Asset updateAsset(
-            @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @PathVariable Long id,
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @RequestBody AssetRequest request
     ) {
         UserSession session = authService.requireWriteAccess(token);
-        Asset previous = assetService.findById(id);
+        Asset before = assetService.findById(id);
         Asset updated = assetService.update(id, request);
         movementService.recordSystemMovement(
                 updated,
-                "GUNCELLEME",
+                "BILGI_GUNCELLENDI",
                 "Kayıt Güncelleme",
-                previous.unit(),
-                previous.location(),
+                before.unit(),
+                before.location(),
                 updated.unit(),
                 updated.location(),
                 session.fullName(),
-                "Varlık kartı güncellendi (Durum: " + updated.status() + ", Kondisyon: " + updated.condition() + ")."
+                "Varlık kimlik/konum bilgileri güncellendi."
         );
         return updated;
     }
 
+    public record TransferRequest(
+            Long buildingId,
+            Long floorId,
+            Long roomId,
+            Long departmentId,
+            Long subUnitId,
+            String note
+    ) {}
+
+    @PostMapping("/{id}/transfer")
+    public Asset transferAsset(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
+            @RequestBody TransferRequest request
+    ) {
+        UserSession session = authService.requireWriteAccess(token);
+        return assetService.transferLocation(
+                id,
+                request.buildingId(),
+                request.floorId(),
+                request.roomId(),
+                request.departmentId(),
+                request.subUnitId(),
+                session.fullName(),
+                request.note()
+        );
+    }
+
     @DeleteMapping("/{id}")
     public Map<String, Object> deleteAsset(
-            @RequestHeader(value = "X-Auth-Token", required = false) String token,
-            @PathVariable Long id
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Auth-Token", required = false) String token
     ) {
-        UserSession session = authService.requireDeleteAccess(token);
+        UserSession session = authService.requireAdmin(token);
         Asset deleted = assetService.delete(id);
         movementService.recordSystemMovement(
                 deleted,
-                "KAYIT_SILME",
-                "Envanter Düşümü",
+                "HURDA_CIKIS",
+                "Kayıt Pasifleştirme",
                 deleted.unit(),
                 deleted.location(),
-                "-",
-                "-",
+                "Arşiv / Pasif",
+                "Kayıt Dışı",
                 session.fullName(),
-                deleted.code() + " kodlu varlık envanterden düşüldü."
+                "Varlık sistemden pasife alındı (arşivlendi)."
         );
-        return Map.of("deletedId", id, "code", deleted.code());
+        return Map.of("success", true, "deletedId", id, "code", deleted.code());
     }
 }

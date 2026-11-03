@@ -11,7 +11,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:oracle:thin:@//${DB_HOST:localhost}:${DB_PORT:1521}/${DB_SERVICE:FREEPDB1}}
     username: ${DB_USERNAME:varlik_app}
-    password: ${DB_PASSWORD:}
+    password: ${DB_PASSWORD:GebzeVarlik2026}
     driver-class-name: oracle.jdbc.OracleDriver
     hikari:
       pool-name: GebzeVarlikHikariPool
@@ -38,7 +38,7 @@ spring:
           time_zone: Europe/Istanbul
 
   flyway:
-    enabled: ${DB_MIGRATION_ENABLED:false}
+    enabled: ${DB_MIGRATION_ENABLED:true}
     locations: classpath:db/migration
     baseline-on-migrate: true
 

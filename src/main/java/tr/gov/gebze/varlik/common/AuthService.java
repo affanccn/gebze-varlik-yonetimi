@@ -123,6 +123,10 @@ public class AuthService {
         return session;
     }
 
+    public UserSession requireAdmin(String token) {
+        return requireDeleteAccess(token);
+    }
+
     public UserSession requireDeleteAccess(String token) {
         UserSession session = requireSession(token);
         if (!session.canDelete()) {
