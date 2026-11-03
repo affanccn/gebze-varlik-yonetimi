@@ -20,3 +20,4 @@ USING (
 ON (TRIM(LOWER(aa.assignee_name)) = p.full_name)
 WHEN MATCHED THEN
     UPDATE SET aa.personnel_id = p.id;
+
