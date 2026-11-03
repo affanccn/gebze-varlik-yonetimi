@@ -1,7 +1,7 @@
 # Gebze Belediyesi Kurumsal Varlık ve Kaynak Yönetim Sistemi (GEBZE-EKYS)
-## Genişletme ve Mimari Yol Haritası Planı (Revizyon 6)
+## Genişletme ve Mimari Yol Haritası Planı (Revizyon 7)
 
-Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A (V9-V11) ve Faz 1B-1 (Spring Security, SPA CSRF, Roller, Şifre Değiştirme Modalı) başarıyla tamamlanmış; Faz 1B-2 (Müdürlük ve STAFF Veri İzolasyonu / `TenantQueryScope`) aşamasına geçilmiştir.
+Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A (V9-V11), Faz 1B-1 (Spring Security, SPA CSRF, Roller, Şifre Değiştirme Modalı) ve Faz 1B-2 (Müdürlük ve STAFF Veri İzolasyonu / `TenantQueryScope` ve 12/12 Doğrulama Boşlukları Testi) başarıyla tamamlanmış; Faz 1C (Varlık Yaşam Döngüsü ve 11 Durum Makinesi) aşamasına geçilmiştir.
 
 ---
 
@@ -865,15 +865,59 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 
 ---
 
+#### 11. Faz 1B-2 Doğrulama Boşlukları (Gap) Test Sonuçları (12/12 Kapalı)
+
+Revizyon 6 sonrasında talep edilen ek doğrulama kontrolleri `scripts/test_1b2_gaps.js` ile test edilmiş ve tüm güvenlik açıklarının kapalı olduğu doğrulanmıştır:
+
+| # | Test Senaryosu | Beklenen | Gerçekleşen | Durum |
+|---|----------------|----------|-------------|-------|
+| 1 | DEPT_MANAGER ➔ Başka müdürlüğün varlığına PUT `/api/assets/1` | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+| 2 | DEPT_MANAGER ➔ Başka müdürlüğün varlığına DELETE `/api/assets/1` | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+| 3 | DEPT_MANAGER ➔ Başka müdürlüğün varlığına POST `/api/assignments` | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+| 4 | DEPT_MANAGER ➔ Başka müdürlüğün varlığına POST `/api/maintenances` | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+| 5 | DEPT_MANAGER ➔ Başka müdürlüğün varlığına POST `/api/movements` | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+| 6 | DEPT_MANAGER ➔ Kendi varlığını başka müdürlüğe taşıma POST `/api/assets/37/transfer` | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+| 7 | DEPT_MANAGER ➔ Kendi varlığının müdürlüğünü PUT ile değiştirme | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+| 8 | ADMIN / DEPT_MANAGER / STAFF Alt Tablo Sayıları (`/api/assignments`: 1/0/0, `/api/maintenances`: 2/0/0, `/api/movements`: 3/0/0, `/api/documents`: 3/1/0, `/api/personnel`: 49/2/1) | Rol bazlı tam izolasyon | Tam eşleşti | ✓ KAPALI |
+| 9 | ADMIN ➔ `/api/assets/lookup?term=DEMO-VRK-001` (Tam Kapsam) | 200 OK | 200 OK | ✓ KAPALI |
+| 10 | DEPT_MANAGER ➔ `/api/assets/lookup?term=DEMO-VRK-001` (Başka Müdürlük) | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+| 11 | DEPT_MANAGER ➔ `/api/assets/lookup?term=GBZ-AST-035` (Kendi Müdürlüğü) | 200 OK | 200 OK | ✓ KAPALI |
+| 12 | STAFF ➔ `/api/assets/lookup?term=DEMO-VRK-001` (Zimmetli Değil) | 403 Forbidden | 403 Forbidden | ✓ KAPALI |
+
+- **Diğer Modüller (Fen İşleri):** Stok: 3, Filo: 3, Satın Alma: 1, Sayım: 0, Amortisman Raporu: 5.
+- **STAFF Sonuçları:** `/api/dashboard` (200 OK, `unitSummaries` sadece bağlı olunan Fen İşleri Müdürlüğü), `/api/personnel` (200 OK, 1 kayıt: Fatih Koç), diğer tüm modüller 403.
+
+---
+
 ### FAZ 1C: Varlık Yaşam Döngüsü Servisi, 11 Durum Makinesi ve Doğrulayıcı
-- `AssetLifecycleStatus` 11'li enum ve `AssetLifecycleValidator` sınıfı.
-- Tüm servislerdeki (`AssignmentService`, `MaintenanceService`, `MovementService`, `AssetService`) doğrudan durum güncellemelerinin `AssetLifecycleService.transitionState` metoduna yönlendirilmesi.
-- **Yaşam Döngüsü ve Durum Kuralları:**
-  - **Soft Delete Bağımsızlığı:** Silme işlemi (`delete`) durum geçişi değildir; `lifecycle_status` değiştirilmez, yalnızca `is_deleted = 1, deleted_at, deleted_by, is_active = 0` güncellenir.
-  - **Son Durumların Faal Olmama Kuralı:** `DEVREDILDI`, `BAGISLANDI`, `SATILDI`, `ZAYIAT_CALINMA` durumlarına geçen varlıklarda `is_active = 0` yapılır (listelerde aktif görünmezler).
-  - **Konum Transferi:** `MovementService.TRANSFER` oda/bina nakliyesidir; durum geçişi sayılmaz ve validator çağırmaz.
-  - **Bakım Sonrası Önceki Duruma Dönüş:** `asset_maintenances` tablosuna `previous_lifecycle_status` eklenir; bakım tamamlandığında cihaz önceki durumuna (`ZIMMETLENDI` veya `KULLANIMDA` veya `KAYDEDILDI`) güvenle döndürülür.
-  - **Bilinçli Mevzuat Kuralı:** Kurumlararası devir, bağış ve hurda satışı yalnızca ambardaki (`KAYDEDILDI`) varlıklar üzerinden yapılabilir; sahadaki veya personeldeki varlık önce ambara iade alınmalıdır.
+
+1. **Temel Prensipler ve Durum Kuralları (Revizyon 7):**
+   - **Soft Delete Bağımsızlığı:** Silme işlemi (`deleteAsset`) bir durum geçişi **değildir**. `lifecycle_status` alanına kesinlikle dokunulmaz. Yalnızca `is_deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = :user, is_active = 0` güncellenir.
+   - **is_active Türetim Kuralı:** `is_active` alanı daima `lifecycle_status` üzerinden türetilir:
+     - `is_active = 0`: `PASIF_ASKIDA`, `HURDAYA_AYRILDI`, `DEVREDILDI`, `BAGISLANDI`, `SATILDI`, `ZAYIAT_CALINMA`
+     - `is_active = 1`: `SATIN_ALINDI`, `KAYDEDILDI`, `ZIMMETLENDI`, `KULLANIMDA`, `BAKIMDA`
+     - `assets.status` alanı da 11 durum tablosuna göre (`Depoda`, `Zimmetli`, `Aktif`, `Bakımda`, `Pasif`, `Hurda`) tek merkezden senkronize edilir.
+   - **Aynı-Durum Operasyonları:** Konum/Oda transferleri (`MovementService.TRANSFER`) veya bir personelden diğerine doğrudan zimmet devri (`ZIMMETLENDI` ➔ `ZIMMETLENDI`), durum makinesi geçiş validator'ını çağırmaz. Bu işlemler operasyonel hareket ve audit kaydı olarak işlenir.
+   - **V13 Flyway Migrasyonu (`previous_lifecycle_status`):**
+     - `asset_maintenances` tablosuna `previous_lifecycle_status VARCHAR2(32 CHAR)` kolonu eklenir.
+     - Varlık bakıma alınırken o anki `lifecycle_status` değeri (`ZIMMETLENDI`, `KULLANIMDA`, `KAYDEDILDI`) bu kolona yazılır.
+     - Bakım tamamlandığında (`completeMaintenance`), varlık tam olarak bu önceki durumuna geri döner.
+     - Eski bakım kayıtları için geriye dönük uyumluluk korunur (`previous_lifecycle_status` null ise zimmetli personeli varsa `ZIMMETLENDI`, yoksa `KAYDEDILDI`).
+   - **Bilinçli Mevzuat ve Yetki Kuralları:**
+     - Kurumlararası devir (`DEVREDILDI`), resmi bağış (`BAGISLANDI`) ve ihale ile satış (`SATILDI`) yalnızca ambarda (`KAYDEDILDI`) bekleyen varlıklar üzerinden başlatılabilir.
+     - **Son Durum Geçiş Yetkisi (ADMIN Kısıtı):** `HURDAYA_AYRILDI`, `DEVREDILDI`, `BAGISLANDI`, `SATILDI`, `ZAYIAT_CALINMA` durumlarına geçişler yalnızca `ADMIN` rolü tarafından yapılabilir. `DEPT_MANAGER` bu durumları seçtiğinde HTTP 403 Forbidden döner. Diğer geçişler `DEPT_MANAGER` için kendi müdürlüğü varlıklarında serbesttir; `STAFF` sadece bakım talebi açabilir.
+   - **Yeni Varlık Oluşturma:** Arayüzden kaydedilen yeni demirbaşlar doğrudan `KAYDEDILDI` durumuyla başlar (`SATIN_ALINDI` yalnızca 4734 sayılı ihale/satın alma akışından gelir).
+   - **Atomik Durum Geçişi:** Her durum geçişi `AssetLifecycleService.transitionState` içinde tek `@Transactional` blokta yürütülür:
+     1. Varlık varlık ve silinmemişlik kontrolü (`is_deleted = 0`)
+     2. Müdürlük ve rol yetki kontrolü (`TenantQueryScope`)
+     3. Durum makinesi matris doğrulaması (`AssetLifecycleValidator`)
+     4. `lifecycle_status`, `status` ve `is_active` atomik güncellemesi
+     5. `system_audit_logs` tablosuna `old_value_json` ve `new_value_json` formatında denetim günlüğü kaydı
+     6. Geçersiz geçiş veya yetki hatasında HTTP 409 / 422 / 403 ile açıklayıcı Türkçe hata mesajı.
+
+2. **Frontend ve UI İyileştirmeleri:**
+   - Varlık detay görünümünde mevcut durum için rozet (`badge`) ve kullanıcının yetkisine göre geçebileceği **"Sonraki Geçerli Durumlar"** aksiyon butonları/seçenekleri sunulur.
+   - Varlık düzenleme formundaki serbest durum (`status`) seçimi kaldırılır; durum yönetimi durum makinesi motoruna bağlanır.
 
 ---
 
