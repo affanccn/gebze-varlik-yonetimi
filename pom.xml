@@ -46,6 +46,12 @@
             <artifactId>flyway-database-oracle</artifactId>
         </dependency>
 
+        <!-- Kriptografi Katmanı (BCrypt Password Encoder Desteği) -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
         <!-- En Güncel Oracle 23ai JDBC Sürücüsü (ojdbc17 - 23.26.3.0.0) ve Türkçe/NLS Desteği -->
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
