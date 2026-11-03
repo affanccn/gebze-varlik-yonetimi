@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.UserSession;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
 @RequestMapping("/api/movements")
@@ -17,10 +18,12 @@ public class MovementController {
 
     private final MovementService movementService;
     private final AuthService authService;
+    private final TenantQueryScope tenantQueryScope;
 
-    public MovementController(MovementService movementService, AuthService authService) {
+    public MovementController(MovementService movementService, AuthService authService, TenantQueryScope tenantQueryScope) {
         this.movementService = movementService;
         this.authService = authService;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     @GetMapping
@@ -37,6 +40,9 @@ public class MovementController {
             @RequestBody MovementRequest request
     ) {
         UserSession session = authService.requireWriteAccess(token);
+        if (request != null && request.assetId() != null) {
+            tenantQueryScope.validateAssetWriteAccess(request.assetId(), null);
+        }
         return movementService.createOperationalMovement(request, session.fullName());
     }
 }

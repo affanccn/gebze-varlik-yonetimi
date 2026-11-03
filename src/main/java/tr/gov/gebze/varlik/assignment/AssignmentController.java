@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.UserSession;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
 @RequestMapping("/api/assignments")
@@ -18,10 +19,12 @@ public class AssignmentController {
 
     private final AssignmentService assignmentService;
     private final AuthService authService;
+    private final TenantQueryScope tenantQueryScope;
 
-    public AssignmentController(AssignmentService assignmentService, AuthService authService) {
+    public AssignmentController(AssignmentService assignmentService, AuthService authService, TenantQueryScope tenantQueryScope) {
         this.assignmentService = assignmentService;
         this.authService = authService;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     @GetMapping
@@ -38,6 +41,9 @@ public class AssignmentController {
             @RequestBody AssignmentRequest request
     ) {
         UserSession session = authService.requireWriteAccess(token);
+        if (request != null && request.assetId() != null) {
+            tenantQueryScope.validateAssetWriteAccess(request.assetId(), null);
+        }
         return assignmentService.assignAsset(request, session.fullName());
     }
 
@@ -48,6 +54,8 @@ public class AssignmentController {
             @RequestBody(required = false) AssignmentReturnRequest request
     ) {
         UserSession session = authService.requireWriteAccess(token);
+        AssetAssignment assignment = assignmentService.findById(id);
+        tenantQueryScope.validateAssetWriteAccess(assignment.assetId(), null);
         return assignmentService.returnAssignment(id, request, session.fullName());
     }
 }

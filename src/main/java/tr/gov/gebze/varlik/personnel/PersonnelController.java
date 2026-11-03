@@ -3,15 +3,18 @@ package tr.gov.gebze.varlik.personnel;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
 @RequestMapping("/api/personnel")
 public class PersonnelController {
 
     private final PersonnelService service;
+    private final TenantQueryScope tenantQueryScope;
 
-    public PersonnelController(PersonnelService service) {
+    public PersonnelController(PersonnelService service, TenantQueryScope tenantQueryScope) {
         this.service = service;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     @GetMapping
@@ -20,6 +23,16 @@ public class PersonnelController {
             @RequestParam(required = false) Long roomId,
             @RequestParam(required = false) String query
     ) {
+        if (tenantQueryScope.isDeptManager()) {
+            departmentId = tenantQueryScope.getDepartmentId();
+        } else if (tenantQueryScope.isStaff()) {
+            Long persId = tenantQueryScope.getPersonnelId();
+            if (persId != null) {
+                return List.of(service.findById(persId));
+            } else {
+                return List.of();
+            }
+        }
         return service.findAll(departmentId, roomId, query);
     }
 

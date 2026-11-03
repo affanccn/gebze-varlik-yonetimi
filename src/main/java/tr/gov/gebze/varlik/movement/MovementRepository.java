@@ -6,38 +6,44 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Repository
 public class MovementRepository {
 
     private final JdbcClient jdbcClient;
+    private final TenantQueryScope tenantQueryScope;
 
-    public MovementRepository(JdbcClient jdbcClient) {
+    public MovementRepository(JdbcClient jdbcClient, TenantQueryScope tenantQueryScope) {
         this.jdbcClient = jdbcClient;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     public List<AssetMovement> findAll(Long assetId, String movementType) {
         StringBuilder sql = new StringBuilder("""
-            SELECT id, asset_id, asset_code, asset_name, movement_type, type_label,
-                   from_unit, from_location, to_unit, to_location, performed_by, note,
-                   TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI') AS ts
-            FROM asset_movements
-            WHERE 1=1
+            SELECT m.id, m.asset_id, m.asset_code, m.asset_name, m.movement_type, m.type_label,
+                   m.from_unit, m.from_location, m.to_unit, m.to_location, m.performed_by, m.note,
+                   TO_CHAR(m.created_at, 'YYYY-MM-DD HH24:MI') AS ts
+            FROM asset_movements m
+            JOIN assets a ON m.asset_id = a.id
+            WHERE a.is_deleted = 0
         """);
+
+        sql.append(" AND ").append(tenantQueryScope.getAssetFilterClause("a"));
 
         List<Object> params = new ArrayList<>();
 
         if (assetId != null) {
-            sql.append(" AND asset_id = ?");
+            sql.append(" AND m.asset_id = ?");
             params.add(assetId);
         }
 
         if (movementType != null && !movementType.isBlank() && !"Tümü".equalsIgnoreCase(movementType)) {
-            sql.append(" AND movement_type = ?");
+            sql.append(" AND m.movement_type = ?");
             params.add(movementType.trim());
         }
 
-        sql.append(" ORDER BY id DESC");
+        sql.append(" ORDER BY m.id DESC");
 
         var spec = jdbcClient.sql(sql.toString());
         for (int i = 0; i < params.size(); i++) {

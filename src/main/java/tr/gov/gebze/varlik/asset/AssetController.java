@@ -19,6 +19,7 @@ import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.UserSession;
 import tr.gov.gebze.varlik.movement.MaintenanceService;
 import tr.gov.gebze.varlik.movement.MovementService;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
 @RequestMapping("/api/assets")
@@ -29,19 +30,22 @@ public class AssetController {
     private final AssignmentService assignmentService;
     private final MaintenanceService maintenanceService;
     private final AuthService authService;
+    private final TenantQueryScope tenantQueryScope;
 
     public AssetController(
             AssetService assetService,
             MovementService movementService,
             AssignmentService assignmentService,
             MaintenanceService maintenanceService,
-            AuthService authService
+            AuthService authService,
+            TenantQueryScope tenantQueryScope
     ) {
         this.assetService = assetService;
         this.movementService = movementService;
         this.assignmentService = assignmentService;
         this.maintenanceService = maintenanceService;
         this.authService = authService;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     @GetMapping
@@ -73,11 +77,13 @@ public class AssetController {
                         HttpStatus.NOT_FOUND,
                         "Girilen kod, barkod veya seri numarasına ait varlık bulunamadı: " + term
                 ));
+        tenantQueryScope.validateAssetReadAccess(asset.id());
         return buildAssetDetailResponse(asset);
     }
 
     @GetMapping("/{id}")
     public Map<String, Object> getAssetDetail(@PathVariable Long id) {
+        tenantQueryScope.validateAssetReadAccess(id);
         Asset asset = assetService.findById(id);
         return buildAssetDetailResponse(asset);
     }
@@ -97,6 +103,7 @@ public class AssetController {
             @RequestBody AssetRequest request
     ) {
         UserSession session = authService.requireWriteAccess(token);
+        tenantQueryScope.validateAssetWriteAccess(null, request.departmentId());
         return assetService.create(request);
     }
 
@@ -107,6 +114,7 @@ public class AssetController {
             @RequestBody AssetRequest request
     ) {
         UserSession session = authService.requireWriteAccess(token);
+        tenantQueryScope.validateAssetWriteAccess(id, request.departmentId());
         Asset before = assetService.findById(id);
         Asset updated = assetService.update(id, request);
         movementService.recordSystemMovement(
@@ -139,6 +147,7 @@ public class AssetController {
             @RequestBody TransferRequest request
     ) {
         UserSession session = authService.requireWriteAccess(token);
+        tenantQueryScope.validateAssetWriteAccess(id, request.departmentId());
         return assetService.transferLocation(
                 id,
                 request.buildingId(),
@@ -157,6 +166,7 @@ public class AssetController {
             @RequestHeader(value = "X-Auth-Token", required = false) String token
     ) {
         UserSession session = authService.requireAdmin(token);
+        tenantQueryScope.validateAssetWriteAccess(id, null);
         Asset deleted = assetService.delete(id);
         movementService.recordSystemMovement(
                 deleted,

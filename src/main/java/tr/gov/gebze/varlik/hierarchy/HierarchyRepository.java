@@ -6,14 +6,17 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Repository
 public class HierarchyRepository {
 
     private final JdbcClient jdbcClient;
+    private final TenantQueryScope tenantQueryScope;
 
-    public HierarchyRepository(JdbcClient jdbcClient) {
+    public HierarchyRepository(JdbcClient jdbcClient, TenantQueryScope tenantQueryScope) {
         this.jdbcClient = jdbcClient;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     // ==========================================
@@ -21,11 +24,12 @@ public class HierarchyRepository {
     // ==========================================
 
     public List<Department> findAllDepartments() {
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
         String sql = """
             SELECT d.id, d.code, d.name, d.manager_name, d.phone, d.email, d.display_order, d.is_active,
                    COUNT(a.id) AS asset_count
             FROM departments d
-            LEFT JOIN assets a ON a.department_id = d.id AND a.is_active = 1
+            LEFT JOIN assets a ON a.department_id = d.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
             GROUP BY d.id, d.code, d.name, d.manager_name, d.phone, d.email, d.display_order, d.is_active
             ORDER BY d.display_order ASC, d.id ASC
             """;
@@ -94,13 +98,14 @@ public class HierarchyRepository {
     // ==========================================
 
     public List<SubUnit> findAllSubUnits(Long departmentId) {
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
         String sql = """
             SELECT s.id, s.department_id, d.name AS dept_name, s.parent_unit_id, s.code, s.name,
                    s.unit_type, s.manager_name, s.phone, s.description, s.is_active,
                    COUNT(a.id) AS asset_count
             FROM sub_units s
             JOIN departments d ON s.department_id = d.id
-            LEFT JOIN assets a ON a.sub_unit_id = s.id AND a.is_active = 1
+            LEFT JOIN assets a ON a.sub_unit_id = s.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
             WHERE (:deptId IS NULL OR s.department_id = :deptId)
             GROUP BY s.id, s.department_id, d.name, s.parent_unit_id, s.code, s.name,
                      s.unit_type, s.manager_name, s.phone, s.description, s.is_active
@@ -181,6 +186,7 @@ public class HierarchyRepository {
     // ==========================================
 
     public List<Building> findAllBuildings() {
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
         String sql = """
             SELECT b.id, b.code, b.name, b.building_type, b.address, b.phone, b.total_floors,
                    b.description, b.is_active,
@@ -188,7 +194,7 @@ public class HierarchyRepository {
                    COUNT(DISTINCT r.id) AS room_count
             FROM buildings b
             LEFT JOIN rooms r ON r.building_id = b.id AND r.is_active = 1
-            LEFT JOIN assets a ON a.building_id = b.id AND a.is_active = 1
+            LEFT JOIN assets a ON a.building_id = b.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
             GROUP BY b.id, b.code, b.name, b.building_type, b.address, b.phone, b.total_floors, b.description, b.is_active
             ORDER BY b.id ASC
             """;
@@ -261,6 +267,7 @@ public class HierarchyRepository {
     // ==========================================
 
     public List<Floor> findFloorsByBuilding(Long buildingId) {
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
         String sql = """
             SELECT f.id, f.building_id, b.name AS bld_name, f.floor_code, f.floor_name,
                    f.floor_order, f.description, f.is_active,
@@ -269,7 +276,7 @@ public class HierarchyRepository {
             FROM floors f
             JOIN buildings b ON f.building_id = b.id
             LEFT JOIN rooms r ON r.floor_id = f.id AND r.is_active = 1
-            LEFT JOIN assets a ON a.floor_id = f.id AND a.is_active = 1
+            LEFT JOIN assets a ON a.floor_id = f.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
             WHERE (:bldId IS NULL OR f.building_id = :bldId)
             GROUP BY f.id, f.building_id, b.name, f.floor_code, f.floor_name, f.floor_order, f.description, f.is_active
             ORDER BY f.floor_order ASC, f.id ASC
@@ -344,6 +351,7 @@ public class HierarchyRepository {
     // ==========================================
 
     public List<Room> findAllRooms(Long buildingId, Long floorId, Long departmentId, String roomType) {
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
         String sql = """
             SELECT r.id, r.building_id, b.name AS bld_name, r.floor_id, f.floor_name,
                    r.room_number, r.name, r.room_type, r.department_id, d.name AS dept_name,
@@ -355,7 +363,7 @@ public class HierarchyRepository {
             JOIN floors f ON r.floor_id = f.id
             LEFT JOIN departments d ON r.department_id = d.id
             LEFT JOIN sub_units s ON r.sub_unit_id = s.id
-            LEFT JOIN assets a ON a.room_id = r.id AND a.is_active = 1
+            LEFT JOIN assets a ON a.room_id = r.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
             WHERE (:bldId IS NULL OR r.building_id = :bldId)
               AND (:flrId IS NULL OR r.floor_id = :flrId)
               AND (:deptId IS NULL OR r.department_id = :deptId)

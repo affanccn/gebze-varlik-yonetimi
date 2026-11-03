@@ -7,14 +7,17 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Repository
 public class AssetRepository {
 
     private final JdbcClient jdbcClient;
+    private final TenantQueryScope tenantQueryScope;
 
-    public AssetRepository(JdbcClient jdbcClient) {
+    public AssetRepository(JdbcClient jdbcClient, TenantQueryScope tenantQueryScope) {
         this.jdbcClient = jdbcClient;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     public List<Asset> findAll(
@@ -49,8 +52,10 @@ public class AssetRepository {
             LEFT JOIN floors f ON a.floor_id = f.id
             LEFT JOIN rooms r ON a.room_id = r.id
             LEFT JOIN asset_categories c ON a.category_id = c.id
-            WHERE a.is_active = 1
+            WHERE a.is_active = 1 AND a.is_deleted = 0
         """);
+
+        sql.append(" AND ").append(tenantQueryScope.getAssetFilterClause("a"));
 
         List<Object> params = new ArrayList<>();
 
@@ -171,7 +176,7 @@ public class AssetRepository {
             LEFT JOIN floors f ON a.floor_id = f.id
             LEFT JOIN rooms r ON a.room_id = r.id
             LEFT JOIN asset_categories c ON a.category_id = c.id
-            WHERE a.id = :id AND a.is_active = 1
+            WHERE a.id = :id AND a.is_active = 1 AND a.is_deleted = 0
         """;
         return jdbcClient.sql(sql).param("id", id).query(this::mapAsset).optional();
     }
@@ -197,7 +202,7 @@ public class AssetRepository {
             LEFT JOIN floors f ON a.floor_id = f.id
             LEFT JOIN rooms r ON a.room_id = r.id
             LEFT JOIN asset_categories c ON a.category_id = c.id
-            WHERE UPPER(a.code) = UPPER(:code) AND a.is_active = 1
+            WHERE UPPER(a.code) = UPPER(:code) AND a.is_active = 1 AND a.is_deleted = 0
         """;
         return jdbcClient.sql(sql).param("code", code).query(this::mapAsset).optional();
     }
@@ -362,7 +367,7 @@ public class AssetRepository {
     }
 
     public void softDelete(Long id) {
-        jdbcClient.sql("UPDATE assets SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
+        jdbcClient.sql("UPDATE assets SET is_active = 0, is_deleted = 1, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
                 .param("id", id)
                 .update();
     }

@@ -10,16 +10,19 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.asset.Asset;
 import tr.gov.gebze.varlik.asset.AssetRepository;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Service
 public class HierarchyService {
 
     private final HierarchyRepository hierarchyRepository;
     private final AssetRepository assetRepository;
+    private final TenantQueryScope tenantQueryScope;
 
-    public HierarchyService(HierarchyRepository hierarchyRepository, AssetRepository assetRepository) {
+    public HierarchyService(HierarchyRepository hierarchyRepository, AssetRepository assetRepository, TenantQueryScope tenantQueryScope) {
         this.hierarchyRepository = hierarchyRepository;
         this.assetRepository = assetRepository;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     // ==========================================
@@ -509,6 +512,10 @@ public class HierarchyService {
 
     public HierarchyTreeNode getCorporateHierarchyTree() {
         List<Department> departments = hierarchyRepository.findAllDepartments();
+        if (tenantQueryScope.isDeptManager()) {
+            Long deptId = tenantQueryScope.getDepartmentId();
+            departments = departments.stream().filter(d -> java.util.Objects.equals(d.id(), deptId)).toList();
+        }
         List<Room> allRooms = hierarchyRepository.findAllRooms(null, null, null, null);
         List<HierarchyTreeNode> deptNodes = new ArrayList<>();
         long grandTotalAssets = 0;

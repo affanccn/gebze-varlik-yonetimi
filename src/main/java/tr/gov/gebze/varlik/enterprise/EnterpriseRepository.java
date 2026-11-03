@@ -9,14 +9,17 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Repository
 public class EnterpriseRepository {
 
     private final JdbcClient jdbcClient;
+    private final TenantQueryScope tenantQueryScope;
 
-    public EnterpriseRepository(JdbcClient jdbcClient) {
+    public EnterpriseRepository(JdbcClient jdbcClient, TenantQueryScope tenantQueryScope) {
         this.jdbcClient = jdbcClient;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     // ==========================================
@@ -30,6 +33,7 @@ public class EnterpriseRepository {
             FROM stock_items
             WHERE 1=1
         """);
+        sql.append(" AND ").append(tenantQueryScope.getStockItemFilterClause(null));
         List<Object> params = new ArrayList<>();
         if (departmentId != null) {
             sql.append(" AND department_id = ?");
@@ -157,6 +161,7 @@ public class EnterpriseRepository {
             FROM fleet_vehicles
             WHERE 1=1
         """);
+        sql.append(" AND ").append(tenantQueryScope.getFleetFilterClause(null));
         List<Object> params = new ArrayList<>();
         if (departmentId != null) {
             sql.append(" AND department_id = ?");
@@ -227,6 +232,7 @@ public class EnterpriseRepository {
             FROM procurement_orders
             WHERE 1=1
         """);
+        sql.append(" AND ").append(tenantQueryScope.getProcurementFilterClause(null));
         List<Object> params = new ArrayList<>();
         if (departmentId != null) {
             sql.append(" AND department_id = ?");
@@ -264,6 +270,7 @@ public class EnterpriseRepository {
     // 4. SAYIM VE ENVANTER KONTROLÜ
     // ==========================================
     public List<InventoryAudit> findAllAudits() {
+        String filter = tenantQueryScope.getAuditFilterClause(null);
         return jdbcClient.sql("""
             SELECT id, audit_code, title, building_id, department_id, scope_description,
                    total_expected, total_scanned, total_missing, total_excess, status,
@@ -271,6 +278,7 @@ public class EnterpriseRepository {
                    TO_CHAR(completed_at, 'YYYY-MM-DD HH24:MI') AS completed_at,
                    lead_auditor, notes
             FROM inventory_audits
+            WHERE """ + filter + """
             ORDER BY started_at DESC, id DESC
         """).query((rs, rowNum) -> new InventoryAudit(
                 rs.getLong("id"),
@@ -380,24 +388,30 @@ public class EnterpriseRepository {
     // ==========================================
     public List<AssetDocument> findAllDocuments(Long assetId, String docType) {
         StringBuilder sql = new StringBuilder("""
-            SELECT id, doc_code, asset_id, asset_name, document_type, title, document_no,
-                   file_name, file_size_kb, issued_by,
-                   TO_CHAR(valid_until, 'YYYY-MM-DD') AS valid_until,
-                   notes,
-                   TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI') AS created_at
-            FROM asset_documents
+            SELECT d.id, d.doc_code, d.asset_id, d.asset_name, d.document_type, d.title, d.document_no,
+                   d.file_name, d.file_size_kb, d.issued_by,
+                   TO_CHAR(d.valid_until, 'YYYY-MM-DD') AS valid_until,
+                   d.notes,
+                   TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI') AS created_at
+            FROM asset_documents d
+            LEFT JOIN assets a ON d.asset_id = a.id
             WHERE 1=1
         """);
+        if (tenantQueryScope.isStaff()) {
+            sql.append(" AND d.asset_id IS NOT NULL AND a.is_active = 1 AND a.is_deleted = 0 AND ").append(tenantQueryScope.getAssetFilterClause("a"));
+        } else {
+            sql.append(" AND (d.asset_id IS NULL OR (a.is_active = 1 AND a.is_deleted = 0 AND ").append(tenantQueryScope.getAssetFilterClause("a")).append("))");
+        }
         List<Object> params = new ArrayList<>();
         if (assetId != null) {
-            sql.append(" AND asset_id = ?");
+            sql.append(" AND d.asset_id = ?");
             params.add(assetId);
         }
         if (docType != null && !docType.isBlank()) {
-            sql.append(" AND document_type = ?");
+            sql.append(" AND d.document_type = ?");
             params.add(docType.trim());
         }
-        sql.append(" ORDER BY created_at DESC, id DESC");
+        sql.append(" ORDER BY d.created_at DESC, d.id DESC");
 
         var spec = jdbcClient.sql(sql.toString());
         for (int i = 0; i < params.size(); i++) {
@@ -494,6 +508,7 @@ public class EnterpriseRepository {
     // 8. AMORTİSMAN & RAPORLAMA HESABI
     // ==========================================
     public List<DepreciationReportItem> calculateDepreciation() {
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
         return jdbcClient.sql("""
             SELECT a.id, a.code, a.name, a.category, COALESCE(d.name, a.unit_name) AS dept_name,
                    TO_CHAR(a.acquisition_date, 'YYYY-MM-DD') AS acq_date,
@@ -501,7 +516,8 @@ public class EnterpriseRepository {
                    a.status
             FROM assets a
             LEFT JOIN departments d ON a.department_id = d.id
-            WHERE a.status != 'Kullanım Dışı'
+            WHERE a.status != 'Kullanım Dışı' AND a.is_active = 1 AND a.is_deleted = 0
+              AND """ + assetFilter + """
             ORDER BY a.estimated_value DESC
         """).query((rs, rowNum) -> {
             long assetId = rs.getLong("id");
@@ -560,10 +576,11 @@ public class EnterpriseRepository {
         List<SystemAlert> alerts = new ArrayList<>();
 
         // 1. Kritik stok seviyesinin altına düşen malzemeler
+        String stockFilter = tenantQueryScope.getStockItemFilterClause(null);
         jdbcClient.sql("""
             SELECT item_code, item_name, warehouse_name, current_quantity, min_threshold, unit
             FROM stock_items
-            WHERE current_quantity <= min_threshold
+            WHERE current_quantity <= min_threshold AND """ + stockFilter + """
         """).query((rs, rowNum) -> {
             alerts.add(new SystemAlert(
                     "STOCK_CRITICAL",
@@ -578,12 +595,13 @@ public class EnterpriseRepository {
         }).list();
 
         // 2. Muayenesi yaklaşan veya geçmiş araçlar
+        String fleetFilter = tenantQueryScope.getFleetFilterClause(null);
         jdbcClient.sql("""
             SELECT plate_number, vehicle_type, brand_model, department_name,
                    TO_CHAR(inspection_date, 'YYYY-MM-DD') AS insp_date,
                    ROUND(inspection_date - SYSDATE) AS days_left
             FROM fleet_vehicles
-            WHERE inspection_date IS NOT NULL AND inspection_date <= SYSDATE + 45
+            WHERE inspection_date IS NOT NULL AND inspection_date <= SYSDATE + 45 AND """ + fleetFilter + """
         """).query((rs, rowNum) -> {
             int days = rs.getInt("days_left");
             String sev = days <= 0 ? "CRITICAL" : "WARNING";

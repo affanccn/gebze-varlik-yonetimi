@@ -11,15 +11,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tr.gov.gebze.varlik.asset.Asset;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
 @RequestMapping("/api")
 public class HierarchyController {
 
     private final HierarchyService hierarchyService;
+    private final TenantQueryScope tenantQueryScope;
 
-    public HierarchyController(HierarchyService hierarchyService) {
+    public HierarchyController(HierarchyService hierarchyService, TenantQueryScope tenantQueryScope) {
         this.hierarchyService = hierarchyService;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     // ==========================================
@@ -197,6 +200,7 @@ public class HierarchyController {
 
     @GetMapping("/hierarchy/tree")
     public HierarchyTreeNode getTree(@RequestParam(defaultValue = "physical") String mode) {
+        tenantQueryScope.enforceStaffModuleRestriction("hierarchy/tree");
         if ("corporate".equalsIgnoreCase(mode)) {
             return hierarchyService.getCorporateHierarchyTree();
         }

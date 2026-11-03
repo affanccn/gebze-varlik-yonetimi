@@ -7,14 +7,17 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Repository
 public class AssignmentRepository {
 
     private final JdbcClient jdbcClient;
+    private final TenantQueryScope tenantQueryScope;
 
-    public AssignmentRepository(JdbcClient jdbcClient) {
+    public AssignmentRepository(JdbcClient jdbcClient, TenantQueryScope tenantQueryScope) {
         this.jdbcClient = jdbcClient;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     public List<AssetAssignment> findAll(Long assetId, String status) {
@@ -27,8 +30,10 @@ public class AssignmentRepository {
                    aa.return_note, aa.note
             FROM asset_assignments aa
             JOIN assets a ON aa.asset_id = a.id
-            WHERE 1=1
+            WHERE a.is_deleted = 0
         """);
+
+        sql.append(" AND ").append(tenantQueryScope.getAssetFilterClause("a"));
 
         List<Object> params = new ArrayList<>();
 

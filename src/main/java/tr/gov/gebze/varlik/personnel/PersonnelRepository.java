@@ -28,7 +28,7 @@ public class PersonnelRepository {
             LEFT JOIN departments d ON p.department_id = d.id
             LEFT JOIN sub_units s ON p.sub_unit_id = s.id
             LEFT JOIN rooms r ON p.room_id = r.id
-            WHERE p.is_active = 1
+            WHERE p.is_active = 1 AND p.is_deleted = 0
         """);
 
         List<Object> params = new ArrayList<>();

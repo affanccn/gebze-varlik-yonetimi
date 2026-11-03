@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.UserSession;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
 @RequestMapping("/api")
@@ -19,10 +20,12 @@ public class EnterpriseController {
 
     private final EnterpriseService enterpriseService;
     private final AuthService authService;
+    private final TenantQueryScope tenantQueryScope;
 
-    public EnterpriseController(EnterpriseService enterpriseService, AuthService authService) {
+    public EnterpriseController(EnterpriseService enterpriseService, AuthService authService, TenantQueryScope tenantQueryScope) {
         this.enterpriseService = enterpriseService;
         this.authService = authService;
+        this.tenantQueryScope = tenantQueryScope;
     }
 
     // 1. DEPO & STOK
@@ -32,11 +35,13 @@ public class EnterpriseController {
             @RequestParam(required = false) String warehouse,
             @RequestParam(required = false) String status
     ) {
+        tenantQueryScope.enforceStaffModuleRestriction("stock");
         return enterpriseService.findAllStockItems(departmentId, warehouse, status);
     }
 
     @GetMapping("/stock/transactions")
     public List<StockTransaction> listStockTransactions(@RequestParam(required = false) Long stockItemId) {
+        tenantQueryScope.enforceStaffModuleRestriction("stock");
         return enterpriseService.findStockTransactions(stockItemId);
     }
 
@@ -45,6 +50,7 @@ public class EnterpriseController {
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @RequestBody Map<String, Object> payload
     ) {
+        tenantQueryScope.enforceStaffModuleRestriction("stock");
         UserSession session = authService.requireWriteAccess(token);
         Long itemId = Long.valueOf(payload.get("stockItemId").toString());
         String txType = (String) payload.get("txType");
@@ -65,6 +71,7 @@ public class EnterpriseController {
             @RequestParam(required = false) String vehicleType,
             @RequestParam(required = false) String status
     ) {
+        tenantQueryScope.enforceStaffModuleRestriction("fleet");
         return enterpriseService.findAllVehicles(departmentId, vehicleType, status);
     }
 
@@ -74,6 +81,7 @@ public class EnterpriseController {
             @PathVariable Long id,
             @RequestBody Map<String, Object> payload
     ) {
+        tenantQueryScope.enforceStaffModuleRestriction("fleet");
         UserSession session = authService.requireWriteAccess(token);
         String status = (String) payload.get("status");
         Integer km = payload.get("currentKm") != null ? Integer.valueOf(payload.get("currentKm").toString()) : null;
@@ -89,17 +97,20 @@ public class EnterpriseController {
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) String status
     ) {
+        tenantQueryScope.enforceStaffModuleRestriction("procurement");
         return enterpriseService.findAllProcurementOrders(departmentId, status);
     }
 
     // 4. SAYIM & ENVANTER
     @GetMapping("/audits")
     public List<InventoryAudit> listAudits() {
+        tenantQueryScope.enforceStaffModuleRestriction("audits");
         return enterpriseService.findAllAudits();
     }
 
     @GetMapping("/audits/{id}/scans")
     public List<AuditScan> listAuditScans(@PathVariable Long id) {
+        tenantQueryScope.enforceStaffModuleRestriction("audits");
         return enterpriseService.findAuditScans(id);
     }
 
@@ -109,6 +120,7 @@ public class EnterpriseController {
             @PathVariable Long id,
             @RequestBody Map<String, String> payload
     ) {
+        tenantQueryScope.enforceStaffModuleRestriction("audits");
         UserSession session = authService.requireWriteAccess(token);
         String assetCode = payload.get("assetCode");
         String location = payload.get("scannedLocation");
@@ -129,6 +141,7 @@ public class EnterpriseController {
     // 6. DENETİM LOGLARI
     @GetMapping("/audit-logs")
     public List<SystemAuditLog> listAuditLogs(@RequestParam(defaultValue = "50") int limit) {
+        tenantQueryScope.enforceStaffModuleRestriction("audit-logs");
         return enterpriseService.findRecentAuditLogs(limit);
     }
 
@@ -153,6 +166,7 @@ public class EnterpriseController {
     // 8. AMORTİSMAN & RAPORLAR
     @GetMapping("/reports/depreciation")
     public List<DepreciationReportItem> getDepreciationReport() {
+        tenantQueryScope.enforceStaffModuleRestriction("reports/depreciation");
         return enterpriseService.calculateDepreciation();
     }
 

@@ -222,14 +222,23 @@ async function runTests() {
 
     // TEST 6: must_change_password=1 admin hesabı ve şifre değiştirme akışı
     try {
-        // Admin girişi (mevcut şifre: GebzeAdmin2026!)
-        const adminLoginRes = await request({
+        // Admin girişi (mevcut şifre: YeniGucluAdmin2026! veya GebzeAdmin2026!)
+        let adminLoginRes = await request({
             hostname: 'localhost',
             port: 8080,
             path: '/api/auth/login',
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
-        }, { username: 'admin', password: 'GebzeAdmin2026!' });
+        }, { username: 'admin', password: 'YeniGucluAdmin2026!' });
+        if (adminLoginRes.status !== 200) {
+            adminLoginRes = await request({
+                hostname: 'localhost',
+                port: 8080,
+                path: '/api/auth/login',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }, { username: 'admin', password: 'GebzeAdmin2026!' });
+        }
 
         const adminCookies = parseCookies(adminLoginRes.headers);
         const adminCsrf = adminCookies['XSRF-TOKEN'];
