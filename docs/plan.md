@@ -1,7 +1,7 @@
 # Gebze Belediyesi Kurumsal Varlık ve Kaynak Yönetim Sistemi (GEBZE-EKYS)
-## Genişletme ve Mimari Yol Haritası Planı (Revizyon 5)
+## Genişletme ve Mimari Yol Haritası Planı (Revizyon 6)
 
-Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A başarıyla tamamlanmış (V9-V11), Faz 1B ise bağımsız iki alt adıma (1B-1 ve 1B-2) ayrılmıştır.
+Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A (V9-V11) ve Faz 1B-1 (Spring Security, SPA CSRF, Roller, Şifre Değiştirme Modalı) başarıyla tamamlanmış; Faz 1B-2 (Müdürlük ve STAFF Veri İzolasyonu / `TenantQueryScope`) aşamasına geçilmiştir.
 
 ---
 
@@ -675,28 +675,57 @@ Yalnızca `dev` Spring profili aktif olduğunda (`@Profile("dev")`) çalışan `
   - `kurum_izleyici` (`role = 'VIEWER'`, `department_id = NULL`)
 - Şifreler `dev` profil yapılandırmasından veya ortam değişkeninden alınır.
 
-#### 5. STAFF Kullanıcıları İçin `personnel_id` Filtreleme Mimarisi (Faz 1B-2):
-`STAFF` rolündeki bir kullanıcı sisteme giriş yaptığında, `system_users.personnel_id` değeri session içine yüklenir. SQL seviyesinde bu izolasyon `TenantQueryScope` tarafından otomatik olarak zorunlu kılınır:
+#### 5. Gerçek Veritabanı Telemetrisi ve İzolasyon Analizi (Oracle 23ai Sorguları):
+Canlı veritabanından çalıştırılan doğrulama sorguları neticesinde aşağıdaki kesin sayılar tespit edilmiştir:
 
-```sql
--- Varlık ve Zimmet Sorgularında STAFF Kısıtı:
-WHERE (:userRole IN ('ADMIN', 'AUDITOR', 'VIEWER'))
-   OR (:userRole = 'DEPT_MANAGER' AND a.department_id = :userDeptId)
-   OR (:userRole = 'STAFF' AND EXISTS (
-        SELECT 1 FROM asset_assignments aa
-        WHERE aa.asset_id = a.id
-          AND aa.status = 'AKTIF'
-          AND aa.personnel_id = :userPersonnelId
-      ))
-```
+1. **`department_id IS NULL` Kayıt Sayıları:**
+   - `assets`: **0**
+   - `fleet_vehicles`: **0**
+   - `stock_items`: **0**
+   - `procurement_orders`: **0**
+   - `inventory_audits`: **0**
+   - *Sonuç:* Sistemde sahipsiz / NULL müdürlüklü kayıt bulunmamaktadır. Gelecekte eklenebilecek olası NULL kayıtlar yalnızca `ADMIN` ve `AUDITOR` tarafından görülür.
 
-#### 6. Bağlı Tablolarda ve Yeni Modüllerde Müdürlük İzolasyonu (Faz 1B-2):
-Aşağıdaki modüllerde `department_id` filtrelemesi uç noktalara zorunlu olarak uygulanacaktır:
-- `stock_items` & `stock_transactions` (`/api/stock`, `/api/stock/transactions`)
-- `fleet_vehicles` (`/api/fleet`, `/api/fleet/status`)
-- `procurement_orders` (`/api/procurement`)
-- `inventory_audits` & `audit_scans` (`/api/audits`, `/api/audits/scan`)
-- `dashboard/summary`, `hierarchy/tree`, `reports/depreciation`, `audit-logs`
+2. **`asset_assignments.status` Gerçek Değerleri:**
+   - `AKTIF`: **1 adet** (Toplam 1 kayıt: `id=1`, `asset_id=1`).
+
+3. **`asset_assignments.assignee_name` Eşleşme Analizi:**
+   - `id=1` kaydında `assignee_name = 'Örnek Sorumlu 1 (Demo Kayıt)'` yer almaktadır. `personnel` tablosunda bu isimle bir kayıt bulunmadığından (`match_count = 0`), bu kaydın `personnel_id` değeri `NULL` olarak kalacaktır.
+
+4. **`saha_personel` (`personnel_id = 22`, Fatih Koç) Zimmet Durumu:**
+   - Fatih Koç personeline bağlı aktif zimmet sayısı: **0 adet**.
+   - *Kritik Düzeltme:* STAFF izolasyon testinin "boş liste dönerek sahte başarılı" olmasını önlemek amacıyla, Fen İşleri Müdürlüğü'ne ait `GBZ-AST-035` (`id = 37`, Ağır Hizmet Kırıcı Delici Matkap Seti) varlığı Fatih Koç'a zimmetlenecektir. Böylece STAFF kullanıcısı giriş yaptığında tam olarak 1 adet varlık görecek ve test gerçek bir varlık üzerinden kesin olarak kanıtlanacaktır.
+
+#### 6. STAFF Kullanıcıları İçin `personnel_id` Filtreleme Mimarisi (Faz 1B-2):
+`STAFF` rolündeki bir kullanıcı sisteme giriş yaptığında, `system_users.personnel_id` değeri session içine yüklenir.
+- **Kesin Kural:** Yalnızca `asset_assignments.personnel_id = :userPersonnelId AND asset_assignments.status = 'AKTIF'` olan varlıklar listelenir.
+- **`OR department_id` Şartı KESİNLİKLE YASAKTIR.**
+- `STAFF` kullanıcısı Depo, Filo, Satın Alma, Sayım, Audit Log, Hiyerarşi Ağacı ve Raporlar uç noktalarına erişmeye çalıştığında **HTTP 403 Forbidden** alır.
+
+#### 7. VIEWER Rolü Kapsamı ve Mimari Karar:
+- **Karar ve Gerekçe:** `VIEWER` rolünün kapsamı `system_users.department_id` sütununa dinamik olarak bağlanmıştır:
+  - Eğer `system_users.department_id IS NULL` ise: Kurum geneli izleyici kabul edilir ve tüm belediye varlıklarını salt okunur görür (Örn: `kurum_izleyici`, Başkanlık Danışmanı, Teftiş Gözlemcisi).
+  - Eğer `system_users.department_id IS NOT NULL` ise: Birim izleyicisi kabul edilir ve yalnızca bağlı olduğu müdürlüğün kayıtlarını salt okunur görür (Örn: Fen İşleri Stajyeri/İzleyicisi).
+  - *Gerekçe:* Belediyelerde hem kurum genelini denetleyen bağımsız gözlemciler hem de yalnızca bir müdürlüğün işlemlerini takip etmesi gereken birim izleyicileri bulunur. Bu esnek tasarım sayesinde iki senaryo da tek bir rol ve sıfır kod değişikliği ile yönetilir.
+
+#### 8. Yetkisiz Müdürlük Kaydı Erişiminde 403 vs 404 Kararı:
+- **Karar:** Tutarlı olarak **HTTP 403 Forbidden** dönülecektir.
+- *Gerekçe:* Kurumsal ERP sistemlerinde denetlenebilirlik ve yetki ihlali teşebbüslerinin açıkça tespiti esastır. Bir müdürlük kullanıcısının başka müdürlüğün varlık ID'sini sorguladığında (örneğin `GET /api/assets/15`), sistemin bunu "Böyle bir varlık yok (404)" diyerek gizlemesi yerine "Bu varlık üzerinde yetkiniz bulunmamaktadır (403)" demesi ve `SecurityAuditService` aracılığıyla `ACCESS_DENIED` logu oluşturması güvenlik denetimleri ve ISO 27001 gereğidir.
+
+#### 9. Merkezi Veri İzolasyon Motoru (`TenantQueryScope`):
+Repository'lerde her metoda elle `WHERE` yazmak yerine, merkezi bir `TenantQueryScope` bileşeni kurulur. Bu bileşen:
+- `assets` tablosu için:
+  - `ADMIN`, `AUDITOR`: `1=1`
+  - `VIEWER (deptId == null)`: `1=1`
+  - `VIEWER (deptId != null)`: `department_id = :deptId`
+  - `DEPT_MANAGER`: `department_id = :deptId`
+  - `STAFF`: `id IN (SELECT asset_id FROM asset_assignments WHERE personnel_id = :persId AND status = 'AKTIF')`
+- Bağlı modüller için:
+  - `asset_assignments`, `asset_maintenances`, `asset_movements`, `asset_documents`, `audit_scans` ➔ `JOIN assets a ON ...` üzerinden filtrelenir.
+  - `stock_transactions` ➔ `JOIN stock_items si ON ...` üzerinden `si.department_id` ile filtrelenir.
+  - `stock_items`, `fleet_vehicles`, `procurement_orders`, `inventory_audits` ➔ Kendi `department_id` sütunları üzerinden filtrelenir.
+- Mutasyon Denetimi: `create`, `update`, `delete`, zimmet, bakım ve transfer işlemlerinde hedef müdürlük kullanıcının yetki alanında değilse doğrudan `403 Forbidden` üretilir.
+- Toplu Uç Noktalar: Dashboard sayıları, hiyerarşi ağacı, raporlar ve dışa aktarımlar kullanıcının yetki kapsamına göre dinamik hesaplanır.
 
 ---
 
@@ -805,11 +834,27 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 ---
 
 ### FAZ 1B-2: Kurumsal İzolasyon (TenantQueryScope), STAFF Filtresi ve Bağlı Modül Sahipliği
-*(SONRAKİ ADIM)*
-- `asset_assignments.personnel_id FK` eklenmesi ve mevcut kayıtların eşlenmesi.
-- `TenantQueryScope` ve `STAFF` için `aa.personnel_id = :userPersonnelId` filtresi.
-- `stock_items`, `fleet_vehicles`, `procurement_orders`, `inventory_audits` modüllerinde müdürlük filtresi.
-- `GlobalExceptionHandler` kısıt hata mesajı eşlemesi.
+*(ŞU ANKİ KAPSAM)*
+1. **Flyway `V12__add_personnel_fk_to_assignments.sql`:**
+   - `asset_assignments` tablosuna `personnel_id NUMBER(19) REFERENCES personnel(id)` eklenmesi.
+   - İndeks: `idx_assignments_personnel`.
+   - Mevcut 1 kaydın (`Örnek Sorumlu 1`) personel eşleşmesi olmaması nedeniyle NULL bırakılması.
+   - Yeni zimmet oluşturulurken `personnel_id` zorunlu tutulması.
+2. **Merkezi İzolasyon Motoru (`TenantQueryScope`):**
+   - Repository'lerde doğrudan WHERE şartı yazılmasını engelleyen merkezi kapsam sağlayıcı.
+   - Sahiplik Kuralı: `assets.department_id` sahibidir. Alt tablolar (`asset_assignments`, `asset_maintenances`, `asset_movements`, `asset_documents`, `audit_scans`) `JOIN assets` üzerinden filtrelenir.
+   - `stock_transactions` tablosu `stock_items` üzerinden (`si.department_id`) filtrelenir.
+   - `procurement_orders`, `inventory_audits`, `fleet_vehicles` kendi `department_id`'leri üzerinden filtrelenir.
+3. **STAFF ve Müdürlük İzolasyonu:**
+   - `STAFF`: Sadece `asset_assignments.personnel_id = :userPersonnelId AND asset_assignments.status = 'AKTIF'` olan varlıkları görür. `OR department_id` şartı kaldırılmıştır.
+   - `STAFF`: Depo, Filo, Satın Alma, Sayım, Audit Log, Hiyerarşi Ağacı ve Raporlar için `403 Forbidden` alır.
+   - `DEPT_MANAGER`: Sadece kendi müdürlüğünü (`Fen İşleri Müdürlüğü` ➔ 5 varlık, 13.140.000 TL) görür. Başka müdürlüğün ID'si ile sorgulama veya işlem yapmaya çalıştığında `403 Forbidden` alır ve `ACCESS_DENIED` olarak loglanır.
+   - `ADMIN` & `AUDITOR`: 74 varlığın tamamını görür.
+   - `VIEWER`: `department_id` NULL ise tüm belediyeyi salt okunur, dolu ise ilgili müdürlüğü salt okunur görür.
+4. **Toplu Uç Noktaların Güvenli İzolasyonu:**
+   - Dashboard sayıları, hiyerarşi ağacı, raporlar, Excel/CSV dışa aktarım kullanıcının yetki alanındaki kayıtlardan hesaplanır.
+5. **Kısıt Hata Eşlemesi (`GlobalExceptionHandler`):**
+   - Veritabanı tekil kısıt ihlallerinde kullanıcıya anlamlı Türkçe hata mesajı döner.
 
 ---
 
