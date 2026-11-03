@@ -1,7 +1,7 @@
 # Gebze Belediyesi Kurumsal Varlık ve Kaynak Yönetim Sistemi (GEBZE-EKYS)
-## Genişletme ve Mimari Yol Haritası Planı (Revizyon 4)
+## Genişletme ve Mimari Yol Haritası Planı (Revizyon 5)
 
-Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır.
+Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A başarıyla tamamlanmış (V9-V11), Faz 1B ise bağımsız iki alt adıma (1B-1 ve 1B-2) ayrılmıştır.
 
 ---
 
@@ -633,34 +633,64 @@ public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataInte
 
 #### 1. Rol Hiyerarşisi ve Yetki Matrisi:
 
-| Modül / İşlem | `ADMIN` (Merkez Yönetici) | `AUDITOR` (İç Denetçi) | `DEPT_MANAGER` (Müdürlük Yön.) | `STAFF` (Müdürlük Personeli) |
-|---------------|---------------------------|------------------------|--------------------------------|------------------------------|
-| **Varlık Listesi** | Tüm Belediye (Okuma/Yazma) | Tüm Belediye (Salt Okunur) | Kendi Müdürlüğü (Okuma/Yazma) | Sadece Kendine Zimmetliler |
-| **Zimmet İşlemleri** | Tüm Birimler (Tam Yetki) | Tüm Birimler (Salt Okunur) | Kendi Müdürlüğü (Ata/İade Al) | Kendi Zimmet Fişleri |
-| **Bakım & Onarım** | Tüm Servisler (Tam Yetki) | Tüm Servisler (Salt Okunur) | Kendi Müdürlüğü Varlıkları | Kendi Zimmetine Talep Açma |
-| **Depo & Stok** | Tüm Depolar (Giriş/Çıkış) | Tüm Depolar (Salt Okunur) | Kendi Depoları (Malzeme Çıkış) | Yetkisiz (403) |
-| **Araç & Filo** | Tüm Araçlar (Tam Yetki) | Tüm Araçlar (Salt Okunur) | Kendi Müdürlüğünün Taşıtları | Yetkisiz (403) |
-| **Satın Alma** | Tüm Dosyalar (Tam Yetki) | Tüm Dosyalar (Salt Okunur) | Kendi Müdürlük Talepleri | Yetkisiz (403) |
-| **Sayım & Kontrol** | Tüm Binalar (Tam Yetki) | Tüm Binalar (Oturum Açma) | Kendi Binaları (İzleme) | Yetkisiz (403) |
-| **Audit Logları** | Tüm Değişiklikler | Tüm Değişiklikler | Kendi Varlık Logları | Yetkisiz (403) |
+Sistemde 5 kurumsal rol tanımlanmıştır: `ADMIN`, `DEPT_MANAGER`, `STAFF`, `AUDITOR`, `VIEWER`.
 
-#### 2. STAFF Kullanıcıları İçin `personnel_id` Filtreleme Mimarisi:
+| Modül / İşlem | `ADMIN` (Merkez Yönetici) | `AUDITOR` (İç Denetçi) | `VIEWER` (Kurum İzleyici) | `DEPT_MANAGER` (Müdürlük Yön.) | `STAFF` (Müdürlük Personeli) |
+|---------------|---------------------------|------------------------|---------------------------|--------------------------------|------------------------------|
+| **Varlık Listesi** | Tüm Belediye (Okuma/Yazma) | Tüm Belediye (Salt Okunur) | Tüm Belediye (Salt Okunur) | Kendi Müdürlüğü (Okuma/Yazma) | Sadece Kendine Zimmetliler |
+| **Zimmet İşlemleri** | Tüm Birimler (Tam Yetki) | Tüm Birimler (Salt Okunur) | Tüm Birimler (Salt Okunur) | Kendi Müdürlüğü (Ata/İade Al) | Kendi Zimmet Fişleri |
+| **Bakım & Onarım** | Tüm Servisler (Tam Yetki) | Tüm Servisler (Salt Okunur) | Tüm Servisler (Salt Okunur) | Kendi Müdürlüğü Varlıkları | Kendi Zimmetine Talep Açma |
+| **Depo & Stok** | Tüm Depolar (Giriş/Çıkış) | Tüm Depolar (Salt Okunur) | Tüm Depolar (Salt Okunur) | Kendi Depoları (Malzeme Çıkış) | Yetkisiz (403) |
+| **Araç & Filo** | Tüm Araçlar (Tam Yetki) | Tüm Araçlar (Salt Okunur) | Tüm Araçlar (Salt Okunur) | Kendi Müdürlüğünün Taşıtları | Yetkisiz (403) |
+| **Satın Alma** | Tüm Dosyalar (Tam Yetki) | Tüm Dosyalar (Salt Okunur) | Tüm Dosyalar (Salt Okunur) | Kendi Müdürlük Talepleri | Yetkisiz (403) |
+| **Sayım & Kontrol** | Tüm Binalar (Tam Yetki) | Tüm Binalar (İzleme) | Tüm Binalar (İzleme) | Kendi Binaları (İzleme) | Yetkisiz (403) |
+| **Audit Logları** | Tüm Değişiklikler | Tüm Değişiklikler | Yetkisiz (403) | Kendi Varlık Logları | Yetkisiz (403) |
 
+> [!IMPORTANT]
+> **Merkezi Salt Okunurluk Kuralı (Central Read-Only Enforcement):**
+> `AUDITOR` ve `VIEWER` rolleri için GET dışındaki tüm HTTP isteklerinde (`POST`, `PUT`, `DELETE`, `PATCH`) Spring Security güvenlik katmanında tek merkezden `403 Forbidden` dönülür. Bu kural servis veya controller bazında tek tek değil, güvenlik filtre zincirinde (`SecurityFilterChain` / `AccessDecisionFilter`) global olarak işletilir. Frontend'de ise bu roller için tüm ekleme, düzenleme, silme ve durum değiştirme butonları gizlenir.
+
+#### 2. Zorunlu Şifre Değiştirme (`must_change_password = 1`) Kuralı:
+Kullanıcının `must_change_password = 1` bayrağı aktifken:
+1. Yalnızca `/api/auth/change-password`, `/api/auth/me` ve `/api/auth/logout` uç noktalarına erişebilir.
+2. Diğer tüm API isteklerinde (`GET /api/assets`, `GET /api/dashboard` dahil) backend `403 Forbidden` ("Şifrenizi güncellemeniz zorunludur") yanıtı döner.
+3. Frontend tarafında kapatılamayan (non-dismissible) modal açılarak yeni güvenli şifre belirlenmesi zorunlu kılınır. Şifre başarıyla güncellendiğinde `must_change_password = 0` yapılır ve sistem normal akışına döner.
+
+#### 3. Session Fixation ve Oturum Yönetimi:
+Spring Security session fixation koruması aktif olacaktır:
+```java
+http.sessionManagement(session -> session
+    .sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::changeSessionId)
+    .maximumSessions(2)
+);
+```
+
+#### 4. Geliştirme Ortamı Test Kullanıcıları (`DevUserSeeder`):
+Yalnızca `dev` Spring profili aktif olduğunda (`@Profile("dev")`) çalışan `DevUserSeeder` bileşeni (kesinlikle Flyway migrasyonlarında değil):
+- Üretim ortamında kesinlikle çalışmaz.
+- Veritabanında eksikse şu test hesaplarını `must_change_password = 0` olarak açar:
+  - `fen_isleri_mudur` (`role = 'DEPT_MANAGER'`, `department_id = Fen İşleri Müdürlüğü ID'si`)
+  - `saha_personel` (`role = 'STAFF'`, gerçek bir `personnel.id` kaydına bağlı `personnel_id`, `department_id`)
+  - `ic_denetci` (`role = 'AUDITOR'`, `department_id = NULL`)
+  - `kurum_izleyici` (`role = 'VIEWER'`, `department_id = NULL`)
+- Şifreler `dev` profil yapılandırmasından veya ortam değişkeninden alınır.
+
+#### 5. STAFF Kullanıcıları İçin `personnel_id` Filtreleme Mimarisi (Faz 1B-2):
 `STAFF` rolündeki bir kullanıcı sisteme giriş yaptığında, `system_users.personnel_id` değeri session içine yüklenir. SQL seviyesinde bu izolasyon `TenantQueryScope` tarafından otomatik olarak zorunlu kılınır:
 
 ```sql
 -- Varlık ve Zimmet Sorgularında STAFF Kısıtı:
-WHERE (:userRole IN ('ADMIN', 'AUDITOR'))
+WHERE (:userRole IN ('ADMIN', 'AUDITOR', 'VIEWER'))
    OR (:userRole = 'DEPT_MANAGER' AND a.department_id = :userDeptId)
    OR (:userRole = 'STAFF' AND EXISTS (
         SELECT 1 FROM asset_assignments aa
         WHERE aa.asset_id = a.id
           AND aa.status = 'AKTIF'
-          AND (aa.assignee_name = :userFullName OR a.department_id = :userDeptId)
+          AND aa.personnel_id = :userPersonnelId
       ))
 ```
 
-#### 3. Bağlı Tablolarda ve Yeni Modüllerde Müdürlük İzolasyonu:
+#### 6. Bağlı Tablolarda ve Yeni Modüllerde Müdürlük İzolasyonu (Faz 1B-2):
 Aşağıdaki modüllerde `department_id` filtrelemesi uç noktalara zorunlu olarak uygulanacaktır:
 - `stock_items` & `stock_transactions` (`/api/stock`, `/api/stock/transactions`)
 - `fleet_vehicles` (`/api/fleet`, `/api/fleet/status`)
@@ -672,17 +702,28 @@ Aşağıdaki modüllerde `department_id` filtrelemesi uç noktalara zorunlu olar
 
 ### 2.7 Spring Security SPA CSRF Yapılandırması
 
-Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun kusursuz çalışması için Spring Security 6+ resmi SPA desenine uygun mimari uygulanacaktır:
+Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun kusursuz çalışması için Spring Security 6/7 resmi SPA desenine (`SpaCsrfTokenRequestHandler` + `CsrfCookieFilter`) uygun mimari uygulanacaktır:
 
-1. **Düz Token İşleyici (`CsrfTokenRequestAttributeHandler`):**
-   BREACH saldırılarına karşı Spring Security varsayılan olarak XOR maskeli token üretir; ancak SPA arayüzü çerezdeki ham token ile eşleme yaptığı için maskeleme iptal edilir:
+1. **SPA Token İşleyici (`SpaCsrfTokenRequestHandler`):**
    ```java
-   CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
-   requestHandler.setCsrfRequestAttributeName(null);
+   final class SpaCsrfTokenRequestHandler extends CsrfTokenRequestAttributeHandler {
+       private final CsrfTokenRequestHandler delegate = new XorCsrfTokenRequestAttributeHandler();
+
+       @Override
+       public void handle(HttpServletRequest request, HttpServletResponse response, Supplier<CsrfToken> csrfToken) {
+           this.delegate.handle(request, response, csrfToken);
+       }
+
+       @Override
+       public String resolveCsrfTokenValue(HttpServletRequest request, CsrfToken csrfToken) {
+           String headerValue = request.getHeader(csrfToken.getHeaderName());
+           return (StringUtils.hasText(headerValue)) ? super.resolveCsrfTokenValue(request, csrfToken) : this.delegate.resolveCsrfTokenValue(request, csrfToken);
+       }
+   }
    ```
 
 2. **Çerez Filtresi (`CsrfCookieFilter` - OncePerRequestFilter):**
-   İlk GET isteğinde token'ın `DeferredCsrfToken` mekanizması tarafından çözülmesini ve `XSRF-TOKEN` çerezi olarak tarayıcıya yazılmasını sağlayan filtre:
+   Her istekte token'ın `DeferredCsrfToken` mekanizması tarafından çözülmesini ve `XSRF-TOKEN` çerezi olarak tarayıcıya yazılmasını sağlayan filtre:
    ```java
    public class CsrfCookieFilter extends OncePerRequestFilter {
        @Override
@@ -698,13 +739,9 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
    ```
 
 3. **Security Filter Chain Yapılandırması:**
-   ```java
-   http.csrf(csrf -> csrf
-       .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-       .csrfTokenRequestHandler(requestHandler)
-       .ignoringRequestMatchers("/api/auth/login") // İlk anonim giriş isteği
-   ).addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class);
-   ```
+   - Giriş uç noktası `/api/auth/login` CSRF muaf tutulur (anonim giriş).
+   - Çıkış uç noktası `/api/auth/logout` **CSRF korumalı** olur (`POST /api/auth/logout`).
+   - `CsrfCookieFilter`, `BasicAuthenticationFilter` sonrasına eklenir.
 
 4. **Frontend (`app.js`) Otomatik Başlık Ekleme:**
    `apiRequest` fonksiyonunda çerezden okunan token tüm güvenli olmayan isteklere (POST, PUT, DELETE, PATCH) otomatik iliştirilir:
@@ -713,7 +750,6 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
        var matches = document.cookie.match(new RegExp('(?:^|; )XSRF-TOKEN=([^;]*)'));
        return matches ? decodeURIComponent(matches[1]) : null;
    }
-   // İstek başlıklarına ekleme:
    if (method !== 'GET' && method !== 'HEAD') {
        headers['X-XSRF-TOKEN'] = getCsrfToken();
    }
@@ -723,8 +759,9 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 
 ### 2.8 Audit Log Transaction Stratejisi
 
-- **Varsayılan Davranış:** `AuditService.logChange(...)` metodu `@Transactional` olarak çağrılır ve ana iş akışının transaction'ı içinde yer alır. Eğer iş akışı (örneğin zimmet atama) herhangi bir sebeple hata alır ve rollback olursa, denetim kaydı da geri alınır; veritabanında hayalet/yetim log oluşmaz.
-- **`REQUIRES_NEW` Özel İstisnası:** Yalnızca güvenlik olayları (başarısız giriş denemeleri `FAILED_LOGIN_ATTEMPT`, yetkisiz erişim teşebbüsleri `ACCESS_DENIED`, şifre kilitlenmesi) ana transaction'dan izole edilerek `@Transactional(propagation = Propagation.REQUIRES_NEW)` ile yazılır; ana işlem düşse bile güvenlik kaydı veritabanında kalıcı kalır.
+- **Varsayılan Davranış:** `AuditService.logChange(...)` metodu `@Transactional` olarak çağrılır ve ana iş akışının transaction'ı içinde yer alır. Eğer iş akışı herhangi bir sebeple hata alır ve rollback olursa, denetim kaydı da geri alınır.
+- **`REQUIRES_NEW` Güvenlik Olayları:** Başarısız giriş denemeleri (`FAILED_LOGIN_ATTEMPT`), yetkisiz erişim teşebbüsleri (`ACCESS_DENIED`) ve hesap kilitlenmeleri ana transaction'dan izole edilerek `@Transactional(propagation = Propagation.REQUIRES_NEW)` ile yazılır; işlem düşse veya 403/401 dönse bile güvenlik kaydı veritabanında kalıcı kalır.
+- **Başarılı Giriş ve Çıkış:** `LOGIN_SUCCESS` ve `LOGOUT` olayları da denetim günlüğüne (`system_audit_logs`) kaydedilir.
 
 ---
 
@@ -732,43 +769,47 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 
 ### FAZ 0: UI Hazırlığı — Kurumsal Sol Menü (Sidebar) & %100 Tablo Sığdırma
 *(TAMAMLANDI)*
-- Sol tarafta modern, gruplanmış, akordiyon tipi **Kurumsal Sol Menü (Sidebar)** yapısı kuruldu.
-- 10-12 sütunlu tüm kurumsal tablolar (`view-procurement`, `view-documents`, `depreciation-table`, `view-fleet`, `view-stock` vb.) `table-layout: fixed; width: 100%;` düzenine geçirildi.
-- Yatay kaydırma çubukları kesin olarak engellendi (`overflow-x: hidden !important`); dikey kaydırma (`overflow-y: auto`) ile %100 ekran uyumu sağlandı.
 
 ---
 
 ### FAZ 1A: Veritabanı Migrasyonları (V9, V10, V11) & Admin Bootstrap
-- **`V9__core_schema_and_lifecycle.sql`:** Sütunların eklenmesi (`is_deleted`, `deleted_at`, `deleted_by`, `lifecycle_status`, `specifications JSON`, `system_audit_logs JSON alanları`) ve 74 varlığın UPDATE ile dönüştürülmesi.
-- **`V10__conditional_unique_indexes.sql`:** Eski kısıtların DROP edilip koşullu tekil indekslerin ve doğrudan arama sorguları için düz B-Tree indekslerin (`idx_assets_code`, `idx_assets_barcode`, `idx_personnel_reg`, `idx_fleet_plate`, `idx_stock_items_code`) oluşturulması.
-- **`V11__create_system_users.sql`:** `system_users` tablosunun DDL olarak oluşturulması (kullanıcı eklenmeden).
-- **`AdminUserBootstrap`:** Uygulama açılışında `APP_ADMIN_USERNAME` ve `APP_ADMIN_PASSWORD` ortam değişkenlerini kontrol ederek:
-  - Değişken varsa ilk yöneticiyi `must_change_password=1` olarak oluşturur.
-  - Değişken yoksa admin oluşturmaz, uyarı logu yazar ve uygulama normal çalışmaya devam eder.
-- **1A Test ve Doğrulama Kriterleri:**
-  1. `flyway_schema_history` tablosunda V9, V10, V11 migrasyonları `success = 1` olarak tamamlanır.
-  2. V9 öncesi ve V9 sonrası snapshot karşılaştırmasında 74 varlık için **fark 0** çıkar.
-  3. Varlık listesi (`/api/assets`), varlık detayı (`/api/assets/{id}`) ve dashboard (`/api/dashboard/summary`) hâlâ hatasız açılır.
-  4. Mevcut JDBC RowMapper ve sorgular yeni `specifications JSON` kolonu yüzünden bozulmaz.
-  5. Bootstrap admin hesabı `APP_ADMIN_PASSWORD` ile oluşturulduğunda `must_change_password = 1` olur; ortam değişkeni verilmediğinde uygulama yine hatasız ayağa kalkar.
+*(TAMAMLANDI - Commit: e929795)*
+- V9, V10, V11 başarıyla uygulandı (`success = 1`).
+- 74 varlık için pre-migration snapshot karşılaştırmasında **0 fark** doğrulandı.
+- Admin bootstrap ortam değişkeni ile oluşturuldu (`must_change_password = 1`).
 
 ---
 
-### FAZ 1B: Kimlik Doğrulama, SPA CSRF, Roller, Yeni Modüller ve STAFF/Müdürlük İzolasyonu
-- Spring Security + Session login + SPA Cookie CSRF (`SpaCsrfTokenRequestHandler` / `CsrfTokenRequestAttributeHandler` + `CsrfCookieFilter`).
-- `system_users` üzerinden BCrypt doğrulaması (`/api/auth/login`).
-- `must_change_password` durumunda arayüzde zorunlu şifre değiştirme modalı.
-- **Müdürlük ve Varlık Sahipliği Düzeltmeleri:**
-  - `asset_assignments` tablosuna `personnel_id NUMBER(19) FK` eklenmesi; mevcut kayıtların personel adından doldurulması.
-  - `stock_transactions.department_id` alanı malzemeyi teslim alan birimdir; stok mülkiyeti filtresi `stock_items.department_id` üzerinden uygulanır.
-  - `procurement_orders.department_id` ve `inventory_audits.department_id` alanları doğrudan talep eden / denetlenen müdürlük sahipliğidir.
-  - `department_id IS NULL` analizi: Canlı veritabanında `assets` (0), `fleet_vehicles` (0), `stock_items` (0) NULL kayıt içermemektedir. Olası NULL kayıtlar yalnızca genel belediye yöneticilerine (`ADMIN`, `AUDITOR`, `VIEWER`) görünür.
-- **Rol Yetki Zorlaması ve Salt Okunurluk:**
-  - `AUDITOR` ve `VIEWER` rolleri için güvenlik katmanında (`SecurityGuard` / Filter) HTTP GET dışındaki tüm istekler (`POST`, `PUT`, `DELETE`, `PATCH`) `403 Forbidden` ile engellenir.
-  - `STAFF` kullanıcıları için SQL filtresi doğrudan `aa.personnel_id = :userPersonnelId` bağına bağlanır (aynı isimli personel karışıklığını ve `OR a.department_id` hatasını önler).
-- **Test ve Geliştirme Kullanıcıları:**
-  - Dev profilinde çalışan `DevUsersSeed` bileşeni ile test amaçlı her role uygun (Fen İşleri Müdürü, Destek Personeli, Denetçi, İzleyici) örnek kullanıcılar oluşturulur.
-- `GlobalExceptionHandler` içine `DataIntegrityViolationException` kısıt hata eşlemesinin eklenmesi.
+### FAZ 1B-1: Kimlik Doğrulama, SPA CSRF, Roller, Güvenlik Filtreleri ve Frontend Güvenlik Entegrasyonu
+*(ŞU ANKİ KAPSAM)*
+1. **Spring Security Yapılandırması:**
+   - `spring-boot-starter-security` entegrasyonu.
+   - Session authentication, `SessionFixationConfigurer::changeSessionId`.
+   - `/api/auth/login`, `/api/auth/logout` (CSRF korumalı POST), `/api/auth/me`, `/api/auth/change-password`.
+   - `system_users` üzerinden BCrypt doğrulama (`CustomUserDetailsService`).
+2. **Rol & Yetki Filtresi (Central Enforcement):**
+   - `AUDITOR` ve `VIEWER` rolleri için GET dışındaki tüm HTTP isteklerinde (POST, PUT, DELETE, PATCH) `403 Forbidden` dönülmesi.
+   - `must_change_password = 1` durumunda `/api/auth/change-password`, `/api/auth/me`, `/api/auth/logout` haricindeki tüm API'lere `403 Forbidden` dönülmesi.
+3. **Audit Güvenlik Loglaması:**
+   - Başarısız giriş denemesi (`FAILED_LOGIN_ATTEMPT`) ve yetkisiz erişim (`ACCESS_DENIED`) olaylarının `REQUIRES_NEW` ile kaydedilmesi.
+   - Başarılı giriş (`LOGIN_SUCCESS`) ve çıkış (`LOGOUT`) kayıtlarının audit loguna eklenmesi.
+4. **DevUserSeeder:**
+   - `@Profile("dev")` altında Fen İşleri Müdürü (`DEPT_MANAGER`), Saha Personeli (`STAFF`), İç Denetçi (`AUDITOR`) ve Kurum İzleyici (`VIEWER`) test hesaplarının `must_change_password=0` ile açılması.
+5. **Frontend Güvenlik Entegrasyonu:**
+   - Giriş ekranı (Login View / Modal), çıkış butonu.
+   - Üst bilgi çubuğunda giriş yapan kullanıcının adı, soyadı ve rol etiketi.
+   - `must_change_password = 1` kullanıcılar için zorunlu şifre değiştirme modalı.
+   - `AUDITOR` ve `VIEWER` rollerinde ekleme, düzenleme ve silme butonlarının arayüzde gizlenmesi.
+   - `apiRequest` fonksiyonuna `X-XSRF-TOKEN` çerez başlığı entegrasyonu.
+
+---
+
+### FAZ 1B-2: Kurumsal İzolasyon (TenantQueryScope), STAFF Filtresi ve Bağlı Modül Sahipliği
+*(SONRAKİ ADIM)*
+- `asset_assignments.personnel_id FK` eklenmesi ve mevcut kayıtların eşlenmesi.
+- `TenantQueryScope` ve `STAFF` için `aa.personnel_id = :userPersonnelId` filtresi.
+- `stock_items`, `fleet_vehicles`, `procurement_orders`, `inventory_audits` modüllerinde müdürlük filtresi.
+- `GlobalExceptionHandler` kısıt hata mesajı eşlemesi.
 
 ---
 
