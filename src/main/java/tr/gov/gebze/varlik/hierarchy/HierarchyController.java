@@ -1,6 +1,7 @@
 package tr.gov.gebze.varlik.hierarchy;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,6 +46,11 @@ public class HierarchyController {
         return hierarchyService.updateDepartment(id, department);
     }
 
+    @DeleteMapping("/departments/{id}")
+    public void deleteDepartment(@PathVariable Long id) {
+        hierarchyService.deleteDepartment(id);
+    }
+
     // ==========================================
     // ALT BİRİMLER & ŞEFLİKLER
     // ==========================================
@@ -62,6 +68,16 @@ public class HierarchyController {
     @PostMapping("/sub-units")
     public SubUnit createSubUnit(@RequestBody SubUnit subUnit) {
         return hierarchyService.createSubUnit(subUnit);
+    }
+
+    @PutMapping("/sub-units/{id}")
+    public SubUnit updateSubUnit(@PathVariable Long id, @RequestBody SubUnit subUnit) {
+        return hierarchyService.updateSubUnit(id, subUnit);
+    }
+
+    @DeleteMapping("/sub-units/{id}")
+    public void deleteSubUnit(@PathVariable Long id) {
+        hierarchyService.deleteSubUnit(id);
     }
 
     // ==========================================
@@ -83,6 +99,16 @@ public class HierarchyController {
         return hierarchyService.createBuilding(building);
     }
 
+    @PutMapping("/buildings/{id}")
+    public Building updateBuilding(@PathVariable Long id, @RequestBody Building building) {
+        return hierarchyService.updateBuilding(id, building);
+    }
+
+    @DeleteMapping("/buildings/{id}")
+    public void deleteBuilding(@PathVariable Long id) {
+        hierarchyService.deleteBuilding(id);
+    }
+
     // ==========================================
     // KATLAR
     // ==========================================
@@ -92,9 +118,24 @@ public class HierarchyController {
         return hierarchyService.getFloors(buildingId);
     }
 
+    @GetMapping("/floors/{id}")
+    public Floor getFloorById(@PathVariable Long id) {
+        return hierarchyService.getFloorById(id);
+    }
+
     @PostMapping("/floors")
     public Floor createFloor(@RequestBody Floor floor) {
         return hierarchyService.createFloor(floor);
+    }
+
+    @PutMapping("/floors/{id}")
+    public Floor updateFloor(@PathVariable Long id, @RequestBody Floor floor) {
+        return hierarchyService.updateFloor(id, floor);
+    }
+
+    @DeleteMapping("/floors/{id}")
+    public void deleteFloor(@PathVariable Long id) {
+        hierarchyService.deleteFloor(id);
     }
 
     // ==========================================
@@ -129,6 +170,16 @@ public class HierarchyController {
     @PostMapping("/rooms")
     public Room createRoom(@RequestBody Room room) {
         return hierarchyService.createRoom(room);
+    }
+
+    @PutMapping("/rooms/{id}")
+    public Room updateRoom(@PathVariable Long id, @RequestBody Room room) {
+        return hierarchyService.updateRoom(id, room);
+    }
+
+    @DeleteMapping("/rooms/{id}")
+    public void deleteRoom(@PathVariable Long id) {
+        hierarchyService.deleteRoom(id);
     }
 
     // ==========================================

@@ -146,6 +146,36 @@ public class HierarchyRepository {
         return jdbcClient.sql("SELECT id FROM sub_units WHERE code = :code").param("code", s.code()).query(Long.class).single();
     }
 
+    public void updateSubUnit(SubUnit s) {
+        String sql = """
+            UPDATE sub_units SET
+                department_id = :deptId,
+                parent_unit_id = :parentId,
+                name = :name,
+                unit_type = :unitType,
+                manager_name = :managerName,
+                phone = :phone,
+                description = :description,
+                is_active = :isActive
+            WHERE id = :id
+            """;
+        jdbcClient.sql(sql)
+                .param("deptId", s.departmentId())
+                .param("parentId", s.parentUnitId())
+                .param("name", s.name())
+                .param("unitType", s.unitType() == null ? "Birim" : s.unitType())
+                .param("managerName", s.managerName())
+                .param("phone", s.phone())
+                .param("description", s.description())
+                .param("isActive", s.isActive() == null ? 1 : s.isActive())
+                .param("id", s.id())
+                .update();
+    }
+
+    public void deleteSubUnit(Long id) {
+        jdbcClient.sql("UPDATE sub_units SET is_active = 0 WHERE id = :id").param("id", id).update();
+    }
+
     // ==========================================
     // 3. BİNALAR (BUILDINGS)
     // ==========================================
@@ -198,6 +228,34 @@ public class HierarchyRepository {
         return jdbcClient.sql("SELECT id FROM buildings WHERE code = :code").param("code", b.code()).query(Long.class).single();
     }
 
+    public void updateBuilding(Building b) {
+        String sql = """
+            UPDATE buildings SET
+                name = :name,
+                building_type = :type,
+                address = :address,
+                phone = :phone,
+                total_floors = :floors,
+                description = :description,
+                is_active = :isActive
+            WHERE id = :id
+            """;
+        jdbcClient.sql(sql)
+                .param("name", b.name())
+                .param("type", b.buildingType() == null ? "Hizmet Binası" : b.buildingType())
+                .param("address", b.address())
+                .param("phone", b.phone())
+                .param("floors", b.totalFloors() == null ? 1 : b.totalFloors())
+                .param("description", b.description())
+                .param("isActive", b.isActive() == null ? 1 : b.isActive())
+                .param("id", b.id())
+                .update();
+    }
+
+    public void deleteBuilding(Long id) {
+        jdbcClient.sql("UPDATE buildings SET is_active = 0 WHERE id = :id").param("id", id).update();
+    }
+
     // ==========================================
     // 4. KATLAR (FLOORS)
     // ==========================================
@@ -239,6 +297,46 @@ public class HierarchyRepository {
                 .param("bldId", f.buildingId())
                 .param("code", f.floorCode())
                 .query(Long.class).single();
+    }
+
+    public Optional<Floor> findFloorById(Long id) {
+        String sql = """
+            SELECT f.id, f.building_id, b.name AS bld_name, f.floor_code, f.floor_name,
+                   f.floor_order, f.description, f.is_active,
+                   COUNT(DISTINCT r.id) AS room_count,
+                   COUNT(DISTINCT a.id) AS asset_count
+            FROM floors f
+            JOIN buildings b ON f.building_id = b.id
+            LEFT JOIN rooms r ON r.floor_id = f.id AND r.is_active = 1
+            LEFT JOIN assets a ON a.floor_id = f.id AND a.is_active = 1
+            WHERE f.id = :id
+            GROUP BY f.id, f.building_id, b.name, f.floor_code, f.floor_name, f.floor_order, f.description, f.is_active
+            """;
+        return jdbcClient.sql(sql).param("id", id).query(this::mapFloor).optional();
+    }
+
+    public void updateFloor(Floor f) {
+        String sql = """
+            UPDATE floors SET
+                floor_code = :code,
+                floor_name = :name,
+                floor_order = :orderNum,
+                description = :description,
+                is_active = :isActive
+            WHERE id = :id
+            """;
+        jdbcClient.sql(sql)
+                .param("code", f.floorCode())
+                .param("name", f.floorName())
+                .param("orderNum", f.floorOrder() == null ? 0 : f.floorOrder())
+                .param("description", f.description())
+                .param("isActive", f.isActive() == null ? 1 : f.isActive())
+                .param("id", f.id())
+                .update();
+    }
+
+    public void deleteFloor(Long id) {
+        jdbcClient.sql("UPDATE floors SET is_active = 0 WHERE id = :id").param("id", id).update();
     }
 
     // ==========================================
@@ -342,6 +440,42 @@ public class HierarchyRepository {
                 .param("isActive", r.isActive() == null ? 1 : r.isActive())
                 .update();
         return jdbcClient.sql("SELECT id FROM rooms WHERE qr_code = :qr").param("qr", r.qrCode()).query(Long.class).single();
+    }
+
+    public void updateRoom(Room r) {
+        String sql = """
+            UPDATE rooms SET
+                building_id = :bldId,
+                floor_id = :flrId,
+                room_number = :num,
+                name = :name,
+                room_type = :type,
+                department_id = :deptId,
+                sub_unit_id = :subId,
+                responsible_person = :resp,
+                capacity = :cap,
+                description = :desc,
+                is_active = :isActive
+            WHERE id = :id
+            """;
+        jdbcClient.sql(sql)
+                .param("bldId", r.buildingId())
+                .param("flrId", r.floorId())
+                .param("num", r.roomNumber())
+                .param("name", r.name())
+                .param("type", r.roomType() == null ? "Personel Ofisi" : r.roomType())
+                .param("deptId", r.departmentId())
+                .param("subId", r.subUnitId())
+                .param("resp", r.responsiblePerson())
+                .param("cap", r.capacity() == null ? 4 : r.capacity())
+                .param("desc", r.description())
+                .param("isActive", r.isActive() == null ? 1 : r.isActive())
+                .param("id", r.id())
+                .update();
+    }
+
+    public void deleteRoom(Long id) {
+        jdbcClient.sql("UPDATE rooms SET is_active = 0 WHERE id = :id").param("id", id).update();
     }
 
     // ==========================================

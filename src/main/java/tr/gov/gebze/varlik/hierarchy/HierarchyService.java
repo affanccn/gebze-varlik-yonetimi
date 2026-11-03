@@ -77,6 +77,12 @@ public class HierarchyService {
         return getDepartmentById(id);
     }
 
+    @Transactional
+    public void deleteDepartment(Long id) {
+        getDepartmentById(id);
+        hierarchyRepository.deleteDepartment(id);
+    }
+
     // ==========================================
     // SUB_UNITS (ALT BİRİMLER & ŞEFLİKLER)
     // ==========================================
@@ -120,6 +126,33 @@ public class HierarchyService {
         return getSubUnitById(id);
     }
 
+    @Transactional
+    public SubUnit updateSubUnit(Long id, SubUnit update) {
+        SubUnit existing = getSubUnitById(id);
+        SubUnit updated = new SubUnit(
+                existing.id(),
+                update.departmentId() != null ? update.departmentId() : existing.departmentId(),
+                null,
+                update.parentUnitId(),
+                existing.code(),
+                update.name() != null ? update.name().trim() : existing.name(),
+                update.unitType() != null ? update.unitType() : existing.unitType(),
+                update.managerName() != null ? update.managerName().trim() : existing.managerName(),
+                update.phone() != null ? update.phone().trim() : existing.phone(),
+                update.description() != null ? update.description().trim() : existing.description(),
+                update.isActive() != null ? update.isActive() : existing.isActive(),
+                existing.assetCount()
+        );
+        hierarchyRepository.updateSubUnit(updated);
+        return getSubUnitById(id);
+    }
+
+    @Transactional
+    public void deleteSubUnit(Long id) {
+        getSubUnitById(id);
+        hierarchyRepository.deleteSubUnit(id);
+    }
+
     // ==========================================
     // BUILDINGS (HİZMET BİNALARI)
     // ==========================================
@@ -159,6 +192,32 @@ public class HierarchyService {
         return getBuildingById(id);
     }
 
+    @Transactional
+    public Building updateBuilding(Long id, Building update) {
+        Building existing = getBuildingById(id);
+        Building updated = new Building(
+                existing.id(),
+                existing.code(),
+                update.name() != null ? update.name().trim() : existing.name(),
+                update.buildingType() != null ? update.buildingType() : existing.buildingType(),
+                update.address() != null ? update.address().trim() : existing.address(),
+                update.phone() != null ? update.phone().trim() : existing.phone(),
+                update.totalFloors() != null ? update.totalFloors() : existing.totalFloors(),
+                update.description() != null ? update.description().trim() : existing.description(),
+                update.isActive() != null ? update.isActive() : existing.isActive(),
+                existing.assetCount(),
+                existing.roomCount()
+        );
+        hierarchyRepository.updateBuilding(updated);
+        return getBuildingById(id);
+    }
+
+    @Transactional
+    public void deleteBuilding(Long id) {
+        getBuildingById(id);
+        hierarchyRepository.deleteBuilding(id);
+    }
+
     // ==========================================
     // FLOORS (BİNA KATLARI)
     // ==========================================
@@ -196,6 +255,36 @@ public class HierarchyService {
                 .filter(f -> f.id().equals(id))
                 .findFirst()
                 .orElse(toSave);
+    }
+
+    public Floor getFloorById(Long id) {
+        return hierarchyRepository.findFloorById(id)
+                .orElseThrow(() -> new ApiException("Kat bulunamadı: " + id));
+    }
+
+    @Transactional
+    public Floor updateFloor(Long id, Floor floor) {
+        Floor existing = getFloorById(id);
+        Floor updated = new Floor(
+                existing.id(),
+                existing.buildingId(),
+                existing.buildingName(),
+                floor.floorCode() != null ? floor.floorCode().trim() : existing.floorCode(),
+                floor.floorName() != null ? floor.floorName().trim() : existing.floorName(),
+                floor.floorOrder() != null ? floor.floorOrder() : existing.floorOrder(),
+                floor.description() != null ? floor.description().trim() : existing.description(),
+                floor.isActive() != null ? floor.isActive() : existing.isActive(),
+                existing.roomCount(),
+                existing.assetCount()
+        );
+        hierarchyRepository.updateFloor(updated);
+        return getFloorById(id);
+    }
+
+    @Transactional
+    public void deleteFloor(Long id) {
+        getFloorById(id);
+        hierarchyRepository.deleteFloor(id);
     }
 
     // ==========================================
@@ -260,6 +349,39 @@ public class HierarchyService {
         return getRoomById(id);
     }
 
+    @Transactional
+    public Room updateRoom(Long id, Room room) {
+        Room existing = getRoomById(id);
+        Room updated = new Room(
+                existing.id(),
+                room.buildingId() != null ? room.buildingId() : existing.buildingId(),
+                null,
+                room.floorId() != null ? room.floorId() : existing.floorId(),
+                null,
+                room.roomNumber() != null ? room.roomNumber().trim() : existing.roomNumber(),
+                room.name() != null ? room.name().trim() : existing.name(),
+                room.roomType() != null ? room.roomType() : existing.roomType(),
+                room.departmentId() != null ? room.departmentId() : existing.departmentId(),
+                null,
+                room.subUnitId() != null ? room.subUnitId() : existing.subUnitId(),
+                null,
+                room.responsiblePerson() != null ? room.responsiblePerson().trim() : existing.responsiblePerson(),
+                room.capacity() != null ? room.capacity() : existing.capacity(),
+                existing.qrCode(),
+                room.description() != null ? room.description().trim() : existing.description(),
+                room.isActive() != null ? room.isActive() : existing.isActive(),
+                existing.assetCount()
+        );
+        hierarchyRepository.updateRoom(updated);
+        return getRoomById(id);
+    }
+
+    @Transactional
+    public void deleteRoom(Long id) {
+        getRoomById(id);
+        hierarchyRepository.deleteRoom(id);
+    }
+
     // ==========================================
     // CATEGORIES (16 ANA KATEGORİ)
     // ==========================================
@@ -293,7 +415,10 @@ public class HierarchyService {
                     Map<String, Object> meta = new LinkedHashMap<>();
                     meta.put("roomId", r.id());
                     meta.put("buildingId", r.buildingId());
+                    meta.put("buildingName", b.name());
                     meta.put("floorId", r.floorId());
+                    meta.put("floorName", f.floorName());
+                    meta.put("name", r.name());
                     meta.put("roomNumber", r.roomNumber());
                     meta.put("roomType", r.roomType());
                     meta.put("departmentName", r.departmentName());

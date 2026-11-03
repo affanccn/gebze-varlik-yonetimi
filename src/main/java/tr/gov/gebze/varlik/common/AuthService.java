@@ -34,6 +34,16 @@ public class AuthService {
                     true
             ),
             new DemoAccount(
+                    "personel",
+                    "demo123",
+                    "Belediye Personeli (Demo)",
+                    "STAFF",
+                    "Birim Personeli / Kullanıcı",
+                    "Bilgi İşlem Müdürlüğü (Demo)",
+                    true,
+                    false
+            ),
+            new DemoAccount(
                     "tasinir",
                     "demo123",
                     "Taşınır Kayıt Yetkilisi (Demo)",
