@@ -15,6 +15,7 @@ oracleJdk-*/
 jdk*/
 *.zip
 *.tar.gz
+backups/
 
 # Java / JVM logları
 hs_err_pid*
