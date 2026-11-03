@@ -23,37 +23,80 @@
 
                 <div class="form-field">
                     <label for="login-username">Kullanıcı Adı</label>
-                    <input type="text" id="login-username" name="username" value="admin" required autocomplete="username">
+                    <input type="text" id="login-username" name="username" value="" required autocomplete="username" placeholder="Kullanıcı adınızı giriniz">
                 </div>
 
                 <div class="form-field">
                     <label for="login-password">Parola</label>
-                    <input type="password" id="login-password" name="password" value="demo123" required autocomplete="current-password">
+                    <input type="password" id="login-password" name="password" value="" required autocomplete="current-password" placeholder="Parolanızı giriniz">
                 </div>
 
                 <button type="submit" class="btn-primary btn-block">Sisteme Giriş Yap</button>
             </form>
 
             <div class="quick-login-section">
-                <h2>Tek Tıkla Hızlı Rol Girişi</h2>
+                <h2>Tek Tıkla Rol Seçimi (Test / Geliştirme)</h2>
                 <div class="quick-role-grid">
-                    <button type="button" class="role-card-btn" data-user="admin" data-pass="demo123">
+                    <button type="button" class="role-card-btn" data-user="admin" data-pass="">
                         <strong>Sistem Yöneticisi</strong>
-                        <span>Tam Yetki (Varlık, Lokasyon, Hiyerarşi, Zimmet, Bakım)</span>
-                        <code>admin / demo123</code>
+                        <span>Merkez Yönetici (Tam Yetki)</span>
+                        <code>admin</code>
                     </button>
-                    <button type="button" class="role-card-btn" data-user="tasinir" data-pass="demo123">
-                        <strong>Taşınır Kayıt ve Kontrol Yetkilisi</strong>
-                        <span>Operasyon (Kayıt, Zimmet Fişi, Transfer, Ambar)</span>
-                        <code>tasinir / demo123</code>
+                    <button type="button" class="role-card-btn" data-user="fen_isleri_mudur" data-pass="GebzeDev2026!">
+                        <strong>Fen İşleri Müdürü</strong>
+                        <span>Müdürlük Yöneticisi (DEPT_MANAGER)</span>
+                        <code>fen_isleri_mudur</code>
                     </button>
-                    <button type="button" class="role-card-btn" data-user="uzman" data-pass="demo123">
-                        <strong>Birim Sorumlusu / Denetçi</strong>
-                        <span>Salt Okunur İnceleme, Ağaç Gezinimi ve Raporlama</span>
-                        <code>uzman / demo123</code>
+                    <button type="button" class="role-card-btn" data-user="saha_personel" data-pass="GebzeDev2026!">
+                        <strong>Saha Personeli</strong>
+                        <span>Birim Personeli (STAFF)</span>
+                        <code>saha_personel</code>
+                    </button>
+                    <button type="button" class="role-card-btn" data-user="ic_denetci" data-pass="GebzeDev2026!">
+                        <strong>İç Denetçi</strong>
+                        <span>Tüm Belediye (AUDITOR - Salt Okunur)</span>
+                        <code>ic_denetci</code>
+                    </button>
+                    <button type="button" class="role-card-btn" data-user="kurum_izleyici" data-pass="GebzeDev2026!">
+                        <strong>Kurum İzleyicisi</strong>
+                        <span>Tüm Belediye (VIEWER - Salt Okunur)</span>
+                        <code>kurum_izleyici</code>
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ZORUNLU ŞİFRE DEĞİŞTİRME MODALI (MUST_CHANGE_PASSWORD = 1) -->
+    <div id="modal-change-password" class="modal-backdrop" hidden style="z-index: 10000;">
+        <div class="modal-dialog" role="dialog" aria-labelledby="modal-pwd-title" aria-modal="true" style="max-width: 480px;">
+            <div class="modal-header" style="background: var(--navy-900); color: white;">
+                <h2 id="modal-pwd-title" style="color: white; font-size: 1.15rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🔒</span> Zorunlu Şifre Güncelleme
+                </h2>
+            </div>
+            <form id="form-change-password" class="modal-body" novalidate style="padding: 1.5rem;">
+                <div class="alert-warning" style="margin-bottom: 1rem; font-size: 0.85rem; line-height: 1.4; padding: 0.75rem; background: #fff8e6; border: 1px solid #ffd591; border-radius: 6px; color: #873800;">
+                    <strong>Güvenlik Zorunluluğu:</strong> Hesabınız için ilk şifre değişimi zorunlu kılınmıştır. Yeni şifre belirlemeden sistemdeki diğer modüllere ve verilere erişilemez.
+                </div>
+                <div id="pwd-change-error" class="alert-error" role="alert" hidden style="margin-bottom: 1rem;"></div>
+                <div class="form-field">
+                    <label for="pwd-current">Mevcut / Geçici Şifre *</label>
+                    <input type="password" id="pwd-current" required autocomplete="current-password" placeholder="Mevcut şifreniz">
+                </div>
+                <div class="form-field">
+                    <label for="pwd-new">Yeni Güvenli Şifre * (En az 8 karakter)</label>
+                    <input type="password" id="pwd-new" required minlength="8" autocomplete="new-password" placeholder="En az 8 karakter">
+                </div>
+                <div class="form-field">
+                    <label for="pwd-confirm">Yeni Şifre (Tekrar) *</label>
+                    <input type="password" id="pwd-confirm" required minlength="8" autocomplete="new-password" placeholder="Yeni şifrenizi tekrar giriniz">
+                </div>
+                <div class="modal-footer" style="padding-top: 1rem; border-top: 1px solid var(--gray-200); margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" class="btn-secondary" id="btn-pwd-logout">Çıkış Yap</button>
+                    <button type="submit" class="btn-primary" id="btn-pwd-submit">Şifreyi Güncelle ve Devam Et</button>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -2,10 +2,11 @@ package tr.gov.gebze.varlik.common;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import tr.gov.gebze.varlik.security.SystemUserDetails;
 
 @Service
 public class AuthService {
@@ -25,53 +26,60 @@ public class AuthService {
     private static final List<DemoAccount> DEMO_ACCOUNTS = List.of(
             new DemoAccount(
                     "admin",
-                    "demo123",
-                    "Sistem Yöneticisi (Demo)",
+                    "Ortam Değişkeni / Şifre",
+                    "Sistem Yöneticisi",
                     "ADMIN",
                     "Sistem Yöneticisi",
-                    "Bilgi İşlem Müdürlüğü (Demo)",
+                    "Belediye Geneli",
                     true,
                     true
             ),
             new DemoAccount(
-                    "personel",
-                    "demo123",
-                    "Belediye Personeli (Demo)",
+                    "fen_isleri_mudur",
+                    "GebzeDev2026!",
+                    "Fen İşleri Müdürü",
+                    "DEPT_MANAGER",
+                    "Müdürlük Yöneticisi",
+                    "Fen İşleri Müdürlüğü",
+                    true,
+                    false
+            ),
+            new DemoAccount(
+                    "saha_personel",
+                    "GebzeDev2026!",
+                    "Fatih Koç",
                     "STAFF",
-                    "Birim Personeli / Kullanıcı",
-                    "Bilgi İşlem Müdürlüğü (Demo)",
+                    "Birim Personeli",
+                    "Fen İşleri Müdürlüğü",
                     true,
                     false
             ),
             new DemoAccount(
-                    "tasinir",
-                    "demo123",
-                    "Taşınır Kayıt Yetkilisi (Demo)",
-                    "MANAGER",
-                    "Taşınır Kayıt ve Kontrol Yetkilisi",
-                    "Destek Hizmetleri Müdürlüğü (Demo)",
-                    true,
+                    "ic_denetci",
+                    "GebzeDev2026!",
+                    "İç Denetim Uzmanı",
+                    "AUDITOR",
+                    "İç Denetçi (Salt Okunur)",
+                    "Teftiş Kurulu",
+                    false,
                     false
             ),
             new DemoAccount(
-                    "uzman",
-                    "demo123",
-                    "Birim Gözlemcisi (Demo)",
+                    "kurum_izleyici",
+                    "GebzeDev2026!",
+                    "Kurum İzleyicisi",
                     "VIEWER",
-                    "Birim Sorumlusu (Salt Okunur)",
-                    "İdari İşler Birimi (Demo)",
+                    "Kurum İzleyicisi (Salt Okunur)",
+                    "Genel Gözlemci",
                     false,
                     false
             )
     );
 
-    private final Map<String, UserSession> activeSessions = new ConcurrentHashMap<>();
-
     public List<Map<String, Object>> getPublicDemoAccounts() {
         return DEMO_ACCOUNTS.stream()
                 .map(acc -> Map.<String, Object>of(
                         "username", acc.username(),
-                        "password", acc.password(),
                         "fullName", acc.fullName(),
                         "role", acc.role(),
                         "roleLabel", acc.roleLabel(),
@@ -82,46 +90,16 @@ public class AuthService {
                 .toList();
     }
 
-    public UserSession login(String username, String password) {
-        if (username == null || username.isBlank()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Kullanıcı adı boş bırakılamaz.");
+    public UserSession getCurrentUserSession() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || !(auth.getPrincipal() instanceof SystemUserDetails userDetails)) {
+            throw new ApiException(HttpStatus.UNAUTHORIZED, "Oturum bilgisi bulunamadı. Lütfen giriş yapın.");
         }
-        String normalized = username.trim().toLowerCase();
-        DemoAccount matched = DEMO_ACCOUNTS.stream()
-                .filter(acc -> acc.username().equalsIgnoreCase(normalized) && acc.password().equals(password))
-                .findFirst()
-                .orElseThrow(() -> new ApiException(HttpStatus.UNAUTHORIZED, "Geçersiz kullanıcı adı veya parola."));
-
-        String token = UUID.randomUUID().toString();
-        UserSession session = new UserSession(
-                matched.username(),
-                matched.fullName(),
-                matched.role(),
-                matched.roleLabel(),
-                matched.unit(),
-                matched.canWrite(),
-                matched.canDelete(),
-                token
-        );
-        activeSessions.put(token, session);
-        return session;
-    }
-
-    public void logout(String token) {
-        if (token != null) {
-            activeSessions.remove(token);
-        }
+        return toUserSession(userDetails, null);
     }
 
     public UserSession requireSession(String token) {
-        if (token == null || token.isBlank()) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Oturum bilgisi bulunamadı. Lütfen giriş yapın.");
-        }
-        UserSession session = activeSessions.get(token);
-        if (session == null) {
-            throw new ApiException(HttpStatus.UNAUTHORIZED, "Oturumunuz sona erdi veya geçersiz. Lütfen tekrar giriş yapın.");
-        }
-        return session;
+        return getCurrentUserSession();
     }
 
     public UserSession requireWriteAccess(String token) {
@@ -141,9 +119,43 @@ public class AuthService {
         UserSession session = requireSession(token);
         if (!session.canDelete()) {
             throw new ApiException(HttpStatus.FORBIDDEN,
-                    "Silme / düşüm işlemi yalnızca Sistem Yöneticisi rolü tarafından yapılabilir.");
+                    "Silme / düşüm işlemi yalnızca Sistem Yöneticisi (ADMIN) rolü tarafından yapılabilir.");
         }
         return session;
     }
-}
 
+    public UserSession toUserSession(SystemUserDetails userDetails, String sessionId) {
+        String role = userDetails.getRole() != null ? userDetails.getRole().toUpperCase() : "VIEWER";
+        boolean canWrite = !"AUDITOR".equals(role) && !"VIEWER".equals(role);
+        boolean canDelete = "ADMIN".equals(role);
+
+        String roleLabel = switch (role) {
+            case "ADMIN" -> "Sistem Yöneticisi";
+            case "DEPT_MANAGER" -> "Müdürlük Yöneticisi";
+            case "STAFF" -> "Müdürlük Personeli";
+            case "AUDITOR" -> "İç Denetçi (Salt Okunur)";
+            case "VIEWER" -> "Kurum İzleyicisi (Salt Okunur)";
+            default -> "Kullanıcı";
+        };
+
+        String unit = "Belediye Geneli";
+        if (userDetails.getDepartmentId() != null) {
+            unit = "Müdürlük #" + userDetails.getDepartmentId();
+        }
+
+        return new UserSession(
+                userDetails.getUsername(),
+                userDetails.getFullName(),
+                role,
+                roleLabel,
+                unit,
+                canWrite,
+                canDelete,
+                sessionId,
+                userDetails.getDepartmentId(),
+                userDetails.getPersonnelId(),
+                userDetails.isMustChangePassword(),
+                userDetails.getEmail()
+        );
+    }
+}

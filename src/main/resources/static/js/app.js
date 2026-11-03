@@ -62,15 +62,35 @@
         }, 3800);
     }
 
+    function getCsrfToken() {
+        var matches = document.cookie.match(new RegExp('(?:^|; )XSRF-TOKEN=([^;]*)'));
+        return matches ? decodeURIComponent(matches[1]) : null;
+    }
+
+    function checkMustChangePassword() {
+        var modal = document.getElementById("modal-change-password");
+        if (currentSession && currentSession.mustChangePassword) {
+            if (modal) modal.hidden = false;
+        } else {
+            if (modal) modal.hidden = true;
+        }
+    }
+
     function apiRequest(url, options) {
         var opts = options || {};
+        var method = (opts.method || "GET").toUpperCase();
         var headers = opts.headers || {};
         headers["Accept"] = "application/json";
         if (opts.body) {
             headers["Content-Type"] = "application/json";
         }
-        if (currentSession && currentSession.token) {
-            headers["X-Auth-Token"] = currentSession.token;
+
+        // SPA CSRF Token: GET ve HEAD dışındaki tüm isteklerde X-XSRF-TOKEN başlığı eklenir
+        if (method !== "GET" && method !== "HEAD") {
+            var csrf = getCsrfToken();
+            if (csrf) {
+                headers["X-XSRF-TOKEN"] = csrf;
+            }
         }
         opts.headers = headers;
 
@@ -79,8 +99,19 @@
                 return {};
             }).then(function (data) {
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        currentSession = null;
+                        try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+                        if (loginScreen) loginScreen.hidden = false;
+                    } else if (response.status === 403 && data && data.code === "PASSWORD_CHANGE_REQUIRED") {
+                        if (currentSession) currentSession.mustChangePassword = true;
+                        checkMustChangePassword();
+                    }
                     var msg = (data && data.error) ? data.error : ("İstek hatası: HTTP " + response.status);
-                    throw new Error(msg);
+                    var err = new Error(msg);
+                    err.status = response.status;
+                    err.data = data;
+                    throw err;
                 }
                 return data;
             });
@@ -100,7 +131,8 @@
         if (currentUserNameEl) currentUserNameEl.textContent = currentSession.fullName;
         if (currentUserRoleEl) currentUserRoleEl.textContent = currentSession.role;
 
-        var isWrite = Boolean(currentSession.canWrite);
+        var isReadOnly = currentSession.role === "AUDITOR" || currentSession.role === "VIEWER";
+        var isWrite = Boolean(currentSession.canWrite) && !isReadOnly;
         var isAdmin = currentSession.role === "ADMIN";
 
         var writeElements = document.querySelectorAll(".write-only");
@@ -111,6 +143,14 @@
         var adminElements = document.querySelectorAll(".admin-only");
         for (var a = 0; a < adminElements.length; a++) {
             adminElements[a].style.display = isAdmin ? "" : "none";
+        }
+
+        // Salt okunur roller (AUDITOR ve VIEWER) için arayüzdeki yazma/düzenleme/silme butonlarını gizle
+        var actionBtns = document.querySelectorAll(".btn-action-edit, .btn-action-delete, .btn-action-add");
+        for (var b = 0; b < actionBtns.length; b++) {
+            if (isReadOnly) {
+                actionBtns[b].style.display = "none";
+            }
         }
     }
 
@@ -126,8 +166,11 @@
             } catch (e) {}
             if (loginScreen) loginScreen.hidden = true;
             applyRolePermissions();
+            checkMustChangePassword();
             showToast("Hoş geldiniz, " + session.fullName + " (" + session.roleLabel + ")");
-            refreshAllData();
+            if (!session.mustChangePassword) {
+                refreshAllData();
+            }
         }).catch(function (err) {
             if (loginError) {
                 loginError.textContent = err.message;
@@ -141,28 +184,26 @@
             currentSession = null;
             try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
             if (loginScreen) loginScreen.hidden = false;
+            var pwdModal = document.getElementById("modal-change-password");
+            if (pwdModal) pwdModal.hidden = true;
             showToast("Oturum kapatıldı.");
         });
     }
 
     function restoreSession() {
-        try {
-            var saved = sessionStorage.getItem(SESSION_KEY);
-            if (!saved) return;
-            var parsed = JSON.parse(saved);
-            if (!parsed || !parsed.token) return;
-            currentSession = parsed;
-            apiRequest("/api/auth/me").then(function (validSession) {
-                currentSession = validSession;
-                if (loginScreen) loginScreen.hidden = true;
-                applyRolePermissions();
+        apiRequest("/api/auth/me").then(function (validSession) {
+            currentSession = validSession;
+            if (loginScreen) loginScreen.hidden = true;
+            applyRolePermissions();
+            checkMustChangePassword();
+            if (!validSession.mustChangePassword) {
                 refreshAllData();
-            }).catch(function () {
-                currentSession = null;
-                sessionStorage.removeItem(SESSION_KEY);
-                if (loginScreen) loginScreen.hidden = false;
-            });
-        } catch (e) {}
+            }
+        }).catch(function () {
+            currentSession = null;
+            try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
+            if (loginScreen) loginScreen.hidden = false;
+        });
     }
 
     // ==========================================
@@ -1662,11 +1703,68 @@
             roleBtns[r].addEventListener("click", function () {
                 var u = this.getAttribute("data-user");
                 var p = this.getAttribute("data-pass");
-                performLogin(u, p);
+                var userInp = document.getElementById("login-username");
+                var passInp = document.getElementById("login-password");
+                if (userInp) userInp.value = u;
+                if (p && passInp) {
+                    passInp.value = p;
+                    performLogin(u, p);
+                } else if (passInp) {
+                    passInp.value = "";
+                    passInp.focus();
+                }
             });
         }
 
         if (logoutBtn) logoutBtn.addEventListener("click", performLogout);
+
+        // Zorunlu Şifre Değiştirme Formu
+        var formChangePwd = document.getElementById("form-change-password");
+        if (formChangePwd) {
+            formChangePwd.addEventListener("submit", function (e) {
+                e.preventDefault();
+                var cur = document.getElementById("pwd-current").value;
+                var nw = document.getElementById("pwd-new").value;
+                var conf = document.getElementById("pwd-confirm").value;
+                var errEl = document.getElementById("pwd-change-error");
+                if (errEl) errEl.hidden = true;
+
+                if (!cur) {
+                    if (errEl) { errEl.textContent = "Mevcut şifrenizi giriniz."; errEl.hidden = false; }
+                    return;
+                }
+                if (nw.length < 8) {
+                    if (errEl) { errEl.textContent = "Yeni şifre en az 8 karakter uzunluğunda olmalıdır."; errEl.hidden = false; }
+                    return;
+                }
+                if (nw !== conf) {
+                    if (errEl) { errEl.textContent = "Yeni şifreler birbiriyle eşleşmiyor."; errEl.hidden = false; }
+                    return;
+                }
+
+                apiRequest("/api/auth/change-password", {
+                    method: "POST",
+                    body: JSON.stringify({ currentPassword: cur, newPassword: nw })
+                }).then(function (res) {
+                    showToast(res.message || "Şifreniz güncellendi.");
+                    var modal = document.getElementById("modal-change-password");
+                    if (modal) modal.hidden = true;
+                    if (currentSession) currentSession.mustChangePassword = false;
+                    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(currentSession)); } catch (e) {}
+                    refreshAllData();
+                }).catch(function (err) {
+                    if (errEl) {
+                        errEl.textContent = err.message;
+                        errEl.hidden = false;
+                    }
+                });
+            });
+        }
+
+        var btnPwdLogout = document.getElementById("btn-pwd-logout");
+        if (btnPwdLogout) {
+            btnPwdLogout.addEventListener("click", performLogout);
+        }
 
         // Modal Kapatma Butonları
         document.addEventListener("click", function (e) {
