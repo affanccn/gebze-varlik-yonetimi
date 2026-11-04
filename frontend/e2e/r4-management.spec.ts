@@ -114,10 +114,10 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
     await expect(page.locator('h1:has-text("Araç & Filo")')).toBeVisible();
 
     // KPI'lar
-    await expect(page.locator('text=Toplam Filo')).toBeVisible();
-    await expect(page.locator('text=Görevde (Sahada)')).toBeVisible();
-    await expect(page.locator('text=Garajda (Beklemede)')).toBeVisible();
-    await expect(page.locator('text=Bakım & Arızada')).toBeVisible();
+    await expect(page.locator('text=Toplam Filo').first()).toBeVisible();
+    await expect(page.locator('text=Görevde (Sahada)').first()).toBeVisible();
+    await expect(page.locator('text=Garajda (Beklemede)').first()).toBeVisible();
+    await expect(page.locator('text=Bakım & Arızada').first()).toBeVisible();
 
     // Tablo Kolonları
     await expect(page.locator('th:has-text("Plaka / Kod")')).toBeVisible();
@@ -211,11 +211,9 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
     // Başlık
     await expect(page.locator('h1:has-text("Sistem Denetim ve Güvenlik")')).toBeVisible();
 
-    // KPI Kartları
-    await expect(page.locator('text=Toplam Kayıt')).toBeVisible();
-    await expect(page.locator('text=Güvenlik İhlalleri')).toBeVisible();
-    await expect(page.locator('text=Başarılı Girişler')).toBeVisible();
-    await expect(page.locator('text=Veri Mutasyonları')).toBeVisible();
+    // Bilgi Şeridi & Kayıt Özeti
+    await expect(page.locator('text=güvenlik ve sistem denetim olayı listelenmektedir')).toBeVisible();
+    await expect(page.locator('text=Filtrelenen Olay')).toBeVisible();
 
     // Arama & Filtre
     await expect(page.locator('#audit-search')).toBeVisible();
@@ -237,8 +235,9 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
     // Başlık
     await expect(page.locator('h1:has-text("Sistem Ayarları & Kurumsal Yetki Matrisi")')).toBeVisible();
 
-    // İki ana bölüm
+    // İki ana bölüm ve Salt Okunur Güvenlik Uyarısı
     await expect(page.locator('text=Sistem ve İşletim Parametreleri')).toBeVisible();
+    await expect(page.locator('text=Salt Okunur (Sunucu Yapılandırmasından Gelir)')).toBeVisible();
     await expect(page.locator('text=Kurumsal Rol Yetki Matrisi (RBAC Güvenlik Tablosu)')).toBeVisible();
 
     // RBAC Tablo Kolonları

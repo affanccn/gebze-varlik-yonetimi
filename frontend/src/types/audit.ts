@@ -40,5 +40,7 @@ export interface SystemAuditLog {
   ipAddress?: string | null;
   description: string;
   createdAt: string;
+  oldValueJson?: string | null;
+  newValueJson?: string | null;
 }
 

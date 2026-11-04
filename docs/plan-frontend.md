@@ -1,8 +1,8 @@
 # GEBZE BELEDİYESİ KURUMSAL VARLIK VE KAYNAK YÖNETİM SİSTEMİ (GEBZE-EKYS)
 ## Frontend React (Vite + React + TypeScript) Modernizasyon & Mimari Dönüşüm Planı
-### Revizyon 2 (4 Kasım 2026)
+### Revizyon 3 (4 Kasım 2026)
 
-**Durum:** REVİZYON 2 — FAZ R1 UYGULANIYOR  
+**Durum:** FAZ R1 - R5 TAMAMLANDI (React Dönüşümü, Statik Paketleme ve SPA Fallback Başarıyla Uygulandı)  
 **Hedef Teknoloji Yığını ve Sabitlenmiş Sürümler:**
 - `react`: `18.3.1`
 - `react-dom`: `18.3.1`
@@ -260,24 +260,50 @@ gebze-varlik-yonetimi/
 - Rol Yetkilendirme Matrisi & Kısıtlamaları: STAFF kullanıcısının `/users`, `/audit`, `/fleet`, `/procurement`, `/counting` rotalarına erişiminin Dashboard'a yönlendirilmesi; AUDITOR rolünün `/audit` erişiminin sağlanması fakat `/users` yönetiminden engellenmesi.
 - 8 Playwright E2E testi (%100 başarılı, tüm sistem genelinde 42/42 E2E test sıfır hata ile geçmektedir).
 
-#### R5: Doğrulama, SPA Fallback, Paketleme ve Eski Ön Yüzün Kaldırılması (SIRADAKİ AŞAMA)
-- Tam Playwright regresyonu (42 test).
-- Spring Boot SPA Fallback entegrasyonu (React Router rotalarının doğrudan yenilendiğinde 404 almaması için kontrollü yönlendirme).
-- Vite prod build (`npm run build`) çıktısının Spring Boot static klasörüne aktarılması.
-- Eski vanilla frontend dosyalarının (`index.html`, `app.js`, `app.css`) güvenli arşivlenmesi/kaldırılması.
-- `http://localhost:8080/` üzerinden React uygulamasının doğrudan servis edilmesi ve son doğrulama.
+#### R5: Doğrulama, SPA Fallback, Paketleme ve Eski Ön Yüzün Kaldırılması (TAMAMLANDI)
+- **Ön Denetim ve Düzeltmeler:**
+  - Sabit kodlu veriler tarandı (`SYM-2025-01` hariç bırakıldı; varsayılan oda kodu dinamik hale getirildi).
+  - Sistem Ayarları (`/settings`) ekranındaki tüm alanlar SALT OKUNUR yapıldı, "Değerler sunucu yapılandırmasından gelir (application.yml)" bilgilendirme rozeti eklendi, sahte kaydetme butonları kaldırıldı.
+  - Denetim Günlüğü (`/audit`): Veritabanındaki gerçek 17 `action_type` türünün tamamı etiketlendi. Yanıltıcı 50 satırlık KPI kartları yerine bilgilendirme paneli konuldu; `old_value_json` ve `new_value_json` değişiklikleri arayüzde JSON fark paneli olarak gösterildi.
+  - Filo durumları tekilleştirildi (`GOREVDE`, `GARAJDA`, `BAKIMDA`, `ARIZALI`).
+- **Paketleme & Dağıtım (Production Packaging):**
+  - Git tag `vanilla-ui-final` oluşturuldu ve Docker volume yedeği alındı (`oracle23ai_volume_faz_r5_pre.tar.gz`).
+  - Vite yapılandırması: Rota bazlı `React.lazy()` parçalama, `app-assets` statik dizin ayrımı, sourcemap kapalı.
+  - `scripts/build-frontend.ps1` betiği oluşturuldu ve `src/main/resources/static/` ile senkronize edildi. Eski vanilla dosyalar (`index.html`, `css/app.css`, `js/app.js`) temizlendi.
+- **Spring Boot SPA Fallback Entegrasyonu:**
+  - `WebMvcConfig.java`: `PathResourceResolver` ile `/api/**`, `/v3/**`, `/actuator/**` ve dosya uzantısı içeren istekler haricindeki tüm rotaların `/index.html`'e yönlendirilmesi sağlandı. `/app-assets/**` için 1 yıl değişmez (immutable) önbellek uygulandı.
+  - `CacheControlFilter.java`: SPA HTML rotaları ve `index.html` için `no-cache, no-store, must-revalidate` başlığı uygulandı.
+  - `SecurityConfig.java`: Statik varlıklar ve giriş ekranı kimlik doğrulamasız erişime açıldı; bilinmeyen `/api/**` rotaları için `GlobalExceptionHandler` üzerinden JSON 404 dönmesi güvenceye alındı.
+- **Doğrulama ve E2E Testleri:**
+  - Vite geliştirme sunucusu (5173) kapatıldı; tüm testler doğrudan `http://localhost:8080/` üzerinden yürütüldü.
+  - Playwright E2E: 49 testin tamamı (%100) başarıyla geçti (R1 duman, R2 okuma, R3a varlık CRUD, R3b operasyonlar, R4 yönetim, R5 SPA/F5/404).
+  - Backend Regresyon Testleri: `test_menu_endpoints.js`, `test_faz1b1.js`, `test_faz1b2.js`, `test_1b2_gaps.js`, `test_faz1c.js`, `test_faz1d.js`, `test_faz1e1.js` ve `verify_snapshot.js` (74 varlık, 48.298.300 TL, 0 fark) eksiksiz çalıştı.
+  - `APP_ADMIN_PASSWORD` ile üretim profilinde başlangıç testi yapıldı, `DevUserSeeder`'ın çalışmadığı ve admin hesabının sağlıklı giriş yaptığı kanıtlandı.
 
 ---
 
-### 5. API TİP ÜRETİMİ (SPRINGDOC-OPENAPI & GÜVENLİK KISITI)
+### 5. AÇIK YOL HARİTASI MADDESİ: SUNUCU TARAFI SAYFALAMA (SERVER-SIDE PAGINATION)
+
+> [!NOTE]
+> **Yol Haritası Notu:**
+> Mevcut backend REST servislerinde (`/api/assets`, `/api/assignments`, `/api/maintenances`, `/api/stock`, `/api/fleet`, `/api/users` vb.) Spring Data `Pageable` veya SQL `OFFSET ... FETCH NEXT` tabanlı sunucu tarafı sayfalama uygulanmamıştır. Mevcut tüm kayıtlar (74 varlık ve operasyonel veriler) istemciye eksiksiz gönderilmekte ve istemci tarafında **TanStack Table** sanal sayfalama bileşeni ile sayfalanmaktadır.
+> 
+> Gelecek fazlarda binlerce veya on binlerce varlığın yer aldığı büyük kurumsal ölçeklere geçildiğinde:
+> 1. İlgili Controller ve Service katmanlarına `Pageable` parametreleri eklenmelidir.
+> 2. `Page<AssetResponse>` formatında toplam sayfa/kayıt üstverisi dönmelidir.
+> 3. İstemci tarafında `manualPagination: true` konfigürasyonuna geçilmelidir.
+
+---
+
+### 6. API TİP ÜRETİMİ (SPRINGDOC-OPENAPI & GÜVENLİK KISITI)
 
 1. **Spring Boot 4.1.2 Uyumluluğu:**
    - Resmi kaynaklardan teyit edildiği üzere Spring Boot 4.x için **`springdoc-openapi` v3.x** (`org.springdoc:springdoc-openapi-starter-webmvc-ui:3.2.0`) gereklidir.
 2. **Güvenlik Sıkılaştırma Kuralı:**
    - Swagger arayüzü ve API şema uç noktası (`/v3/api-docs/**`, `/swagger-ui/**`) **yalnızca ADMIN rolüne açık olacak şekilde** kısıtlanacaktır; anonim ve yetkisiz erişimlere tamamen kapatılacaktır.
 3. **Mevcut Aşama:**
-   - Backend'e dokunmama kuralı gereğince R1-R4 boyunca tipler `frontend/src/types/` altında yönetilecek, R5 öncesi backend yetkisiyle springdoc eklenecektir.
+   - Tip tanımları `frontend/src/types/` altında güvenli ve merkezi olarak tanımlanmıştır.
 
 ---
 
-**Revizyon 2 kararları plana işlenmiştir. Şimdi doğrudan FAZ R1 uygulamasına geçilmektedir.**
+**FAZ R1 - R5 TAMAMLANMIŞTIR.**

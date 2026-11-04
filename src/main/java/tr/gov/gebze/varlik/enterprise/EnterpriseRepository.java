@@ -441,7 +441,8 @@ public class EnterpriseRepository {
         return jdbcClient.sql("""
             SELECT id, action_type, entity_type, entity_id, actor_username, actor_name,
                    ip_address, description,
-                   TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+                   TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+                   old_value_json, new_value_json
             FROM system_audit_logs
             ORDER BY created_at DESC, id DESC
             FETCH FIRST ? ROWS ONLY
@@ -456,7 +457,9 @@ public class EnterpriseRepository {
                 rs.getString("actor_name"),
                 rs.getString("ip_address"),
                 rs.getString("description"),
-                rs.getString("created_at")
+                rs.getString("created_at"),
+                rs.getString("old_value_json"),
+                rs.getString("new_value_json")
         )).list();
     }
 

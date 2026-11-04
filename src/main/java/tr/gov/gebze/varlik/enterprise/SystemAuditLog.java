@@ -9,6 +9,8 @@ public record SystemAuditLog(
         String actorName,
         String ipAddress,
         String description,
-        String createdAt
+        String createdAt,
+        String oldValueJson,
+        String newValueJson
 ) {}
 

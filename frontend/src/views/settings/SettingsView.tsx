@@ -1,24 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { enterpriseService } from '../../services/enterpriseService';
-import { useToast } from '../../context/ToastContext';
-import { useAuth } from '../../hooks/useAuth';
 import {
   Settings,
   Shield,
-  Save,
   RefreshCw,
   Sliders,
+  Info,
+  Lock,
 } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
-  const { permissions } = useAuth();
-  const isAdmin = permissions.isAdmin;
-  const { showToast } = useToast();
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [paramValue, setParamValue] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-
   const {
     data: settings = [],
     isLoading,
@@ -28,26 +20,6 @@ export const SettingsView: React.FC = () => {
     queryKey: ['settings'],
     queryFn: () => enterpriseService.getSettings(),
   });
-
-  const handleStartEdit = (key: string, val: string) => {
-    setEditingKey(key);
-    setParamValue(val);
-  };
-
-  const handleSave = async (key: string) => {
-    setIsSaving(true);
-    try {
-      await enterpriseService.updateSetting(key, paramValue);
-      showToast(`'${key}' parametresi başarıyla güncellendi.`);
-      setEditingKey(null);
-      refetch();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Ayar kaydedilemedi.';
-      showToast(msg, 'warning');
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   // RBAC Permission Matrix
   const matrix = [
@@ -92,81 +64,53 @@ export const SettingsView: React.FC = () => {
 
       {/* Section 1: System Parameters */}
       <div className="space-y-4">
-        <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-blue-600" />
-          Sistem ve İşletim Parametreleri
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-blue-600" />
+            Sistem ve İşletim Parametreleri
+          </h2>
+          <span className="text-[11px] font-semibold text-slate-500 flex items-center gap-1 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+            <Lock className="w-3 h-3 text-slate-400" />
+            Salt Okunur (Sunucu Yapılandırmasından Gelir)
+          </span>
+        </div>
+
+        {/* Informative Note */}
+        <div className="p-3.5 bg-amber-50/60 border border-amber-200 rounded-xl flex items-start gap-2.5 text-xs text-amber-900">
+          <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            Aşağıdaki sistem zaman aşımı ve güvenlik parametreleri sunucu yapılandırmasından (<code>application.properties</code> ve Spring Security) çekilmektedir. Güvenlik mimarisi gereği çalışma zamanında dinamik olarak değiştirilemez.
+          </div>
+        </div>
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           {isLoading ? (
             <div className="p-8 text-center text-slate-500">Parametreler yükleniyor...</div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {settings.map((s) => {
-                const isEditing = editingKey === s.paramKey;
-
-                return (
-                  <div key={s.paramKey} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
-                    <div className="space-y-0.5 max-w-xl">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                          {s.paramKey}
-                        </span>
-                        <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
-                          {s.paramGroup}
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-600">{s.description}</div>
-                      <div className="text-[11px] text-slate-400 font-mono">Son Güncelleme: {s.updatedAt}</div>
+              {settings.map((s) => (
+                <div key={s.paramKey} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
+                  <div className="space-y-0.5 max-w-xl">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                        {s.paramKey}
+                      </span>
+                      <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                        {s.paramGroup}
+                      </span>
                     </div>
-
-                    <div className="flex items-center gap-2 self-end sm:self-center">
-                      {isEditing ? (
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={paramValue}
-                            onChange={(e) => setParamValue(e.target.value)}
-                            className="px-3 py-1.5 text-xs border border-blue-500 rounded-lg focus:ring-2 focus:ring-blue-300 font-mono"
-                            autoFocus
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleSave(s.paramKey)}
-                            disabled={isSaving}
-                            className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1"
-                          >
-                            <Save className="w-3.5 h-3.5" />
-                            Kaydet
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditingKey(null)}
-                            className="px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
-                          >
-                            İptal
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-3">
-                          <span className="font-mono text-xs font-bold text-slate-800 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
-                            {s.paramValue}
-                          </span>
-                          {isAdmin && (
-                            <button
-                              type="button"
-                              onClick={() => handleStartEdit(s.paramKey, s.paramValue)}
-                              className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors shadow-xs"
-                            >
-                              Düzenle
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <div className="text-xs text-slate-600">{s.description}</div>
+                    <div className="text-[11px] text-slate-400 font-mono">Yapılandırma Kaydı: {s.updatedAt}</div>
                   </div>
-                );
-              })}
+
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <span className="font-mono text-xs font-bold text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1.5">
+                      <Lock className="w-3 h-3 text-slate-400" />
+                      {s.paramValue}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

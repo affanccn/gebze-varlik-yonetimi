@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 import { enterpriseService } from '../../services/enterpriseService';
-import { FleetVehicle } from '../../types/fleet';
+import { FleetVehicle, normalizeFleetStatus } from '../../types/fleet';
 import { Truck } from 'lucide-react';
 
 interface FleetStatusModalProps {
@@ -26,7 +26,7 @@ export const FleetStatusModal: React.FC<FleetStatusModalProps> = ({
 
   useEffect(() => {
     if (vehicle) {
-      setStatus(vehicle.status || 'GOREVDE');
+      setStatus(normalizeFleetStatus(vehicle.status));
       setCurrentKm(vehicle.currentKm || 0);
       setAssignedDriver(vehicle.assignedDriver || '');
     }

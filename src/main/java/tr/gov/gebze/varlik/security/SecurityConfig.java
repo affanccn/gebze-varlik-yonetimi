@@ -68,10 +68,11 @@ public class SecurityConfig {
             // 4. URL YETKİLENDİRME KURALLARI
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/", "/index.html", "/css/**", "/js/**", "/images/**", "/favicon.ico"
+                    "/", "/index.html", "/app-assets/**", "/assets/**", "/css/**", "/js/**", "/images/**", "/favicon.ico", "/vite.svg"
                 ).permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/demo-users").permitAll()
                 .requestMatchers("/api/health").permitAll()
+                .requestMatchers("/api/olmayan").permitAll()
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()

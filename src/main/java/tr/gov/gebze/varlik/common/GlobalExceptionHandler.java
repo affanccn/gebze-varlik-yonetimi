@@ -60,6 +60,16 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                "error", "İstenen kaynak bulunamadı.",
+                "path", ex.getResourcePath(),
+                "status", HttpStatus.NOT_FOUND.value(),
+                "timestamp", Instant.now().toString()
+        ));
+    }
+
     private String resolveConstraintErrorMessage(String msg) {
         if (msg.contains("UK_ASSETS_ACTIVE_CODE") || msg.contains("UK_ASSETS_CODE")) {
             return "Bu varlık kodu sistemde zaten aktif bir demirbaşta kullanılmaktadır.";

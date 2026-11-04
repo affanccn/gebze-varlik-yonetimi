@@ -24,3 +24,21 @@ export interface FleetStatusUpdateRequest {
   assignedDriver?: string;
 }
 
+export type FleetStatusCode = 'GOREVDE' | 'GARAJDA' | 'BAKIMDA' | 'ARIZALI';
+
+export const normalizeFleetStatus = (status?: string): FleetStatusCode => {
+  if (!status) return 'GARAJDA';
+  const s = status.toUpperCase();
+  if (s.includes('GÖREV') || s.includes('GOREV')) return 'GOREVDE';
+  if (s.includes('BAKIM') || s.includes('SERVIS')) return 'BAKIMDA';
+  if (s.includes('ARIZA') || s.includes('KULLANIM DISI')) return 'ARIZALI';
+  return 'GARAJDA';
+};
+
+export const FLEET_STATUS_LABELS: Record<FleetStatusCode, string> = {
+  GOREVDE: 'Görevde (Sahada)',
+  GARAJDA: 'Garajda (Hazır)',
+  BAKIMDA: 'Bakımda / Serviste',
+  ARIZALI: 'Arızalı / Hizmet Dışı',
+};
+

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { enterpriseService } from '../../services/enterpriseService';
-import type { FleetVehicle } from '../../types/fleet';
+import { FleetVehicle, normalizeFleetStatus, FLEET_STATUS_LABELS } from '../../types/fleet';
 import { FleetStatusModal } from './FleetStatusModal';
 import { useAuth } from '../../hooks/useAuth';
 import {
@@ -37,9 +37,12 @@ export const FleetView: React.FC = () => {
   // KPIs
   const kpis = useMemo(() => {
     const total = vehicles.length;
-    const active = vehicles.filter((v) => v.status === 'GOREVDE').length;
-    const garage = vehicles.filter((v) => v.status === 'GARAJDA').length;
-    const inService = vehicles.filter((v) => v.status === 'BAKIMDA' || v.status === 'ARIZALI').length;
+    const active = vehicles.filter((v) => normalizeFleetStatus(v.status) === 'GOREVDE').length;
+    const garage = vehicles.filter((v) => normalizeFleetStatus(v.status) === 'GARAJDA').length;
+    const inService = vehicles.filter((v) => {
+      const st = normalizeFleetStatus(v.status);
+      return st === 'BAKIMDA' || st === 'ARIZALI';
+    }).length;
     const totalKm = vehicles.reduce((sum, v) => sum + (v.currentKm || 0), 0);
     return { total, active, garage, inService, totalKm };
   }, [vehicles]);
@@ -53,7 +56,8 @@ export const FleetView: React.FC = () => {
   const filteredData = useMemo(() => {
     return vehicles.filter((item) => {
       if (typeFilter && item.vehicleType !== typeFilter) return false;
-      if (statusFilter !== 'ALL' && item.status !== statusFilter) return false;
+      const normalized = normalizeFleetStatus(item.status);
+      if (statusFilter !== 'ALL' && normalized !== statusFilter) return false;
 
       if (!globalFilter) return true;
       const q = globalFilter.toLowerCase();
@@ -219,9 +223,10 @@ export const FleetView: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredData.map((v) => {
-                  const isGorevde = v.status === 'GOREVDE';
-                  const isGarajda = v.status === 'GARAJDA';
-                  const isBakimda = v.status === 'BAKIMDA';
+                  const normStatus = normalizeFleetStatus(v.status);
+                  const isGorevde = normStatus === 'GOREVDE';
+                  const isGarajda = normStatus === 'GARAJDA';
+                  const isBakimda = normStatus === 'BAKIMDA';
 
                   return (
                     <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
@@ -266,7 +271,7 @@ export const FleetView: React.FC = () => {
                           ) : (
                             <Clock className="w-3 h-3 text-blue-600" />
                           )}
-                          {v.status}
+                          {FLEET_STATUS_LABELS[normStatus] || v.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-500 text-[11px] font-mono">

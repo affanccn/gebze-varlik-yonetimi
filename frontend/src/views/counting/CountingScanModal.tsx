@@ -21,7 +21,7 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
 }) => {
   const { showToast } = useToast();
   const [assetCode, setAssetCode] = useState('');
-  const [scannedLocation, setScannedLocation] = useState('Ana Bina 2. Kat No: 204');
+  const [scannedLocation, setScannedLocation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !auditId) return null;
