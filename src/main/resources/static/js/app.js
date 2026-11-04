@@ -217,6 +217,24 @@
     }
 
     function restoreSession() {
+        // URL parametresi ile tek tıkla / bağlantıyla giriş desteği (?username=admin&password=...)
+        try {
+            var urlParams = new URLSearchParams(window.location.search);
+            var qUser = urlParams.get("username");
+            var qPass = urlParams.get("password");
+            if (qUser && qPass) {
+                var userInp = document.getElementById("login-username");
+                var passInp = document.getElementById("login-password");
+                if (userInp) userInp.value = qUser;
+                if (passInp) passInp.value = qPass;
+                try {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) {}
+                performLogin(qUser, qPass);
+                return;
+            }
+        } catch (e) {}
+
         apiRequest("/api/auth/me").then(function (validSession) {
             currentSession = validSession;
             if (loginScreen) loginScreen.hidden = true;
