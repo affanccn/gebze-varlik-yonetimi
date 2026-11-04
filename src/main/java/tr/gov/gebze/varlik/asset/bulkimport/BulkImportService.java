@@ -704,3 +704,4 @@ public class BulkImportService {
                 .query((rs, i) -> rs.getString("barcode").toUpperCase(Locale.ROOT).trim()).list());
     }
 }
+

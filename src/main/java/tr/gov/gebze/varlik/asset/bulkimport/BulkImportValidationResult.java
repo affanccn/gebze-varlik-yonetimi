@@ -14,3 +14,4 @@ public record BulkImportValidationResult(
         return errors != null && !errors.isEmpty();
     }
 }
+
