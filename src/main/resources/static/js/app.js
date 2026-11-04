@@ -81,7 +81,7 @@
         var method = (opts.method || "GET").toUpperCase();
         var headers = opts.headers || {};
         headers["Accept"] = "application/json";
-        if (opts.body) {
+        if (opts.body && !(opts.body instanceof FormData)) {
             headers["Content-Type"] = "application/json";
         }
 
@@ -154,6 +154,7 @@
         var isReadOnly = currentSession.role === "AUDITOR" || currentSession.role === "VIEWER";
         var isWrite = Boolean(currentSession.canWrite) && !isReadOnly;
         var isAdmin = currentSession.role === "ADMIN";
+        var canImport = currentSession.role === "ADMIN" || currentSession.role === "DEPT_MANAGER";
 
         var writeElements = document.querySelectorAll(".write-only");
         for (var i = 0; i < writeElements.length; i++) {
@@ -163,6 +164,11 @@
         var adminElements = document.querySelectorAll(".admin-only");
         for (var a = 0; a < adminElements.length; a++) {
             adminElements[a].style.display = isAdmin ? "" : "none";
+        }
+
+        var importElements = document.querySelectorAll(".import-only");
+        for (var im = 0; im < importElements.length; im++) {
+            importElements[im].style.display = canImport ? "" : "none";
         }
 
         // Salt okunur roller (AUDITOR ve VIEWER) için arayüzdeki yazma/düzenleme/silme butonlarını gizle
@@ -1572,6 +1578,168 @@
     }
 
     // ==========================================
+    // 7B. EXCEL İLE TOPLU VARLIK İÇE AKTARIMI (BULK IMPORT)
+    // ==========================================
+    function initBulkImportModule() {
+        var btnOpen = document.getElementById("btn-open-bulk-import");
+        var btnDownload = document.getElementById("btn-download-import-template");
+        var btnDryRun = document.getElementById("btn-run-dry-run");
+        var btnCommit = document.getElementById("btn-commit-import");
+        var fileInput = document.getElementById("bulk-import-file-input");
+        var resultsBox = document.getElementById("bulk-dry-run-results");
+        var validCountEl = document.getElementById("dry-run-valid-count");
+        var invalidCountEl = document.getElementById("dry-run-invalid-count");
+        var errContainer = document.getElementById("dry-run-error-container");
+        var tbodyErrors = document.getElementById("tbody-import-errors");
+        var partialBox = document.getElementById("dry-run-partial-box");
+        var chkPartial = document.getElementById("chk-partial-import");
+        var txtPartialCount = document.getElementById("txt-partial-valid-count");
+
+        var lastValidationResult = null;
+
+        function resetModal() {
+            if (fileInput) fileInput.value = "";
+            if (resultsBox) resultsBox.hidden = true;
+            if (errContainer) errContainer.hidden = true;
+            if (tbodyErrors) tbodyErrors.innerHTML = "";
+            if (partialBox) partialBox.hidden = true;
+            if (chkPartial) chkPartial.checked = false;
+            if (btnCommit) btnCommit.disabled = true;
+            lastValidationResult = null;
+        }
+
+        if (btnOpen) {
+            btnOpen.addEventListener("click", function () {
+                resetModal();
+                openModal("modal-bulk-import");
+            });
+        }
+
+        if (btnDownload) {
+            btnDownload.addEventListener("click", function () {
+                window.location.href = "/api/assets/export-template";
+            });
+        }
+
+        if (chkPartial) {
+            chkPartial.addEventListener("change", function () {
+                if (!lastValidationResult) {
+                    btnCommit.disabled = true;
+                    return;
+                }
+                if (lastValidationResult.validRowsCount === 0) {
+                    btnCommit.disabled = true;
+                } else if (lastValidationResult.invalidRowsCount > 0) {
+                    btnCommit.disabled = !chkPartial.checked;
+                } else {
+                    btnCommit.disabled = false;
+                }
+            });
+        }
+
+        if (btnDryRun) {
+            btnDryRun.addEventListener("click", function () {
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                    alert("Lütfen yüklenecek bir .xlsx dosyası seçiniz.");
+                    return;
+                }
+                var file = fileInput.files[0];
+                if (!file.name.toLowerCase().endsWith(".xlsx")) {
+                    alert("Yalnızca .xlsx uzantılı Excel dosyaları kabul edilir.");
+                    return;
+                }
+
+                btnDryRun.disabled = true;
+                btnDryRun.textContent = "⏳ Doğrulanıyor...";
+
+                var formData = new FormData();
+                formData.append("file", file);
+
+                apiRequest("/api/assets/import/validate", {
+                    method: "POST",
+                    body: formData
+                }).then(function (result) {
+                    lastValidationResult = result;
+                    resultsBox.hidden = false;
+                    validCountEl.textContent = result.validRowsCount || 0;
+                    invalidCountEl.textContent = result.invalidRowsCount || 0;
+                    txtPartialCount.textContent = result.validRowsCount || 0;
+
+                    if (result.errors && result.errors.length > 0) {
+                        errContainer.hidden = false;
+                        var rowsHtml = "";
+                        for (var i = 0; i < result.errors.length; i++) {
+                            var err = result.errors[i];
+                            rowsHtml += "<tr>" +
+                                "<td style='font-weight:700; text-align:center;'>" + (err.rowNumber || "-") + "</td>" +
+                                "<td><code>" + escapeHtml(err.field || "-") + "</code></td>" +
+                                "<td>" + escapeHtml(String(err.rejectedValue !== null && err.rejectedValue !== undefined ? err.rejectedValue : "-")) + "</td>" +
+                                "<td style='color:var(--danger); font-size:0.78rem;'>" + escapeHtml(err.message || "") + "</td>" +
+                                "</tr>";
+                        }
+                        tbodyErrors.innerHTML = rowsHtml;
+                    } else {
+                        errContainer.hidden = true;
+                        tbodyErrors.innerHTML = "";
+                    }
+
+                    if (result.invalidRowsCount > 0) {
+                        partialBox.hidden = (result.validRowsCount === 0);
+                        btnCommit.disabled = true;
+                        chkPartial.checked = false;
+                    } else if (result.validRowsCount > 0) {
+                        partialBox.hidden = true;
+                        btnCommit.disabled = false;
+                    } else {
+                        partialBox.hidden = true;
+                        btnCommit.disabled = true;
+                    }
+                }).catch(function (err) {
+                    alert("Doğrulama sırasında hata oluştu: " + (err.message || "Bilinmeyen hata"));
+                }).finally(function () {
+                    btnDryRun.disabled = false;
+                    btnDryRun.textContent = "🔍 Ön Doğrula (Dry-Run)";
+                });
+            });
+        }
+
+        if (btnCommit) {
+            btnCommit.addEventListener("click", function () {
+                if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+                    alert("Lütfen önce dosya seçin ve ön doğrulama yapın.");
+                    return;
+                }
+                var file = fileInput.files[0];
+                var allowPartial = Boolean(chkPartial && chkPartial.checked);
+
+                btnCommit.disabled = true;
+                btnCommit.textContent = "⏳ İçe Aktarılıyor...";
+
+                var formData = new FormData();
+                formData.append("file", file);
+                formData.append("partialImportAllowed", allowPartial ? "true" : "false");
+
+                apiRequest("/api/assets/import/commit", {
+                    method: "POST",
+                    body: formData
+                }).then(function (res) {
+                    alert("✅ Toplu İçe Aktarım Başarılı!\n" +
+                          "Aktarılan Varlık Sayısı: " + res.importedCount + "\n" +
+                          "Toplu İşlem No (Batch ID): " + (res.batchId || res.importBatchId));
+                    closeModal("modal-bulk-import");
+                    resetModal();
+                    loadAssetsTable();
+                }).catch(function (err) {
+                    alert("İçe aktarım başarısız oldu: " + (err.message || "Hata"));
+                }).finally(function () {
+                    btnCommit.disabled = false;
+                    btnCommit.textContent = "🚀 İçe Aktarımı Tamamla (Commit)";
+                });
+            });
+        }
+    }
+
+    // ==========================================
     // 8. ZİMMET, BAKIM VE DİĞER MODÜLLER
     // ==========================================
     function loadAssignments() {
@@ -1958,6 +2126,9 @@
         // Varlık Ekle Butonu
         var btnOpenNew = document.getElementById("btn-open-new-asset");
         if (btnOpenNew) btnOpenNew.onclick = function () { openNewAssetModal(); };
+
+        // Excel ile Toplu İçe Aktarım Modülü
+        initBulkImportModule();
 
         // Yeni Varlık Formu Cascading Dropdowns
         var aBld = document.getElementById("asset-building");
