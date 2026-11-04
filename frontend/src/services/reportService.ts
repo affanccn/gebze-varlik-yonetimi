@@ -7,3 +7,4 @@ export const reportService = {
     return apiRequest<DepreciationReportItem[]>(API_ENDPOINTS.REPORTS_DEPRECIATION);
   },
 };
+

@@ -117,3 +117,4 @@ export const QRCodeSvg: React.FC<QRCodeSvgProps> = ({
     </svg>
   );
 };
+

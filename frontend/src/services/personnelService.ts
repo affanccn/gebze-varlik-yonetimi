@@ -17,3 +17,4 @@ export const personnelService = {
     return apiRequest<Personnel>(`${API_ENDPOINTS.PERSONNEL}/${id}`);
   },
 };
+

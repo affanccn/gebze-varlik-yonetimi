@@ -13,3 +13,4 @@ export interface AssetMovement {
   note?: string;
   timestamp: string;
 }
+

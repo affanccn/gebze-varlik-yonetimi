@@ -12,3 +12,4 @@ export interface DepreciationReportItem {
   currentBookValue: number;
   status: string;
 }
+

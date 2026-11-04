@@ -16,3 +16,4 @@ export interface Personnel {
   email?: string;
   isActive: number;
 }
+

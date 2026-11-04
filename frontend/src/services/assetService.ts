@@ -25,3 +25,4 @@ export const assetService = {
     return apiRequest<AssetDetailResponse>(`${API_ENDPOINTS.ASSETS}/${id}`);
   },
 };
+

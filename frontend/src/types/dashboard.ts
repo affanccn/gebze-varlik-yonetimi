@@ -76,3 +76,4 @@ export interface DashboardSummary {
   conditionAlerts: ConditionAlertRow[];
   recentMovements: AssetMovement[];
 }
+

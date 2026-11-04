@@ -13,3 +13,4 @@ export interface AssetDocument {
   notes?: string;
   createdAt: string;
 }
+

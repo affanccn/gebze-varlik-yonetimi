@@ -66,3 +66,4 @@ export const hierarchyService = {
     return apiRequest<AssetCategory[]>(API_ENDPOINTS.CATEGORIES);
   },
 };
+

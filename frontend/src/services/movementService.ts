@@ -12,3 +12,4 @@ export const movementService = {
     return apiRequest<AssetMovement[]>(`${API_ENDPOINTS.MOVEMENTS}${query}`);
   },
 };
+

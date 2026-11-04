@@ -39,3 +39,4 @@ export function formatDateTime(dateTimeStr: string | null | undefined): string {
     return dateTimeStr;
   }
 }
+

@@ -12,3 +12,4 @@ export const documentService = {
     return apiRequest<AssetDocument[]>(`${API_ENDPOINTS.DOCUMENTS}${query}`);
   },
 };
+
