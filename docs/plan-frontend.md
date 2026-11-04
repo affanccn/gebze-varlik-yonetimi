@@ -534,3 +534,4 @@ Kullanıcının özel sorusu: *"API tip üretimi için springdoc-openapi seçene
 Bu plan; mevcut backend koduna, veritabanı şemasına veya iş kurallarına **hiçbir şekilde dokunmadan**, 23 menü ekranı ve 15 modalı kapsayan ön yüzü modern, tip güvenli, test edilebilir ve kurumsal bir React SPA mimarisine taşımak için hazırlanmıştır.
 
 **Plan onaylandığında doğrudan Faz R1 (Altyapı, Vite, Router, Oturum, Çekirdek Güvenlik ve Layout) ile başlanacaktır.**
+
