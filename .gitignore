@@ -51,3 +51,11 @@ wallet/
 *.sso
 *.p12
 *.jks
+
+# Frontend build & dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/.playwright/
+
