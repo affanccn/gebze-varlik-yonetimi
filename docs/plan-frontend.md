@@ -218,7 +218,7 @@ gebze-varlik-yonetimi/
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### R1: Altyapı ve Çekirdek Çerçeve (ŞU ANKİ KAPSAM)
+#### R1: Altyapı ve Çekirdek Çerçeve (TAMAMLANDI - Commit: `f972e7a`)
 - **Kapsam:**
   - `frontend/` projesi kurulumu (Vite, React 18.3.1, TypeScript 5.7, Tailwind CSS, TanStack Query, React Router, Vitest, Playwright).
   - Sabitlenmiş bağımlılıklar ve `package-lock.json` taahhüdü.
@@ -228,16 +228,22 @@ gebze-varlik-yonetimi/
   - Kapatılamayan Zorunlu Şifre Değiştirme Modalı (`mustChangePassword = true`).
   - Layout: Üst bar (kullanıcı bilgisi, rol rozeti, çıkış), eski arayüz gruplamasına sahip daraltılabilir ve mobil çekmeceli sol menü.
   - 23 Ekran Rota İskeleti: "Yakında" yer tutucu sayfalar; rol korumalı rotalarda (`/users`, `/audit` vb.) yetkisiz erişimde ana ekrana yönlendirme ve toast uyarısı.
-  - **Playwright R1 Duman Testi:** 5 rol ile giriş/menü denetimi, yanlış şifre uyarısı, çıkış, şifre değiştirme akışı, oturum düşme simülasyonu, STAFF engeli.
-- **Kabul Kriteri:** Playwright testleri %100 geçer, `npm run build` ve `npm run lint` hatasız tamamlanır, backend regresyon testleri 0 hatayla çalışır.
+  - **Playwright R1 Duman Testi:** 8 duman testi (%100 başarılı).
 
-#### R2: Temel Okuma Ekranları
+#### R2: Temel Okuma Ekranları (TAMAMLANDI - Commit: `a7cd649`)
 - Dashboard, Kurumsal Ağaç, Binalar & Katlar & Odalar, 30 Müdürlük, Personel, 16 Kategori, Hareketler, Belgeler, Raporlar (CSV/Yazdır), QR Etiketler.
+- 12 Playwright E2E testi (%100 başarılı).
 
-#### R3a: Varlık Çekirdek Yönetimi
-- Varlık listesi (TanStack Table), detay modalı, yeni varlık formu, düzenleme, soft delete, lokasyon/oda transferi, 11 durumlu yaşam döngüsü geçişleri.
+#### R3a: Varlık Çekirdek Yönetimi (TAMAMLANDI - Commit: `8243a0b`)
+- TanStack Table v8 ile Varlık Listesi (arama, kategori/müdürlük/durum filtreleme, sıralama, sayfalama).
+- Detay Modalı (QR kod vektör SVG, 6 aşamalı kurumsal yaşam döngüsü stepper'ı, künye ızgarası, hareketler denetim tablosu, hızlı geçiş butonları).
+- Yeni Varlık Kaydı & Güncelleme Modalı (react-hook-form + zod doğrulaması, kademeli bina/kat/oda ve müdürlük/alt birim seçicileri).
+- Konum & Birim Transfer Modalı (bina, kat, oda ve müdürlük transferi, Oracle ORA-00932 tipi güvenliği uyumlu).
+- 11 Durumlu Yaşam Döngüsü Geçiş Modalı (FSM kuralları, terminal durum uyarıları, zorunlu gerekçe girişi).
+- Güvenli Silme (Soft-delete) Onay Modalı (ADMIN yetkisiyle).
+- 7 Playwright E2E testi (%100 başarılı, toplamda 27/27 test geçmektedir).
 
-#### R3b: Operasyonel Akışlar
+#### R3b: Operasyonel Akışlar (SIRADAKİ AŞAMA)
 - Zimmet işlemleri & iade, Bakım iş emirleri açma/kapatma, Stok kalemleri & giriş/çıkış, Excel toplu içe aktarım motoru (dry-run & commit).
 
 #### R4: Yönetim, Denetim ve Kalan Modüller
