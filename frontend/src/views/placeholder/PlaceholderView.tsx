@@ -41,3 +41,4 @@ export const PlaceholderView: React.FC<PlaceholderViewProps> = ({
     </div>
   );
 };
+

@@ -19,3 +19,4 @@ export class ApiException extends Error {
     this.data = data;
   }
 }
+

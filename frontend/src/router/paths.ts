@@ -21,3 +21,4 @@ export const PATHS = {
   USERS: '/users',
   SETTINGS: '/settings',
 } as const;
+

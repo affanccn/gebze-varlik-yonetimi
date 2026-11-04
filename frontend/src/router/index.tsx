@@ -5,6 +5,18 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { LoginView } from '../views/auth/LoginView';
 import { PlaceholderView } from '../views/placeholder/PlaceholderView';
 
+// Faz R2 Read Views
+import { DashboardView } from '../views/dashboard/DashboardView';
+import { TreeView } from '../views/tree/TreeView';
+import { LocationsView } from '../views/locations/LocationsView';
+import { DepartmentsView } from '../views/departments/DepartmentsView';
+import { PersonnelView } from '../views/personnel/PersonnelView';
+import { CategoriesView } from '../views/categories/CategoriesView';
+import { MovementsView } from '../views/movements/MovementsView';
+import { DocumentsView } from '../views/documents/DocumentsView';
+import { ReportsView } from '../views/reports/ReportsView';
+import { QRCodesView } from '../views/qrcodes/QRCodesView';
+
 export const router = createBrowserRouter([
   {
     path: PATHS.LOGIN,
@@ -22,42 +34,51 @@ export const router = createBrowserRouter([
         index: true,
         element: <Navigate to={PATHS.DASHBOARD} replace />,
       },
+      // 1. Dashboard
       {
         path: PATHS.DASHBOARD.replace('/', ''),
-        element: <PlaceholderView title="Ana Ekran & Dashboard" phase="R2" />,
+        element: <DashboardView />,
       },
+      // 2. Tree (STAFF excluded)
       {
         path: PATHS.TREE.replace('/', ''),
         element: (
           <ProtectedRoute forbiddenRoles={['STAFF']}>
-            <PlaceholderView title="Kurumsal & Fiziksel Ağaç" phase="R2" />
+            <TreeView />
           </ProtectedRoute>
         ),
       },
+      // 3. Locations
       {
         path: PATHS.LOCATIONS.replace('/', ''),
-        element: <PlaceholderView title="Binalar, Katlar ve Odalar" phase="R2" />,
+        element: <LocationsView />,
       },
+      // 4. Departments
       {
         path: PATHS.DEPARTMENTS.replace('/', ''),
-        element: <PlaceholderView title="30 Kurumsal Müdürlük" phase="R2" />,
+        element: <DepartmentsView />,
       },
+      // 5. Personnel
       {
         path: PATHS.PERSONNEL.replace('/', ''),
-        element: <PlaceholderView title="Personel Yönetimi" phase="R2" />,
+        element: <PersonnelView />,
       },
+      // Assets (CRUD in R3a)
       {
         path: PATHS.ASSETS.replace('/', ''),
         element: <PlaceholderView title="Demirbaş ve Varlık Envanteri" phase="R3a" />,
       },
+      // 6. Categories
       {
         path: PATHS.CATEGORIES.replace('/', ''),
-        element: <PlaceholderView title="16 Ana Varlık Kategorisi" phase="R2" />,
+        element: <CategoriesView />,
       },
+      // Assignments (R3b)
       {
         path: PATHS.ASSIGNMENTS.replace('/', ''),
         element: <PlaceholderView title="Zimmet İşlemleri ve Fişler" phase="R3b" />,
       },
+      // Maintenances (R3b)
       {
         path: PATHS.MAINTENANCES.replace('/', ''),
         element: (
@@ -66,10 +87,12 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // 7. Movements
       {
         path: PATHS.MOVEMENTS.replace('/', ''),
-        element: <PlaceholderView title="Hareketler ve Konum Transferi" phase="R2" />,
+        element: <MovementsView />,
       },
+      // Stock (R3b)
       {
         path: PATHS.STOCK.replace('/', ''),
         element: (
@@ -78,6 +101,7 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // Fleet (R4)
       {
         path: PATHS.FLEET.replace('/', ''),
         element: (
@@ -86,6 +110,7 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // Procurement (R4)
       {
         path: PATHS.PROCUREMENT.replace('/', ''),
         element: (
@@ -94,6 +119,7 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // Counting (R4)
       {
         path: PATHS.COUNTING.replace('/', ''),
         element: (
@@ -102,22 +128,26 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // 8. QR Codes
       {
         path: PATHS.QRCODES.replace('/', ''),
-        element: <PlaceholderView title="QR Kod & Etiket Yönetimi" phase="R2" />,
+        element: <QRCodesView />,
       },
+      // 9. Documents
       {
         path: PATHS.DOCUMENTS.replace('/', ''),
-        element: <PlaceholderView title="Belge & Evrak Arşivi" phase="R2" />,
+        element: <DocumentsView />,
       },
+      // 10. Reports (STAFF excluded)
       {
         path: PATHS.REPORTS.replace('/', ''),
         element: (
           <ProtectedRoute forbiddenRoles={['STAFF']}>
-            <PlaceholderView title="Raporlama & Amortisman Analizi" phase="R2" />
+            <ReportsView />
           </ProtectedRoute>
         ),
       },
+      // Audit (R4)
       {
         path: PATHS.AUDIT.replace('/', ''),
         element: (
@@ -126,6 +156,7 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // Users (R4)
       {
         path: PATHS.USERS.replace('/', ''),
         element: (
@@ -134,6 +165,7 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      // Settings (R4)
       {
         path: PATHS.SETTINGS.replace('/', ''),
         element: <PlaceholderView title="Sistem Ayarları & Yetki Matrisi" phase="R4" />,

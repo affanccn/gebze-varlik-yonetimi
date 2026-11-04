@@ -61,8 +61,8 @@ test.describe('Faz R1 Frontend Altyapı ve Güvenlik Duman Testleri', () => {
     await expect(page.locator('h2')).toContainText('Ana Ekran & Dashboard');
 
     // ADMIN rol rozetini doğrula
-    await expect(page.locator('text=Sistem Yöneticisi')).toBeVisible();
-    await expect(page.locator('text=ADMIN')).toBeVisible();
+    await expect(page.locator('text=Sistem Yöneticisi').first()).toBeVisible();
+    await expect(page.locator('text=ADMIN').first()).toBeVisible();
 
     // Menü öğelerini doğrula: ADMIN için "Kullanıcılar" ve "Denetim & Onay" görünür olmalı
     await expect(page.locator('nav >> text=Kullanıcılar')).toBeVisible();

@@ -40,3 +40,4 @@ export const API_ENDPOINTS = {
   USERS: '/api/users',
   SETTINGS: '/api/settings',
 } as const;
+
