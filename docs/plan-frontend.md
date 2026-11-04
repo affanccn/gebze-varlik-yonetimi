@@ -243,18 +243,29 @@ gebze-varlik-yonetimi/
 - Güvenli Silme (Soft-delete) Onay Modalı (ADMIN yetkisiyle).
 - 7 Playwright E2E testi (%100 başarılı, toplamda 27/27 test geçmektedir).
 
-#### R3b: Operasyonel Akışlar (TAMAMLANDI)
+#### R3b: Operasyonel Akışlar (TAMAMLANDI - Commit: `bdcd389`)
 - Zimmet Yönetimi (`/assignments`): TanStack Table, KPI kartları, arama/durum filtreleri, "Yeni Zimmet Fişi Düzenle" modalı (varlık ve personel seçimi), "Zimmet İade Al" kabul modalı.
 - Bakım & Onarım Yönetimi (`/maintenances`): TanStack Table, KPI kartları, öncelik/durum filtreleri, "Yeni Bakım Talebi Aç" modalı, "Bakımı Tamamla ve Kapat" onarım sonuç modalı.
 - Depo & Stok Yönetimi (`/stock`): 2 sekmeli arayüz (Depo Envanteri ve Geçmiş Hareketler), KPI kartları (Kritik/Tükenen stok uyarıları), "Stok Hareketi Yap" modalı (Giriş/İkmal & Çıkış/Tahsis).
 - Excel Toplu İçe Aktarım (`/excel-import` ve `AssetsView` modalı): Şablon indirme (.xlsx), drag & drop/dosya seçimi, ön doğrulama (validate), satır hataları tablosu, kısmi içe aktarım seçeneği ve tamamlama (commit).
 - 7 Playwright E2E testi (%100 başarılı, toplamda 34/34 test geçmektedir).
 
-#### R4: Yönetim, Denetim ve Kalan Modüller (SIRADAKİ AŞAMA)
-- Kullanıcı Yönetimi (`/users`), Sistem Ayarları (`/settings`), Araç & Filo (`/fleet`), Satın Alma & Tedarik (`/procurement`), Fiziksel Sayım (`/counting`), Denetim Günlüğü (`/audit`).
+#### R4: Yönetim, Denetim ve Kalan Modüller (TAMAMLANDI)
+- Kullanıcı Yönetimi (`/users`): TanStack Table, KPI kartları, rol/durum filtreleri, kullanıcı arama, "Yeni Kullanıcı Ekle" modalı (otomatik geçici şifre üretimi ve güvenli kopyalama ekranı), kullanıcı düzenleme, pasife alma ve tek tıklamayla geçici şifre sıfırlama akışı (`ResetPasswordModal`).
+- Araç & İş Makinesi Filosu (`/fleet`): KPI kartları (Toplam Filo, Görevde, Garajda, Bakım/Arızada), plaka/tür/şoför/KM tablosu, durum hap butonları, "KM & Durum Güncelle" modalı (`FleetStatusModal`).
+- Satın Alma & Tedarik (`/procurement`): KPI kartları (Toplam Tedarik, Süreç Devam Eden, Teslim Alınanlar, Toplam Bütçe), doğrudan temin/ihale sözleşmeleri tablosu, tutar/bütçe formatlaması, durum filtreleri.
+- Fiziksel Sayım & Kontrol (`/counting`): Yıl sonu / periyodik sayım seans kartları seçimi (`SYM-2025-01`), sayım ilerleme çubuğu ve KPI'lar (Beklenen, Taranan, Eksik/Kayıp, Fazla/Tanımsız), okutulan varlıklar tablosu, "Barkod / QR Okut" kayıt modalı (`CountingScanModal`).
+- Sistem Denetim ve Güvenlik Günlüğü (`/audit`): Olay günlüğü tablosu (Zaman damgası, renkli eylem rozetleri, aktör, IP adresi, modül, detaylar), KPI kartları (Toplam Olay, Güvenlik İhlalleri, Başarılı Girişler, Veri Mutasyonları), arama ve eylem türü filtreleri.
+- Sistem Ayarları & Yetki Matrisi (`/settings`): Genel sistem parametreleri kartı, inline düzenleme/kaydetme, 5 rollü kurumsal RBAC yetki tablosu.
+- Rol Yetkilendirme Matrisi & Kısıtlamaları: STAFF kullanıcısının `/users`, `/audit`, `/fleet`, `/procurement`, `/counting` rotalarına erişiminin Dashboard'a yönlendirilmesi; AUDITOR rolünün `/audit` erişiminin sağlanması fakat `/users` yönetiminden engellenmesi.
+- 8 Playwright E2E testi (%100 başarılı, tüm sistem genelinde 42/42 E2E test sıfır hata ile geçmektedir).
 
-#### R5: Doğrulama, SPA Fallback ve Eski Ön Yüzün Kaldırılması
-- Tam Playwright regresyonu, Spring Boot SPA Fallback entegrasyonu, prod build kopyalama, eski `index.html`/`app.js`/`app.css` arşivlenmesi.
+#### R5: Doğrulama, SPA Fallback, Paketleme ve Eski Ön Yüzün Kaldırılması (SIRADAKİ AŞAMA)
+- Tam Playwright regresyonu (42 test).
+- Spring Boot SPA Fallback entegrasyonu (React Router rotalarının doğrudan yenilendiğinde 404 almaması için kontrollü yönlendirme).
+- Vite prod build (`npm run build`) çıktısının Spring Boot static klasörüne aktarılması.
+- Eski vanilla frontend dosyalarının (`index.html`, `app.js`, `app.css`) güvenli arşivlenmesi/kaldırılması.
+- `http://localhost:8080/` üzerinden React uygulamasının doğrudan servis edilmesi ve son doğrulama.
 
 ---
 

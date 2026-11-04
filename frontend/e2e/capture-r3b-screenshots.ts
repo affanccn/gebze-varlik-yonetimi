@@ -109,3 +109,4 @@ test('Capture R3b Visual Screenshots', async ({ page }) => {
   await page.keyboard.press('Escape');
   await expect(importModal).not.toBeVisible();
 });
+

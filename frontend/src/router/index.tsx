@@ -3,7 +3,6 @@ import { PATHS } from './paths';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AppLayout } from '../components/layout/AppLayout';
 import { LoginView } from '../views/auth/LoginView';
-import { PlaceholderView } from '../views/placeholder/PlaceholderView';
 
 // Faz R2 Read Views
 import { DashboardView } from '../views/dashboard/DashboardView';
@@ -16,10 +15,18 @@ import { MovementsView } from '../views/movements/MovementsView';
 import { DocumentsView } from '../views/documents/DocumentsView';
 import { ReportsView } from '../views/reports/ReportsView';
 import { QRCodesView } from '../views/qrcodes/QRCodesView';
+// Faz R3 Views
 import { AssetsView } from '../views/assets/AssetsView';
 import { AssignmentsView } from '../views/assignments/AssignmentsView';
 import { MaintenancesView } from '../views/maintenances/MaintenancesView';
 import { StockView } from '../views/stock/StockView';
+// Faz R4 Views
+import { FleetView } from '../views/fleet/FleetView';
+import { ProcurementView } from '../views/procurement/ProcurementView';
+import { CountingView } from '../views/counting/CountingView';
+import { AuditLogsView } from '../views/audit/AuditLogsView';
+import { UsersView } from '../views/users/UsersView';
+import { SettingsView } from '../views/settings/SettingsView';
 
 export const router = createBrowserRouter([
   {
@@ -110,7 +117,7 @@ export const router = createBrowserRouter([
         path: PATHS.FLEET.replace('/', ''),
         element: (
           <ProtectedRoute forbiddenRoles={['STAFF']}>
-            <PlaceholderView title="Araç & Filo (İş Makineleri Dahil)" phase="R4" />
+            <FleetView />
           </ProtectedRoute>
         ),
       },
@@ -119,7 +126,7 @@ export const router = createBrowserRouter([
         path: PATHS.PROCUREMENT.replace('/', ''),
         element: (
           <ProtectedRoute forbiddenRoles={['STAFF']}>
-            <PlaceholderView title="Satın Alma & Tedarik Süreçleri" phase="R4" />
+            <ProcurementView />
           </ProtectedRoute>
         ),
       },
@@ -128,7 +135,7 @@ export const router = createBrowserRouter([
         path: PATHS.COUNTING.replace('/', ''),
         element: (
           <ProtectedRoute forbiddenRoles={['STAFF']}>
-            <PlaceholderView title="Fiziksel Sayım & Kontrol" phase="R4" />
+            <CountingView />
           </ProtectedRoute>
         ),
       },
@@ -156,7 +163,7 @@ export const router = createBrowserRouter([
         path: PATHS.AUDIT.replace('/', ''),
         element: (
           <ProtectedRoute allowedRoles={['ADMIN', 'AUDITOR']}>
-            <PlaceholderView title="Sistem Denetim ve Onay Günlüğü" phase="R4" />
+            <AuditLogsView />
           </ProtectedRoute>
         ),
       },
@@ -165,14 +172,14 @@ export const router = createBrowserRouter([
         path: PATHS.USERS.replace('/', ''),
         element: (
           <ProtectedRoute allowedRoles={['ADMIN']}>
-            <PlaceholderView title="Kullanıcı Yönetimi & Hesap Güvenliği" phase="R4" />
+            <UsersView />
           </ProtectedRoute>
         ),
       },
       // Settings (R4)
       {
         path: PATHS.SETTINGS.replace('/', ''),
-        element: <PlaceholderView title="Sistem Ayarları & Yetki Matrisi" phase="R4" />,
+        element: <SettingsView />,
       },
     ],
   },

@@ -6,6 +6,7 @@ function cleanup() {
     "DELETE FROM asset_assignments WHERE asset_id IN (SELECT id FROM assets WHERE code LIKE 'GBZ-E2E%');",
     "DELETE FROM asset_movements WHERE asset_id IN (SELECT id FROM assets WHERE code LIKE 'GBZ-E2E%') OR asset_code LIKE 'GBZ-E2E%';",
     "DELETE FROM assets WHERE code LIKE 'GBZ-E2E%';",
+    "DELETE FROM system_users WHERE username LIKE 'e2e_%';",
     "COMMIT;",
     "EXIT;",
   ].join('\n') + '\n';
