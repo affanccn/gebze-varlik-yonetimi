@@ -120,10 +120,30 @@
 
     function getStatusClass(status) {
         var s = String(status || "").toLocaleLowerCase("tr-TR");
-        if (s === "aktif" || s === "tamamlandi") return "status-aktif";
-        if (s === "bakımda" || s === "devam_ediyor" || s === "onarım gerekli") return "status-bakimda";
-        if (s === "depoda" || s === "beklemede") return "status-depoda";
-        return "status-bostan";
+        if (s === "aktif" || s === "tamamlandi" || s === "zimmetli" || s === "zimmetlendi" || s === "kullanimda") return "status-aktif";
+        if (s === "bakımda" || s === "bakimda" || s === "devam_ediyor" || s === "onarım gerekli" || s === "onarim gerekli") return "status-bakimda";
+        if (s === "depoda" || s === "beklemede" || s === "satin_alindi" || s === "kaydedildi") return "status-depoda";
+        if (s === "hurda" || s === "hurdaya_ayrildi") return "status-hurda";
+        if (s === "zayiat_calinma" || s === "zayiat" || s === "çalınma" || s === "calinma") return "status-zayiat";
+        if (s === "pasif" || s === "pasif_askida" || s === "devredildi" || s === "bagislandi" || s === "satildi" || s === "kullanım dışı" || s === "kullanim disi") return "status-pasif";
+        return "status-depoda";
+    }
+
+    function getLifecycleLabel(status) {
+        switch (String(status || "").toUpperCase()) {
+            case "SATIN_ALINDI": return "Satın Alındı";
+            case "KAYDEDILDI": return "Kaydedildi (Ambar)";
+            case "ZIMMETLENDI": return "Zimmetlendi";
+            case "KULLANIMDA": return "Kullanımda (Ortak)";
+            case "BAKIMDA": return "Bakımda";
+            case "PASIF_ASKIDA": return "Pasif / Askıda";
+            case "HURDAYA_AYRILDI": return "Hurdaya Ayrıldı (HEK)";
+            case "DEVREDILDI": return "Devredildi";
+            case "BAGISLANDI": return "Bağışlandı";
+            case "SATILDI": return "Satıldı";
+            case "ZAYIAT_CALINMA": return "Zayiat / Çalınma";
+            default: return status || "-";
+        }
     }
 
     function applyRolePermissions() {
@@ -1426,7 +1446,12 @@
                 catSelect.value = assetToEdit.category || "";
                 document.getElementById("asset-brand").value = assetToEdit.brandModel || "";
                 document.getElementById("asset-serial").value = assetToEdit.serialNumber || "";
-                document.getElementById("asset-status").value = assetToEdit.status || "Aktif";
+                var statusEl = document.getElementById("asset-status");
+                if (statusEl) {
+                    statusEl.value = assetToEdit.status || "Aktif";
+                    statusEl.disabled = true;
+                    statusEl.title = "Durum değişiklikleri durum makinesi geçiş butonları (Varlık Detayı) üzerinden yürütülür.";
+                }
                 document.getElementById("asset-condition").value = assetToEdit.condition || "Çok İyi";
                 if (persSelect && assetToEdit.assignee) persSelect.value = assetToEdit.assignee;
                 document.getElementById("asset-value").value = assetToEdit.estimatedValue || "";
@@ -1462,6 +1487,13 @@
                             });
                         }
                     });
+                }
+            } else {
+                var statusElNew = document.getElementById("asset-status");
+                if (statusElNew) {
+                    statusElNew.value = "Depoda";
+                    statusElNew.disabled = true;
+                    statusElNew.title = "Yeni varlıklar otomatik olarak 'KAYDEDILDI (Depoda)' durumuyla kaydedilir.";
                 }
             }
         });
@@ -3448,12 +3480,28 @@
                 "<div class='stepper-step " + step6Class + "'><div class='step-num'>" + (status === "Kullanım Dışı" ? "✕" : "6") + "</div><div class='step-text'>6. Hurda / Düşüm</div></div>" +
                 "</div>";
 
+            var lifecycle = asset.lifecycleStatus || "KULLANIMDA";
+            var transitions = detail.availableTransitions || [];
+
+            var transitionButtonsHtml = "";
+            if (transitions.length > 0) {
+                transitionButtonsHtml =
+                    "<div style='margin-top:1rem;padding:0.85rem;background:#f8fafc;border-radius:8px;border:1px solid var(--gray-200);'>" +
+                    "<div style='font-size:0.85rem;font-weight:700;color:var(--navy-900);margin-bottom:0.5rem;'>⚡ Yaşam Döngüsü Durum Geçişleri (Yetkili Eylemler):</div>" +
+                    "<div style='display:flex;gap:0.5rem;flex-wrap:wrap;'>" +
+                    transitions.map(function (t) {
+                        return "<button type='button' class='btn-action-sm btn-lifecycle-trans' data-target='" + t + "'>➔ " + getLifecycleLabel(t) + "</button>";
+                    }).join("") +
+                    "</div></div>";
+            }
+
             body.innerHTML =
                 stepperHtml +
                 "<div class='room-hero-card'>" +
                 "<div class='room-hero-header'>" +
                 "<div>" +
-                "<span class='status-badge " + getStatusClass(asset.status) + "'>" + escapeHtml(asset.status) + "</span>" +
+                "<span class='status-badge " + getStatusClass(lifecycle) + "'>" + escapeHtml(getLifecycleLabel(lifecycle)) + "</span>" +
+                "<span class='status-badge " + getStatusClass(asset.status) + "' style='margin-left:0.3rem;opacity:0.85;'>(" + escapeHtml(asset.status) + ")</span>" +
                 "<h3 style='font-size:1.3rem;margin:0.3rem 0;color:var(--navy-900);'>" + escapeHtml(asset.name) + "</h3>" +
                 "<p style='color:var(--gray-600);font-size:0.85rem;'>Kod: <strong>" + escapeHtml(asset.code) + "</strong> &bull; Barkod: <strong>" + escapeHtml(asset.barcode || "-") + "</strong></p>" +
                 "</div>" +
@@ -3477,6 +3525,7 @@
                 "<button type='button' class='btn-action-sm' id='pop-btn-trans'>🚚 Konum / Oda Transfer Et</button>" +
                 "<button type='button' class='btn-action-sm' id='pop-btn-assign'>📋 Zimmet Ata</button>" +
                 "</div>" +
+                transitionButtonsHtml +
                 "</div>" +
                 "<h4 style='margin-top:1.2rem;margin-bottom:0.5rem;'>Konum ve Zimmet Geçmişi (" + movements.length + " Hareket)</h4>" +
                 "<div class='table-responsive' style='max-height:200px;overflow-y:auto;'>" +
@@ -3486,6 +3535,28 @@
                         return "<tr><td>" + escapeHtml(m.timestamp) + "</td><td><span class='status-badge status-aktif'>" + escapeHtml(m.typeLabel) + "</span></td><td>" + escapeHtml(m.fromLocation || "-") + "</td><td><strong>" + escapeHtml(m.toLocation) + "</strong></td><td>" + escapeHtml(m.performedBy) + "</td></tr>";
                     }).join("")) +
                 "</tbody></table></div>";
+
+            var transBtns = body.querySelectorAll(".btn-lifecycle-trans");
+            for (var tb = 0; tb < transBtns.length; tb++) {
+                (function (btn) {
+                    btn.onclick = function () {
+                        var target = btn.getAttribute("data-target");
+                        var label = getLifecycleLabel(target);
+                        var reason = prompt("'" + asset.name + "' varlığını '" + label + "' durumuna geçirmek için gerekçe giriniz:", "Operasyonel süreç gereği durum geçişi");
+                        if (reason === null) return;
+                        apiRequest("/api/assets/" + asset.id + "/transition", {
+                            method: "POST",
+                            body: JSON.stringify({ targetStatus: target, reason: reason })
+                        }).then(function (res) {
+                            showToast("Yaşam döngüsü durumu güncellendi: " + label);
+                            openAssetDetailPopup(asset.id);
+                            loadAssetsTable();
+                        }).catch(function (err) {
+                            showToast("Durum geçişi başarısız: " + (err.message || err), true);
+                        });
+                    };
+                })(transBtns[tb]);
+            }
 
             var popMaint = document.getElementById("pop-btn-maint");
             if (popMaint) popMaint.onclick = function () { closeModal("modal-detail"); openNewMaintenanceModal(asset.id); };
@@ -4294,6 +4365,13 @@
                 } else if (s.paramKey === "LABEL_PRINT_FORMAT") {
                     var el6 = document.getElementById("set-label-size");
                     if (el6) el6.value = s.paramValue;
+                }
+            } else {
+                var statusElNew = document.getElementById("asset-status");
+                if (statusElNew) {
+                    statusElNew.value = "Depoda";
+                    statusElNew.disabled = true;
+                    statusElNew.title = "Yeni varlıklar otomatik olarak 'KAYDEDILDI (Depoda)' durumuyla kaydedilir.";
                 }
             }
         });

@@ -8,16 +8,24 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.asset.Asset;
 import tr.gov.gebze.varlik.asset.AssetService;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
+import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
 
 @Service
 public class MovementService {
 
     private final MovementRepository movementRepository;
     private final AssetService assetService;
+    private final AssetLifecycleService assetLifecycleService;
 
-    public MovementService(MovementRepository movementRepository, @Lazy AssetService assetService) {
+    public MovementService(
+            MovementRepository movementRepository,
+            @Lazy AssetService assetService,
+            AssetLifecycleService assetLifecycleService
+    ) {
         this.movementRepository = movementRepository;
         this.assetService = assetService;
+        this.assetLifecycleService = assetLifecycleService;
     }
 
     public List<AssetMovement> findAll(Long assetId, String type) {
@@ -39,7 +47,6 @@ public class MovementService {
         String fromLocation = asset.location();
         String targetUnit = (req.toUnit() == null || req.toUnit().isBlank()) ? asset.unit() : req.toUnit().trim();
         String targetLocation = (req.toLocation() == null || req.toLocation().isBlank()) ? asset.location() : req.toLocation().trim();
-        String newStatus = asset.status();
         String newAssignee = asset.assignee();
         String typeLabel;
 
@@ -49,30 +56,39 @@ public class MovementService {
                 if (req.toLocation() == null || req.toLocation().isBlank()) {
                     throw new ApiException(HttpStatus.BAD_REQUEST, "Transfer işlemi için hedef konum belirtilmelidir.");
                 }
+                // Aynı-durum işlemi: validator çağrılmaz
+                assetService.updateOperationalState(asset.id(), targetUnit, targetLocation, asset.assignee());
             }
             case "BAKIMA_GONDERIM" -> {
                 typeLabel = "Bakıma Gönderim";
-                newStatus = "Bakımda";
                 if (req.toLocation() == null || req.toLocation().isBlank()) {
                     targetLocation = "Teknik Servis / Bakım Atölyesi";
                 }
+                assetLifecycleService.transitionState(asset.id(), AssetLifecycleStatus.BAKIMDA, req.note(), actorName);
+                assetService.updateOperationalStateAndCondition(asset.id(), targetUnit, targetLocation, asset.assignee(), "Onarım Gerekli");
             }
             case "BAKIMDAN_DONUS" -> {
                 typeLabel = "Bakımdan Dönüş";
-                newStatus = (newAssignee != null && newAssignee.toLowerCase().contains("atanmamış")) ? "Depoda" : "Aktif";
+                AssetLifecycleStatus target = (newAssignee != null && !newAssignee.toLowerCase().contains("atanmamış"))
+                        ? AssetLifecycleStatus.ZIMMETLENDI
+                        : AssetLifecycleStatus.KAYDEDILDI;
+                assetLifecycleService.transitionState(asset.id(), target, req.note(), actorName);
+                assetService.updateOperationalStateAndCondition(asset.id(), targetUnit, targetLocation, newAssignee, "Çok İyi");
             }
             case "DEPOYA_CEKME" -> {
                 typeLabel = "Depoya Çekme";
-                newStatus = "Depoda";
                 newAssignee = "Atanmamış (Depo Sorumlusu)";
                 if (req.toLocation() == null || req.toLocation().isBlank()) {
                     targetLocation = "Merkez Depo ve Ambar Tesisleri";
                 }
+                assetLifecycleService.transitionState(asset.id(), AssetLifecycleStatus.KAYDEDILDI, req.note(), actorName);
+                assetService.updateOperationalState(asset.id(), targetUnit, targetLocation, newAssignee);
             }
-            default -> typeLabel = "Operasyonel Hareket";
+            default -> {
+                typeLabel = "Operasyonel Hareket";
+                assetService.updateOperationalState(asset.id(), targetUnit, targetLocation, asset.assignee());
+            }
         }
-
-        assetService.updateOperationalState(asset.id(), targetUnit, targetLocation, newAssignee, newStatus);
 
         AssetMovement movement = new AssetMovement(
                 null,

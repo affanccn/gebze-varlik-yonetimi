@@ -1819,6 +1819,25 @@ label code {
     color: var(--status-store-fg);
 }
 
+.status-badge.status-hurda {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.status-badge.status-pasif {
+    background-color: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #e5e7eb;
+}
+
+.status-badge.status-zayiat {
+    background: repeating-linear-gradient(45deg, #fee2e2, #fee2e2 6px, #fecaca 6px, #fecaca 12px);
+    color: #991b1b;
+    border: 1px solid #dc2626;
+    font-weight: 800;
+}
+
 .priority-acil {
     background-color: var(--danger-50);
     color: var(--danger-600);

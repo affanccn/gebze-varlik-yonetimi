@@ -44,7 +44,8 @@ public class AssetRepository {
                    a.building_id, b.name AS bld_name,
                    a.floor_id, f.floor_name,
                    a.room_id, r.room_number, r.name AS room_name, r.qr_code AS room_qr,
-                   a.category_id, c.name AS cat_name
+                   a.category_id, c.name AS cat_name,
+                   a.lifecycle_status
             FROM assets a
             LEFT JOIN departments d ON a.department_id = d.id
             LEFT JOIN sub_units s ON a.sub_unit_id = s.id
@@ -168,7 +169,8 @@ public class AssetRepository {
                    a.building_id, b.name AS bld_name,
                    a.floor_id, f.floor_name,
                    a.room_id, r.room_number, r.name AS room_name, r.qr_code AS room_qr,
-                   a.category_id, c.name AS cat_name
+                   a.category_id, c.name AS cat_name,
+                   a.lifecycle_status
             FROM assets a
             LEFT JOIN departments d ON a.department_id = d.id
             LEFT JOIN sub_units s ON a.sub_unit_id = s.id
@@ -176,7 +178,7 @@ public class AssetRepository {
             LEFT JOIN floors f ON a.floor_id = f.id
             LEFT JOIN rooms r ON a.room_id = r.id
             LEFT JOIN asset_categories c ON a.category_id = c.id
-            WHERE a.id = :id AND a.is_active = 1 AND a.is_deleted = 0
+            WHERE a.id = :id AND a.is_deleted = 0
         """;
         return jdbcClient.sql(sql).param("id", id).query(this::mapAsset).optional();
     }
@@ -194,7 +196,8 @@ public class AssetRepository {
                    a.building_id, b.name AS bld_name,
                    a.floor_id, f.floor_name,
                    a.room_id, r.room_number, r.name AS room_name, r.qr_code AS room_qr,
-                   a.category_id, c.name AS cat_name
+                   a.category_id, c.name AS cat_name,
+                   a.lifecycle_status
             FROM assets a
             LEFT JOIN departments d ON a.department_id = d.id
             LEFT JOIN sub_units s ON a.sub_unit_id = s.id
@@ -212,19 +215,26 @@ public class AssetRepository {
     }
 
     public Long save(Asset a) {
+        String lifecycle = a.lifecycleStatus() != null ? a.lifecycleStatus() : "KAYDEDILDI";
+        String legacyStatus = a.status() != null ? a.status() : "Depoda";
+        int isActive = 1;
+        try {
+            isActive = tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus.fromString(lifecycle).isActive() ? 1 : 0;
+        } catch (Exception ignored) {}
+
         String sql = """
             INSERT INTO assets (
                 code, tif_code, barcode, name, category, brand_model, serial_number,
                 unit_name, location_info, assignee_name, status, condition_status,
                 acquisition_date, warranty_end_date, estimated_value, supplier, notes,
-                department_id, sub_unit_id, building_id, floor_id, room_id, category_id, is_active
+                department_id, sub_unit_id, building_id, floor_id, room_id, category_id, is_active, lifecycle_status
             ) VALUES (
                 :code, :tifCode, :barcode, :name, :category, :brandModel, :serialNumber,
                 :unitName, :locationInfo, :assigneeName, :status, :conditionStatus,
                 CASE WHEN :acqDate IS NOT NULL THEN TO_DATE(:acqDate, 'YYYY-MM-DD') ELSE NULL END,
                 CASE WHEN :warDate IS NOT NULL THEN TO_DATE(:warDate, 'YYYY-MM-DD') ELSE NULL END,
                 :estValue, :supplier, :notes,
-                :deptId, :subId, :bldId, :flrId, :roomId, :catId, 1
+                :deptId, :subId, :bldId, :flrId, :roomId, :catId, :isActive, :lifecycleStatus
             )
         """;
         jdbcClient.sql(sql)
@@ -238,7 +248,7 @@ public class AssetRepository {
                 .param("unitName", a.unit() == null ? "" : a.unit())
                 .param("locationInfo", a.location() == null ? "" : a.location())
                 .param("assigneeName", a.assignee())
-                .param("status", a.status() == null ? "Aktif" : a.status())
+                .param("status", legacyStatus)
                 .param("conditionStatus", a.condition() == null ? "Çok İyi" : a.condition())
                 .param("acqDate", a.acquisitionDate())
                 .param("warDate", a.warrantyEndDate())
@@ -251,6 +261,8 @@ public class AssetRepository {
                 .param("flrId", a.floorId())
                 .param("roomId", a.roomId())
                 .param("catId", a.categoryId())
+                .param("isActive", isActive)
+                .param("lifecycleStatus", lifecycle)
                 .update();
 
         return jdbcClient.sql("SELECT id FROM assets WHERE code = :code")
@@ -270,7 +282,6 @@ public class AssetRepository {
                 unit_name = :unitName,
                 location_info = :locationInfo,
                 assignee_name = :assigneeName,
-                status = :status,
                 condition_status = :conditionStatus,
                 acquisition_date = CASE WHEN :acqDate IS NOT NULL THEN TO_DATE(:acqDate, 'YYYY-MM-DD') ELSE NULL END,
                 warranty_end_date = CASE WHEN :warDate IS NOT NULL THEN TO_DATE(:warDate, 'YYYY-MM-DD') ELSE NULL END,
@@ -284,7 +295,7 @@ public class AssetRepository {
                 room_id = :roomId,
                 category_id = :catId,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = :id
+            WHERE id = :id AND is_deleted = 0
         """;
         jdbcClient.sql(sql)
                 .param("tifCode", a.tifCode())
@@ -296,7 +307,6 @@ public class AssetRepository {
                 .param("unitName", a.unit() == null ? "" : a.unit())
                 .param("locationInfo", a.location() == null ? "" : a.location())
                 .param("assigneeName", a.assignee())
-                .param("status", a.status())
                 .param("conditionStatus", a.condition())
                 .param("acqDate", a.acquisitionDate())
                 .param("warDate", a.warrantyEndDate())
@@ -313,21 +323,38 @@ public class AssetRepository {
                 .update();
     }
 
-    public void updateStatusAndAssignee(Long id, String status, String assignee, String locationInfo, String unitName) {
+    public void updateLocationAndAssignee(Long id, String assignee, String locationInfo, String unitName) {
         String sql = """
             UPDATE assets SET
-                status = :status,
                 assignee_name = :assignee,
                 location_info = COALESCE(:location, location_info),
                 unit_name = COALESCE(:unit, unit_name),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = :id
+            WHERE id = :id AND is_deleted = 0
         """;
         jdbcClient.sql(sql)
-                .param("status", status)
                 .param("assignee", assignee)
                 .param("location", locationInfo)
                 .param("unit", unitName)
+                .param("id", id)
+                .update();
+    }
+
+    public void updateLocationAssigneeAndCondition(Long id, String assignee, String locationInfo, String unitName, String condition) {
+        String sql = """
+            UPDATE assets SET
+                assignee_name = :assignee,
+                location_info = COALESCE(:location, location_info),
+                unit_name = COALESCE(:unit, unit_name),
+                condition_status = COALESCE(:condition, condition_status),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = :id AND is_deleted = 0
+        """;
+        jdbcClient.sql(sql)
+                .param("assignee", assignee)
+                .param("location", locationInfo)
+                .param("unit", unitName)
+                .param("condition", condition)
                 .param("id", id)
                 .update();
     }
@@ -352,7 +379,7 @@ public class AssetRepository {
                 location_info = :locationInfo,
                 unit_name = COALESCE(:unitName, unit_name),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = :id
+            WHERE id = :id AND is_deleted = 0
         """;
         jdbcClient.sql(sql)
                 .param("bldId", buildingId)
@@ -366,8 +393,9 @@ public class AssetRepository {
                 .update();
     }
 
-    public void softDelete(Long id) {
-        jdbcClient.sql("UPDATE assets SET is_active = 0, is_deleted = 1, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
+    public void softDelete(Long id, String deletedBy) {
+        jdbcClient.sql("UPDATE assets SET is_active = 0, is_deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = :deletedBy, updated_at = CURRENT_TIMESTAMP WHERE id = :id")
+                .param("deletedBy", deletedBy != null ? deletedBy : "admin")
                 .param("id", id)
                 .update();
     }
@@ -406,7 +434,8 @@ public class AssetRepository {
                 rs.getString("room_name"),
                 rs.getString("room_qr"),
                 rs.getObject("category_id") == null ? null : rs.getLong("category_id"),
-                rs.getString("cat_name")
+                rs.getString("cat_name"),
+                rs.getString("lifecycle_status")
         );
     }
 }

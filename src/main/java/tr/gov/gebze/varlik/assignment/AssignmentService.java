@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.asset.Asset;
 import tr.gov.gebze.varlik.asset.AssetService;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
+import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
 import tr.gov.gebze.varlik.movement.MovementService;
 
 @Service
@@ -16,15 +18,18 @@ public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final AssetService assetService;
     private final MovementService movementService;
+    private final AssetLifecycleService assetLifecycleService;
 
     public AssignmentService(
             AssignmentRepository assignmentRepository,
             @Lazy AssetService assetService,
-            MovementService movementService
+            MovementService movementService,
+            AssetLifecycleService assetLifecycleService
     ) {
         this.assignmentRepository = assignmentRepository;
         this.assetService = assetService;
         this.movementService = movementService;
+        this.assetLifecycleService = assetLifecycleService;
     }
 
     public List<AssetAssignment> findAll(Long assetId, String status) {
@@ -63,6 +68,9 @@ public class AssignmentService {
 
         String docNo = String.format("GBZ-ZMT-2026-%04d", System.currentTimeMillis() % 100000);
 
+        // Yaşam döngüsü durum geçişi: ZIMMETLENDI
+        assetLifecycleService.transitionState(asset.id(), AssetLifecycleStatus.ZIMMETLENDI, docNo + " fişi ile " + req.assigneeName().trim() + " adına zimmetlendi.", actorName);
+
         AssetAssignment created = new AssetAssignment(
                 null,
                 docNo,
@@ -86,8 +94,7 @@ public class AssignmentService {
                 asset.id(),
                 req.unit().trim(),
                 req.location().trim(),
-                req.assigneeName().trim(),
-                "Aktif"
+                req.assigneeName().trim()
         );
 
         movementService.recordSystemMovement(
@@ -122,12 +129,14 @@ public class AssignmentService {
 
         assignmentRepository.returnAssignment(assignment.id(), returnNote);
 
+        // Yaşam döngüsü durum geçişi: KAYDEDILDI (Ambara iade)
+        assetLifecycleService.transitionState(asset.id(), AssetLifecycleStatus.KAYDEDILDI, assignment.documentNo() + " fişi ile ambara iade alındı: " + returnNote, actorName);
+
         String targetLocation = (req != null && req.returnLocation() != null && !req.returnLocation().isBlank())
                 ? req.returnLocation().trim()
                 : "Merkez Taşınır Ana Ambari";
 
         String targetUnit = "Destek Hizmetleri Müdürlüğü (Taşınır Kayıt ve Kontrol)";
-
         String targetCondition = asset.condition();
 
         Asset updated = assetService.updateOperationalStateAndCondition(
@@ -135,7 +144,6 @@ public class AssignmentService {
                 targetUnit,
                 targetLocation,
                 "Atanmamış (Depo Sorumlusu)",
-                "Depoda",
                 targetCondition
         );
 

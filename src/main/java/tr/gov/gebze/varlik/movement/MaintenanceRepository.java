@@ -27,7 +27,8 @@ public class MaintenanceRepository {
                    m.resolution_note, m.cost, m.status,
                    TO_CHAR(m.started_at, 'YYYY-MM-DD HH24:MI') AS started_at_str,
                    TO_CHAR(m.completed_at, 'YYYY-MM-DD HH24:MI') AS completed_at_str,
-                   m.created_by
+                   m.created_by,
+                   m.previous_lifecycle_status
             FROM asset_maintenances m
             JOIN assets a ON m.asset_id = a.id
             WHERE a.is_deleted = 0
@@ -64,7 +65,8 @@ public class MaintenanceRepository {
                    m.resolution_note, m.cost, m.status,
                    TO_CHAR(m.started_at, 'YYYY-MM-DD HH24:MI') AS started_at_str,
                    TO_CHAR(m.completed_at, 'YYYY-MM-DD HH24:MI') AS completed_at_str,
-                   m.created_by
+                   m.created_by,
+                   m.previous_lifecycle_status
             FROM asset_maintenances m
             JOIN assets a ON m.asset_id = a.id
             WHERE m.id = :id
@@ -76,10 +78,10 @@ public class MaintenanceRepository {
         String sql = """
             INSERT INTO asset_maintenances (
                 order_no, asset_id, maintenance_type, priority, vendor_or_technician,
-                issue_description, cost, status, started_at, created_by
+                issue_description, cost, status, started_at, created_by, previous_lifecycle_status
             ) VALUES (
                 :orderNo, :assetId, :type, :priority, :vendor,
-                :issue, :cost, :status, CURRENT_TIMESTAMP, :createdBy
+                :issue, :cost, :status, CURRENT_TIMESTAMP, :createdBy, :prevLifecycle
             )
         """;
         jdbcClient.sql(sql)
@@ -92,6 +94,7 @@ public class MaintenanceRepository {
                 .param("cost", m.cost() == null ? 0.0 : m.cost())
                 .param("status", m.status() == null ? "DEVAM_EDIYOR" : m.status())
                 .param("createdBy", m.createdBy())
+                .param("prevLifecycle", m.previousLifecycleStatus())
                 .update();
     }
 
@@ -127,7 +130,8 @@ public class MaintenanceRepository {
                 rs.getString("status"),
                 rs.getString("started_at_str"),
                 rs.getString("completed_at_str"),
-                rs.getString("created_by")
+                rs.getString("created_by"),
+                rs.getString("previous_lifecycle_status")
         );
     }
 }

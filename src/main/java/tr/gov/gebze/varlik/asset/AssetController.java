@@ -2,6 +2,7 @@ package tr.gov.gebze.varlik.asset;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,8 @@ import tr.gov.gebze.varlik.assignment.AssignmentService;
 import tr.gov.gebze.varlik.common.ApiException;
 import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.UserSession;
+import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
+import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
 import tr.gov.gebze.varlik.movement.MaintenanceService;
 import tr.gov.gebze.varlik.movement.MovementService;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
@@ -31,6 +34,7 @@ public class AssetController {
     private final MaintenanceService maintenanceService;
     private final AuthService authService;
     private final TenantQueryScope tenantQueryScope;
+    private final AssetLifecycleService assetLifecycleService;
 
     public AssetController(
             AssetService assetService,
@@ -38,7 +42,8 @@ public class AssetController {
             AssignmentService assignmentService,
             MaintenanceService maintenanceService,
             AuthService authService,
-            TenantQueryScope tenantQueryScope
+            TenantQueryScope tenantQueryScope,
+            AssetLifecycleService assetLifecycleService
     ) {
         this.assetService = assetService;
         this.movementService = movementService;
@@ -46,6 +51,7 @@ public class AssetController {
         this.maintenanceService = maintenanceService;
         this.authService = authService;
         this.tenantQueryScope = tenantQueryScope;
+        this.assetLifecycleService = assetLifecycleService;
     }
 
     @GetMapping
@@ -93,7 +99,8 @@ public class AssetController {
                 "asset", asset,
                 "movements", movementService.findAll(asset.id(), null),
                 "assignments", assignmentService.findAll(asset.id(), null),
-                "maintenances", maintenanceService.findAll(asset.id(), null)
+                "maintenances", maintenanceService.findAll(asset.id(), null),
+                "availableTransitions", assetLifecycleService.getAvailableTransitions(asset.id())
         );
     }
 
@@ -160,6 +167,30 @@ public class AssetController {
         );
     }
 
+    public record TransitionRequest(
+            String targetStatus,
+            String reason
+    ) {}
+
+    @GetMapping("/{id}/transitions")
+    public Set<AssetLifecycleStatus> getAvailableTransitions(@PathVariable Long id) {
+        return assetLifecycleService.getAvailableTransitions(id);
+    }
+
+    @PostMapping("/{id}/transition")
+    public Asset transitionAsset(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
+            @RequestBody TransitionRequest request
+    ) {
+        UserSession session = authService.requireWriteAccess(token);
+        if (request == null || request.targetStatus() == null || request.targetStatus().isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Hedef yaşam döngüsü durumu belirtilmelidir.");
+        }
+        AssetLifecycleStatus target = AssetLifecycleStatus.fromString(request.targetStatus());
+        return assetLifecycleService.transitionState(id, target, request.reason(), session.username());
+    }
+
     @DeleteMapping("/{id}")
     public Map<String, Object> deleteAsset(
             @PathVariable Long id,
@@ -167,7 +198,7 @@ public class AssetController {
     ) {
         UserSession session = authService.requireAdmin(token);
         tenantQueryScope.validateAssetWriteAccess(id, null);
-        Asset deleted = assetService.delete(id);
+        Asset deleted = assetService.delete(id, session.username());
         movementService.recordSystemMovement(
                 deleted,
                 "HURDA_CIKIS",

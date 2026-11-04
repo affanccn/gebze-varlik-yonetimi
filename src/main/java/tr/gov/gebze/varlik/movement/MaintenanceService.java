@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.asset.Asset;
 import tr.gov.gebze.varlik.asset.AssetService;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
+import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
 
 @Service
 public class MaintenanceService {
@@ -15,15 +17,18 @@ public class MaintenanceService {
     private final MaintenanceRepository maintenanceRepository;
     private final AssetService assetService;
     private final MovementService movementService;
+    private final AssetLifecycleService assetLifecycleService;
 
     public MaintenanceService(
             MaintenanceRepository maintenanceRepository,
             @Lazy AssetService assetService,
-            MovementService movementService
+            MovementService movementService,
+            AssetLifecycleService assetLifecycleService
     ) {
         this.maintenanceRepository = maintenanceRepository;
         this.assetService = assetService;
         this.movementService = movementService;
+        this.assetLifecycleService = assetLifecycleService;
     }
 
     public List<MaintenanceRecord> findAll(Long assetId, String status) {
@@ -53,6 +58,10 @@ public class MaintenanceService {
         String priority = (req.priority() == null || req.priority().isBlank()) ? "Normal" : req.priority().trim();
         Double cost = (req.estimatedCost() == null || req.estimatedCost() < 0) ? 0.0 : req.estimatedCost();
 
+        AssetLifecycleStatus prevLifecycle = AssetLifecycleStatus.fromString(
+                asset.lifecycleStatus() != null ? asset.lifecycleStatus() : asset.status()
+        );
+
         MaintenanceRecord created = new MaintenanceRecord(
                 null,
                 orderNo,
@@ -68,9 +77,13 @@ public class MaintenanceService {
                 "DEVAM_EDIYOR",
                 AssetService.nowFormatted(),
                 null,
-                actorName
+                actorName,
+                prevLifecycle.name()
         );
         maintenanceRepository.save(created);
+
+        // Yaşam döngüsü durum geçişi: BAKIMDA
+        assetLifecycleService.transitionState(asset.id(), AssetLifecycleStatus.BAKIMDA, orderNo + " nolu iş emri ile bakıma alındı: " + req.issueDescription().trim(), actorName);
 
         String serviceLocation = "Teknik Servis / Bakım Atölyesi";
         Asset updatedAsset = assetService.updateOperationalStateAndCondition(
@@ -78,7 +91,6 @@ public class MaintenanceService {
                 prevUnit,
                 serviceLocation,
                 asset.assignee(),
-                "Bakımda",
                 "Onarım Gerekli"
         );
 
@@ -116,9 +128,18 @@ public class MaintenanceService {
 
         maintenanceRepository.complete(rec.id(), resolution, cost);
 
-        String targetStatus = (req != null && req.targetStatus() != null && !req.targetStatus().isBlank())
-                ? req.targetStatus().trim()
-                : ((asset.assignee() != null && asset.assignee().toLowerCase().contains("atanmamış")) ? "Depoda" : "Aktif");
+        // Önceki duruma dönüş: previous_lifecycle_status kontrol edilir
+        AssetLifecycleStatus targetLifecycle;
+        if (rec.previousLifecycleStatus() != null && !rec.previousLifecycleStatus().isBlank()) {
+            targetLifecycle = AssetLifecycleStatus.fromString(rec.previousLifecycleStatus());
+        } else {
+            targetLifecycle = (asset.assignee() != null && !asset.assignee().toLowerCase().contains("atanmamış"))
+                    ? AssetLifecycleStatus.ZIMMETLENDI
+                    : AssetLifecycleStatus.KAYDEDILDI;
+        }
+
+        // Yaşam döngüsü durum geçişi: Önceki duruma dönüş
+        assetLifecycleService.transitionState(asset.id(), targetLifecycle, rec.orderNo() + " nolu bakım tamamlandı: " + resolution, actorName);
 
         String targetCondition = (req != null && req.targetCondition() != null && !req.targetCondition().isBlank())
                 ? req.targetCondition().trim()
@@ -133,7 +154,6 @@ public class MaintenanceService {
                 prevUnit,
                 targetLocation,
                 asset.assignee(),
-                targetStatus,
                 targetCondition
         );
 

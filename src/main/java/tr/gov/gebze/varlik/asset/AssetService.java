@@ -135,7 +135,8 @@ public class AssetService {
         String resolvedUnit = resolveUnitName(req.departmentId(), req.subUnitId(), req.unit());
         String resolvedLocation = resolveLocationInfo(req.buildingId(), req.floorId(), req.roomId(), req.location());
 
-        String status = isBlank(req.status()) ? "Depoda" : req.status().trim();
+        String status = tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus.KAYDEDILDI.getLegacyStatus();
+        String lifecycle = tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus.KAYDEDILDI.name();
         String condition = isBlank(req.condition()) ? "Çok İyi" : req.condition().trim();
         String assignee = isBlank(req.assignee()) ? "Atanmamış (Depo Sorumlusu)" : req.assignee().trim();
         String acqDate = isBlank(req.acquisitionDate()) ? LocalDate.now().toString() : req.acquisitionDate().trim();
@@ -177,7 +178,8 @@ public class AssetService {
                 null,
                 null,
                 req.categoryId(),
-                null
+                null,
+                lifecycle
         );
 
         Long newId = assetRepository.save(toSave);
@@ -237,7 +239,7 @@ public class AssetService {
                 resolvedUnit,
                 resolvedLocation,
                 isBlank(req.assignee()) ? existing.assignee() : req.assignee().trim(),
-                isBlank(req.status()) ? existing.status() : req.status().trim(),
+                existing.status(),
                 isBlank(req.condition()) ? existing.condition() : req.condition().trim(),
                 isBlank(req.acquisitionDate()) ? existing.acquisitionDate() : req.acquisitionDate().trim(),
                 isBlank(req.warrantyEndDate()) ? existing.warrantyEndDate() : req.warrantyEndDate().trim(),
@@ -258,7 +260,8 @@ public class AssetService {
                 null,
                 null,
                 req.categoryId() != null ? req.categoryId() : existing.categoryId(),
-                null
+                null,
+                existing.lifecycleStatus()
         );
 
         assetRepository.update(toUpdate);
@@ -320,13 +323,11 @@ public class AssetService {
             Long id,
             String newUnit,
             String newLocation,
-            String newAssignee,
-            String newStatus
+            String newAssignee
     ) {
         Asset existing = findById(id);
-        assetRepository.updateStatusAndAssignee(
+        assetRepository.updateLocationAndAssignee(
                 id,
-                isBlank(newStatus) ? existing.status() : newStatus.trim(),
                 isBlank(newAssignee) ? existing.assignee() : newAssignee.trim(),
                 isBlank(newLocation) ? existing.location() : newLocation.trim(),
                 isBlank(newUnit) ? existing.unit() : newUnit.trim()
@@ -340,53 +341,28 @@ public class AssetService {
             String newUnit,
             String newLocation,
             String newAssignee,
-            String newStatus,
             String newCondition
     ) {
         Asset existing = findById(id);
-        Asset updated = new Asset(
-                existing.id(),
-                existing.code(),
-                existing.tifCode(),
-                existing.barcode(),
-                existing.name(),
-                existing.category(),
-                existing.brandModel(),
-                existing.serialNumber(),
-                isBlank(newUnit) ? existing.unit() : newUnit.trim(),
-                isBlank(newLocation) ? existing.location() : newLocation.trim(),
+        assetRepository.updateLocationAssigneeAndCondition(
+                id,
                 isBlank(newAssignee) ? existing.assignee() : newAssignee.trim(),
-                isBlank(newStatus) ? existing.status() : newStatus.trim(),
-                isBlank(newCondition) ? existing.condition() : newCondition.trim(),
-                existing.acquisitionDate(),
-                existing.warrantyEndDate(),
-                existing.estimatedValue(),
-                existing.supplier(),
-                existing.notes(),
-                nowFormatted(),
-                existing.departmentId(),
-                existing.departmentName(),
-                existing.subUnitId(),
-                existing.subUnitName(),
-                existing.buildingId(),
-                existing.buildingName(),
-                existing.floorId(),
-                existing.floorName(),
-                existing.roomId(),
-                existing.roomNumber(),
-                existing.roomName(),
-                existing.roomQrCode(),
-                existing.categoryId(),
-                existing.categoryName()
+                isBlank(newLocation) ? existing.location() : newLocation.trim(),
+                isBlank(newUnit) ? existing.unit() : newUnit.trim(),
+                isBlank(newCondition) ? existing.condition() : newCondition.trim()
         );
-        assetRepository.update(updated);
         return findById(id);
     }
 
     @Transactional
     public Asset delete(Long id) {
+        return delete(id, "admin");
+    }
+
+    @Transactional
+    public Asset delete(Long id, String actorUsername) {
         Asset existing = findById(id);
-        assetRepository.softDelete(id);
+        assetRepository.softDelete(id, actorUsername);
         return existing;
     }
 
