@@ -10,6 +10,7 @@ export interface Permissions {
   isAuditor: boolean;
   isViewer: boolean;
   canWrite: boolean;
+  canDelete: boolean;
   canImport: boolean;
 }
 
@@ -19,6 +20,8 @@ export interface AuthContextType {
   sessionExpiredMessage: string | null;
   mustChangePassword: boolean;
   permissions: Permissions;
+  canWrite: boolean;
+  canDelete: boolean;
   login: (username: string, password: string) => Promise<UserSession>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<UserSession | null>;
@@ -50,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuditor,
       isViewer,
       canWrite: isAdmin || isDeptManager,
+      canDelete: isAdmin,
       canImport: isAdmin || isDeptManager,
     };
   }, [user?.role]);
@@ -138,6 +142,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sessionExpiredMessage,
         mustChangePassword,
         permissions,
+        canWrite: permissions.canWrite,
+        canDelete: permissions.canDelete,
         login,
         logout,
         refreshSession,

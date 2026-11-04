@@ -1,4 +1,5 @@
 import React from 'react';
+import { LIFECYCLE_STATUS_LABELS } from '../../types/asset';
 
 interface BadgeProps {
   children: React.ReactNode;
@@ -33,25 +34,27 @@ export const StatusBadge: React.FC<{ status: string; className?: string }> = ({
   status,
   className = '',
 }) => {
-  const normalized = (status || '').toLowerCase().trim();
+  const raw = (status || '').trim();
+  const normalized = raw.toLowerCase();
 
   let variant: BadgeProps['variant'] = 'default';
-  if (['aktif', 'zimmetli', 'tamamlandı', 'kullanımda'].includes(normalized)) {
+  if (['aktif', 'zimmetli', 'tamamlandı', 'kullanımda', 'zimmetlendi', 'kullanimda'].includes(normalized)) {
     variant = 'success';
-  } else if (['depoda', 'beklemede', 'kaydedildi'].includes(normalized)) {
+  } else if (['depoda', 'beklemede', 'kaydedildi', 'satin_alindi'].includes(normalized)) {
     variant = 'info';
-  } else if (['bakımda', 'onarım gerekli', 'orta', 'pasif_askida', 'askıda'].includes(normalized)) {
+  } else if (['bakımda', 'bakimda', 'onarım gerekli', 'orta', 'pasif_askida', 'askıda', 'pasif'].includes(normalized)) {
     variant = 'warning';
-  } else if (['hurda', 'hurdaya_ayrildi', 'zayiat', 'çalınma', 'kayıp', 'iptal'].includes(normalized)) {
+  } else if (['hurda', 'hurdaya_ayrildi', 'zayiat', 'zayiat_calinma', 'çalınma', 'kayıp', 'iptal', 'satildi', 'devredildi', 'bagislandi'].includes(normalized)) {
     variant = 'danger';
   } else {
     variant = 'neutral';
   }
 
+  const label = LIFECYCLE_STATUS_LABELS[raw] || raw || '-';
+
   return (
     <Badge variant={variant} className={className}>
-      {status || '-'}
+      {label}
     </Badge>
   );
 };
-

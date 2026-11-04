@@ -17,6 +17,7 @@ export interface Floor {
   buildingId: number;
   buildingName?: string;
   name: string;
+  floorName?: string;
   floorNumber: number;
   description?: string;
   isActive: number;

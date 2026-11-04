@@ -5,9 +5,22 @@ export interface Asset {
   code: string;
   name: string;
   barcode?: string;
-  rfidTag?: string;
+  tifCode?: string;
   category?: string;
   categoryId?: number;
+  brandModel?: string;
+  serialNumber?: string;
+  unit?: string;
+  location?: string;
+  assignee?: string;
+  status: string;
+  condition?: string;
+  acquisitionDate?: string;
+  warrantyEndDate?: string;
+  estimatedValue?: number;
+  supplier?: string;
+  notes?: string;
+  updatedAt?: string;
   departmentId?: number;
   departmentName?: string;
   subUnitId?: number;
@@ -20,24 +33,50 @@ export interface Asset {
   roomNumber?: string;
   roomName?: string;
   roomQrCode?: string;
-  assignee?: string;
-  assignedPersonnelId?: number;
-  status: string;
+  categoryName?: string;
   lifecycleStatus?: string;
-  condition?: string;
-  conditionStatus?: string;
-  estimatedValue?: number;
-  acquisitionDate?: string;
-  warrantyEndDate?: string;
-  serialNumber?: string;
-  model?: string;
-  brand?: string;
-  tifCode?: string;
-  unit?: string;
-  location?: string;
-  locationInfo?: string;
   isActive?: number;
   specifications?: string;
+}
+
+export interface AssetRequest {
+  code?: string;
+  tifCode?: string;
+  barcode?: string;
+  name: string;
+  category: string;
+  brandModel?: string;
+  serialNumber?: string;
+  unit?: string;
+  location?: string;
+  assignee?: string;
+  status?: string;
+  condition?: string;
+  acquisitionDate?: string;
+  warrantyEndDate?: string;
+  estimatedValue?: number;
+  supplier?: string;
+  notes?: string;
+  departmentId?: number;
+  subUnitId?: number;
+  buildingId?: number;
+  floorId?: number;
+  roomId?: number;
+  categoryId?: number;
+}
+
+export interface TransferRequest {
+  buildingId?: number;
+  floorId?: number;
+  roomId?: number;
+  departmentId?: number;
+  subUnitId?: number;
+  note?: string;
+}
+
+export interface TransitionRequest {
+  targetStatus: string;
+  reason: string;
 }
 
 export interface AssetDetailResponse {
@@ -45,5 +84,19 @@ export interface AssetDetailResponse {
   movements?: AssetMovement[];
   assignments?: unknown[];
   maintenances?: unknown[];
-  documents?: unknown[];
+  availableTransitions?: string[];
 }
+
+export const LIFECYCLE_STATUS_LABELS: Record<string, string> = {
+  SATIN_ALINDI: 'Satın Alındı',
+  KAYDEDILDI: 'Kaydedildi (Ambar)',
+  ZIMMETLENDI: 'Zimmetlendi',
+  KULLANIMDA: 'Kullanımda (Ortak)',
+  BAKIMDA: 'Bakımda',
+  PASIF_ASKIDA: 'Pasif / Askıda',
+  HURDAYA_AYRILDI: 'Hurdaya Ayrıldı (HEK)',
+  DEVREDILDI: 'Devredildi',
+  BAGISLANDI: 'Bağışlandı',
+  SATILDI: 'Satıldı',
+  ZAYIAT_CALINMA: 'Zayiat / Çalınma',
+};

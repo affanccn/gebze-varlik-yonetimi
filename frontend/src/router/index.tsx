@@ -16,6 +16,7 @@ import { MovementsView } from '../views/movements/MovementsView';
 import { DocumentsView } from '../views/documents/DocumentsView';
 import { ReportsView } from '../views/reports/ReportsView';
 import { QRCodesView } from '../views/qrcodes/QRCodesView';
+import { AssetsView } from '../views/assets/AssetsView';
 
 export const router = createBrowserRouter([
   {
@@ -63,10 +64,10 @@ export const router = createBrowserRouter([
         path: PATHS.PERSONNEL.replace('/', ''),
         element: <PersonnelView />,
       },
-      // Assets (CRUD in R3a)
+      // Assets (Faz R3a)
       {
         path: PATHS.ASSETS.replace('/', ''),
-        element: <PlaceholderView title="Demirbaş ve Varlık Envanteri" phase="R3a" />,
+        element: <AssetsView />,
       },
       // 6. Categories
       {
