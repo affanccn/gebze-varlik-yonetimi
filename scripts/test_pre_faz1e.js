@@ -66,8 +66,12 @@ async function sendFile(endpoint, filePath, fields = {}, cookies) {
     return { status: res.status, json, rawText, headers: res.headers };
 }
 
+const DB_PASSWORD = process.env.DB_PASSWORD || 'GebzeVarlik2026';
+const APP_ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+
 async function runSql(sql) {
-    const cmd = `docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/GebzeVarlik2026@//localhost:1521/FREEPDB1`;
+    const cmd = `docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/${DB_PASSWORD}@//localhost:1521/FREEPDB1`;
     const input = `SET PAGESIZE 0 LINESIZE 500 FEEDBACK OFF TRIMSPOOL ON\n${sql}\nEXIT;\n`;
     return execSync(cmd, { input, encoding: 'utf-8' }).trim();
 }
@@ -80,11 +84,11 @@ async function runPreTests() {
     const testDir = 'target/test-excels-pre';
     if (!fs.existsSync(testDir)) fs.mkdirSync(testDir, { recursive: true });
 
-    let adminSession = await loginUser('admin', 'YeniGucluAdmin2026!');
-    const deptManagerSession = await loginUser('fen_isleri_mudur', 'GebzeDev2026!');
-    const staffSession = await loginUser('saha_personel', 'GebzeDev2026!');
-    const auditorSession = await loginUser('ic_denetci', 'GebzeDev2026!');
-    const viewerSession = await loginUser('kurum_izleyici', 'GebzeDev2026!');
+    let adminSession = await loginUser('admin', APP_ADMIN_PASSWORD);
+    const deptManagerSession = await loginUser('fen_isleri_mudur', DEV_PASSWORD);
+    const staffSession = await loginUser('saha_personel', DEV_PASSWORD);
+    const auditorSession = await loginUser('ic_denetci', DEV_PASSWORD);
+    const viewerSession = await loginUser('kurum_izleyici', DEV_PASSWORD);
 
     const results = [];
 
@@ -123,7 +127,6 @@ async function runPreTests() {
         await runSql(`
             DELETE FROM asset_lifecycle_logs WHERE asset_id IN (SELECT id FROM assets WHERE code LIKE 'GBZ-TEST-IMP-%');
             DELETE FROM assets WHERE code LIKE 'GBZ-TEST-IMP-%';
-            DELETE FROM system_audit_logs WHERE action_type = 'ASSET_IMPORT' AND entity_id = '${dmBatchId}';
             COMMIT;
         `);
         console.log('  DEPT_MANAGER test kayıtları temizlendi.');
@@ -144,7 +147,6 @@ async function runPreTests() {
         await runSql(`
             DELETE FROM asset_lifecycle_logs WHERE asset_id IN (SELECT id FROM assets WHERE code LIKE 'GBZ-TEST-IMP-%');
             DELETE FROM assets WHERE code LIKE 'GBZ-TEST-IMP-%';
-            DELETE FROM system_audit_logs WHERE action_type = 'ASSET_IMPORT' AND entity_id = '${adminBatchId}';
             COMMIT;
         `);
         console.log('  ADMIN test kayıtları temizlendi.');

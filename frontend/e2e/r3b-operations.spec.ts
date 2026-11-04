@@ -1,9 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 import { execSync } from 'child_process';
 
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+
 test.describe('Faz R3b: Operasyonel Akışlar E2E Test Paketi', () => {
   // Ortak giriş fonksiyonu
-  async function loginAs(page: Page, username = 'admin', password = 'YeniGucluAdmin2026!') {
+  async function loginAs(page: Page, username = 'admin', password = ADMIN_PASSWORD) {
     await page.goto('/login');
     await page.locator('#login-username').fill(username);
     await page.locator('#login-password').fill(password);
@@ -247,7 +250,7 @@ test.describe('Faz R3b: Operasyonel Akışlar E2E Test Paketi', () => {
   });
 
   test('6. Rol İzolasyonu: Saha Personeli (STAFF) Yetki Kısıtlamaları', async ({ page }) => {
-    await loginAs(page, 'saha_personel', 'GebzeDev2026!');
+    await loginAs(page, 'saha_personel', DEV_PASSWORD);
 
     // 1. /assignments sayfasında yazma butonu OLMAMALI
     await page.goto('/assignments');
@@ -268,7 +271,7 @@ test.describe('Faz R3b: Operasyonel Akışlar E2E Test Paketi', () => {
   });
 
   test('7. Rol İzolasyonu: İç Denetçi (AUDITOR) Salt Okunur Erişim', async ({ page }) => {
-    await loginAs(page, 'ic_denetci', 'GebzeDev2026!');
+    await loginAs(page, 'ic_denetci', DEV_PASSWORD);
 
     // 1. /assignments listesini görür ama fiş kesme butonu yoktur
     await page.goto('/assignments');

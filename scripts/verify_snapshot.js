@@ -40,10 +40,11 @@ async function verify() {
     const initRes = await req({ hostname: 'localhost', port: 8080, path: '/', method: 'GET' });
     const cookies = parseCookies(initRes.headers);
 
+    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
     let loginRes = await req({
         hostname: 'localhost', port: 8080, path: '/api/auth/login', method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Cookie': formatCookieHeader(cookies) }
-    }, { username: 'admin', password: 'YeniGucluAdmin2026!' });
+    }, { username: 'admin', password: adminPassword });
 
     if (loginRes.status !== 200) {
         loginRes = await req({

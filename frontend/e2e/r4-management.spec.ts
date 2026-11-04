@@ -1,9 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 import { execSync } from 'child_process';
 
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+
 test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', () => {
   // Ortak giriş fonksiyonu
-  async function loginAs(page: Page, username = 'admin', password = 'YeniGucluAdmin2026!') {
+  async function loginAs(page: Page, username = 'admin', password = ADMIN_PASSWORD) {
     await page.goto('/login');
     await page.locator('#login-username').fill(username);
     await page.locator('#login-password').fill(password);
@@ -28,7 +31,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
   });
 
   test('1. Kullanıcı Yönetimi: KPI Kartları, TanStack Table, Filtreler ve Kolonlar', async ({ page }) => {
-    await loginAs(page, 'admin', 'YeniGucluAdmin2026!');
+    await loginAs(page);
     await page.goto('/users');
 
     // Başlık ve Açıklama
@@ -59,7 +62,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
   });
 
   test('2. Kullanıcı CRUD: Yeni Kullanıcı Tanımlama, Geçici Şifre ve Şifre Sıfırlama', async ({ page }) => {
-    await loginAs(page, 'admin', 'YeniGucluAdmin2026!');
+    await loginAs(page);
     await page.goto('/users');
 
     // Yeni Kullanıcı Ekle modalını aç
@@ -107,7 +110,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
   });
 
   test('3. Araç ve Filo Yönetimi: KPI Kartları, Araç Tablosu ve Durum/KM Güncelleme', async ({ page }) => {
-    await loginAs(page, 'admin', 'YeniGucluAdmin2026!');
+    await loginAs(page);
     await page.goto('/fleet');
 
     // Başlık
@@ -145,7 +148,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
   });
 
   test('4. Satın Alma ve Tedarik Süreçleri: KPI Kartları, Sipariş Tablosu ve Filtreler', async ({ page }) => {
-    await loginAs(page, 'admin', 'YeniGucluAdmin2026!');
+    await loginAs(page);
     await page.goto('/procurement');
 
     // Başlık
@@ -173,7 +176,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
   });
 
   test('5. Sayım ve Envanter Kontrolü: Seans Seçici, Okutma Listesi ve QR Okutma Modalı', async ({ page }) => {
-    await loginAs(page, 'admin', 'YeniGucluAdmin2026!');
+    await loginAs(page);
     await page.goto('/counting');
 
     // Başlık
@@ -205,7 +208,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
   });
 
   test('6. Sistem Denetim Günlüğü: Güvenlik KPI, Filtreler ve Audit Log Listesi', async ({ page }) => {
-    await loginAs(page, 'admin', 'YeniGucluAdmin2026!');
+    await loginAs(page);
     await page.goto('/audit');
 
     // Başlık
@@ -229,7 +232,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
   });
 
   test('7. Sistem Ayarları ve Yetki Matrisi: Parametre Düzenleme ve RBAC Matrisi', async ({ page }) => {
-    await loginAs(page, 'admin', 'YeniGucluAdmin2026!');
+    await loginAs(page);
     await page.goto('/settings');
 
     // Başlık
@@ -251,7 +254,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
 
   test('8. Rol Bazlı Erişim Kısıtlamaları: STAFF ve AUDITOR Güvenlik Kontrolleri', async ({ page }) => {
     // 1. STAFF kullanıcısıyla giriş yap
-    await loginAs(page, 'saha_personel', 'GebzeDev2026!');
+    await loginAs(page, 'saha_personel', DEV_PASSWORD);
 
     // STAFF /users rotasına erişememeli -> Dashboard'a yönlendirilmeli
     await page.goto('/users');
@@ -270,7 +273,7 @@ test.describe('Faz R4: Yönetim, Denetim ve Kalan Modüller E2E Test Paketi', ()
     await page.waitForURL('**/login');
 
     // 2. AUDITOR kullanıcısıyla giriş yap
-    await loginAs(page, 'ic_denetci', 'GebzeDev2026!');
+    await loginAs(page, 'ic_denetci', DEV_PASSWORD);
 
     // AUDITOR /audit rotasına erişebilmeli
     await page.goto('/audit');

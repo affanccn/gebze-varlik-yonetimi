@@ -1,5 +1,8 @@
 const http = require('http');
 
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+
 function request(options, body) {
     return new Promise((resolve, reject) => {
         const req = http.request(options, (res) => {
@@ -122,7 +125,7 @@ async function runTests() {
                 'Content-Type': 'application/json',
                 'Cookie': formatCookieHeader(auditorCookies)
             }
-        }, { username: 'ic_denetci', password: 'GebzeDev2026!' });
+        }, { username: 'ic_denetci', password: DEV_PASSWORD });
 
         Object.assign(auditorCookies, parseCookies(loginRes.headers));
         auditorCsrfToken = auditorCookies['XSRF-TOKEN'];
@@ -186,7 +189,7 @@ async function runTests() {
             path: '/api/auth/login',
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
-        }, { username: 'kurum_izleyici', password: 'GebzeDev2026!' });
+        }, { username: 'kurum_izleyici', password: DEV_PASSWORD });
         viewerCookies = parseCookies(loginRes.headers);
         const viewerCsrf = viewerCookies['XSRF-TOKEN'];
 
@@ -229,7 +232,7 @@ async function runTests() {
             path: '/api/auth/login',
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
-        }, { username: 'admin', password: 'YeniGucluAdmin2026!' });
+        }, { username: 'admin', password: ADMIN_PASSWORD });
         if (adminLoginRes.status !== 200) {
             adminLoginRes = await request({
                 hostname: 'localhost',
@@ -270,7 +273,7 @@ async function runTests() {
                     'Cookie': formatCookieHeader(adminCookies),
                     'X-XSRF-TOKEN': adminCsrf
                 }
-            }, { currentPassword: 'GebzeAdmin2026!', newPassword: 'YeniGucluAdmin2026!' });
+            }, { currentPassword: 'GebzeAdmin2026!', newPassword: ADMIN_PASSWORD });
 
             const changePassed = changeRes.status === 200 && changeRes.json?.status === 'ok';
             console.log(`[TEST 6.3] Admin şifre değiştirme: HTTP ${changeRes.status} -> ${changePassed ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);

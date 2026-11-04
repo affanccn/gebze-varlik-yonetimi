@@ -92,7 +92,8 @@ async function apiCall(session, method, path, body) {
 
 function runSql(sql) {
     const script = `${sql}\nEXIT;\n`;
-    return execSync('docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/GebzeVarlik2026@//localhost:1521/FREEPDB1', {
+    const dbPass = process.env.DB_PASSWORD || 'GebzeVarlik2026';
+    return execSync(`docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/${dbPass}@//localhost:1521/FREEPDB1`, {
         input: script,
         encoding: 'utf-8'
     });
@@ -103,15 +104,18 @@ async function main() {
     console.log('   FAZ 1B-2 DOĞRULAMA BOŞLUKLARI TESTİ (GAP TESTİ)');
     console.log('================================================================\n');
 
+    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+    const devPassword = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+
     let adminSession;
     try {
-        adminSession = await loginUser('admin', 'YeniGucluAdmin2026!');
+        adminSession = await loginUser('admin', adminPassword);
     } catch (e) {
         adminSession = await loginUser('admin', 'GebzeAdmin2026!');
     }
 
-    const deptManager = await loginUser('fen_isleri_mudur', 'GebzeDev2026!');
-    const staff = await loginUser('saha_personel', 'GebzeDev2026!');
+    const deptManager = await loginUser('fen_isleri_mudur', devPassword);
+    const staff = await loginUser('saha_personel', devPassword);
 
     console.log('Oturumlar açıldı: admin, fen_isleri_mudur, saha_personel\n');
 

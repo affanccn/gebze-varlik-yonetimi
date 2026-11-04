@@ -5,10 +5,11 @@ import path from 'path';
 
 const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
 const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+const DB_PASSWORD = process.env.DB_PASSWORD || 'GebzeVarlik2026';
 
 function runSql(sql: string) {
   try {
-    return execSync('docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/GebzeVarlik2026@FREEPDB1', {
+    return execSync(`docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/${DB_PASSWORD}@FREEPDB1`, {
       input: sql.replace(/\r/g, '') + '\nexit;\n',
       encoding: 'utf8',
     });

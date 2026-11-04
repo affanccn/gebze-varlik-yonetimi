@@ -42,8 +42,9 @@ async function loginUser(username, password) {
 }
 
 function runSql(sql) {
+    const dbPass = process.env.DB_PASSWORD || 'GebzeVarlik2026';
     try {
-        return execSync('docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/GebzeVarlik2026@FREEPDB1', {
+        return execSync(`docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/${dbPass}@FREEPDB1`, {
             input: sql.replace(/\r/g, '') + '\nexit;\n',
             encoding: 'utf8'
         });
@@ -70,8 +71,8 @@ async function testAll() {
     console.log('GEBZE-EKYS FAZ 1E-1 ENTEGRASYON VE GÜVENLİK TESTİ');
     console.log('===============================================================\n');
 
-    const adminPass = 'YeniGucluAdmin2026!';
-    const devPass = 'GebzeDev2026!';
+    const adminPass = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+    const devPass = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 
     // -------------------------------------------------------------
     // TEST 1: KULLANICI YÖNETİMİ YETKİLENDİRME (RBAC)

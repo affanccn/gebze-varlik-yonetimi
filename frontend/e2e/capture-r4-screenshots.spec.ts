@@ -7,7 +7,7 @@ test.describe('Faz R4: Ekran Görüntüsü Yakalama', () => {
   async function loginAsAdmin(page: Page) {
     await page.goto('/login');
     await page.locator('#login-username').fill('admin');
-    await page.locator('#login-password').fill('YeniGucluAdmin2026!');
+    await page.locator('#login-password').fill(process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!');
     await page.locator('button[type="submit"]').click();
     await page.waitForURL('**/dashboard');
   }

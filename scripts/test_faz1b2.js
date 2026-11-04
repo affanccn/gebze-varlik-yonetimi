@@ -71,9 +71,13 @@ async function loginUser(username, password) {
     };
 }
 
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+const DB_PASSWORD = process.env.DB_PASSWORD || 'GebzeVarlik2026';
+
 function runSql(sql) {
     const script = `${sql}\nEXIT;\n`;
-    const res = execSync('docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/GebzeVarlik2026@//localhost:1521/FREEPDB1', {
+    const res = execSync(`docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/${DB_PASSWORD}@//localhost:1521/FREEPDB1`, {
         input: script,
         encoding: 'utf-8'
     });
@@ -114,7 +118,7 @@ async function runTests() {
         console.log('\n--- 1. ADMIN KONTROLLERİ ---');
         let adminSession;
         try {
-            adminSession = await loginUser('admin', 'YeniGucluAdmin2026!');
+            adminSession = await loginUser('admin', ADMIN_PASSWORD);
         } catch (e) {
             adminSession = await loginUser('admin', 'GebzeAdmin2026!');
         }
@@ -144,7 +148,7 @@ async function runTests() {
         // 2. FEN İŞLERİ MÜDÜRÜ (DEPT_MANAGER, deptId = 11)
         // =========================================================================
         console.log('\n--- 2. FEN İŞLERİ MÜDÜRÜ KONTROLLERİ (DEPT_MANAGER) ---');
-        const fenSession = await loginUser('fen_isleri_mudur', 'GebzeDev2026!');
+        const fenSession = await loginUser('fen_isleri_mudur', DEV_PASSWORD);
 
         // 2.1 Liste sorgusu: tam 5 varlık, 13.140.000 TL
         const fenAssets = await request({
@@ -207,7 +211,7 @@ async function runTests() {
         // 3. SAHA PERSONELİ (STAFF, persId = 22, deptId = 11)
         // =========================================================================
         console.log('\n--- 3. SAHA PERSONELİ KONTROLLERİ (STAFF) ---');
-        const staffSession = await loginUser('saha_personel', 'GebzeDev2026!');
+        const staffSession = await loginUser('saha_personel', DEV_PASSWORD);
 
         // 3.1 Yalnızca zimmetli varlık: tam 1 varlık (ID 37)
         const staffAssets = await request({
@@ -253,7 +257,7 @@ async function runTests() {
         // 4. İÇ DENETÇİ & KURUM İZLEYİCİSİ (AUDITOR & VIEWER)
         // =========================================================================
         console.log('\n--- 4. AUDITOR & VIEWER KONTROLLERİ ---');
-        const auditorSession = await loginUser('ic_denetci', 'GebzeDev2026!');
+        const auditorSession = await loginUser('ic_denetci', DEV_PASSWORD);
         const audAssets = await request({
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(auditorSession.cookies) }
@@ -262,7 +266,7 @@ async function runTests() {
         console.log(`[TEST 4.1] AUDITOR tüm belediyeyi okuma: ${audAssets.json?.length} varlık (Beklenen: 74) -> ${p4_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p4_1) allPassed = false;
 
-        const viewerSession = await loginUser('kurum_izleyici', 'GebzeDev2026!');
+        const viewerSession = await loginUser('kurum_izleyici', DEV_PASSWORD);
         const viewAssets = await request({
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(viewerSession.cookies) }
@@ -288,7 +292,7 @@ async function runTests() {
         `);
 
         // Şifrelerini hash'lemek yerine seeder şifresiyle login olalım
-        const noDeptSession = await loginUser('test_dept_nodept', 'GebzeDev2026!');
+        const noDeptSession = await loginUser('test_dept_nodept', DEV_PASSWORD);
         const noDeptAssets = await request({
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(noDeptSession.cookies) }
@@ -297,7 +301,7 @@ async function runTests() {
         console.log(`[TEST 5.1] DEPT_MANAGER (department_id=NULL) Deny-by-Default: ${noDeptAssets.json?.length} varlık (Beklenen: 0) -> ${p5_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p5_1) allPassed = false;
 
-        const noPersSession = await loginUser('test_staff_nopers', 'GebzeDev2026!');
+        const noPersSession = await loginUser('test_staff_nopers', DEV_PASSWORD);
         const noPersAssets = await request({
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(noPersSession.cookies) }

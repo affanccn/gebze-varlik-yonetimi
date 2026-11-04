@@ -11,8 +11,9 @@ function cleanup() {
     "EXIT;",
   ].join('\n') + '\n';
 
+  const dbPass = process.env.DB_PASSWORD || 'GebzeVarlik2026';
   try {
-    const out = execSync('docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/GebzeVarlik2026@FREEPDB1', {
+    const out = execSync(`docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/${dbPass}@FREEPDB1`, {
       input: sql,
       encoding: 'utf8',
     });

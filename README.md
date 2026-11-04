@@ -41,13 +41,16 @@ gebze-varlik-yonetimi/
 │   ├── test_faz1c.js             # 11 durumlu yaşam döngüsü testi
 │   ├── test_faz1d.js             # Excel içe aktarım ve formül koruma testi
 │   ├── test_faz1e1.js            # Kullanıcı yönetimi ve şifre politikası testi
+│   ├── verify_trigger_immutability.js # Denetim günlüğü değiştirilemezlik tetikleyici testi
+│   ├── test_restore_volume.js    # Gerçek Oracle volume geri yükleme testi
 │   └── verify_snapshot.js        # 74 varlık / 0 veri kaybı doğrulama testi
 ├── src/main/
 │   ├── java/tr/gov/gebze/varlik/ # Spring Boot 4.1.2 Backend Çekirdeği
 │   └── resources/
-│       ├── db/migration/         # Flyway versiyonlu SQL göçleri (V1..V9)
+│       ├── db/migration/         # Flyway versiyonlu SQL göçleri (V1..V15)
 │       ├── static/               # Vite production build statik dağıtım dizini
-│       └── application.yml       # Uygulama ve veritabanı ayarları
+│       ├── application.yml       # Temel uygulama ve veritabanı ayarları
+│       └── application-prod.yml  # Üretim profili güvenlik ayarları
 ├── docs/                         # Mimari, plan ve analiz dokümanları
 ├── pom.xml                       # Maven bağımlılıkları
 └── README.md
@@ -104,24 +107,39 @@ powershell -ExecutionPolicy Bypass -File scripts\build-frontend.ps1
 .\mvnw.cmd -DskipTests package
 ```
 
-### 3. Uygulamayı Çalıştırma
+### 3. Ortam Değişkenleri (Environment Variables)
+
+Üretimde tüm hassas değişkenler ortam değişkenleri üzerinden tanımlanmalıdır:
+
+| Ortam Değişkeni | Varsayılan | Açıklama |
+|---|---|---|
+| `DB_PASSWORD` | *(Boş)* | Oracle veritabanı şifresi |
+| `APP_ADMIN_PASSWORD` | `YeniGucluAdmin2026!` | İlk kurulum admin geçici şifresi |
+| `APP_DEV_PASSWORD` | `GebzeDev2026!` | Geliştirme ortamı test kullanıcıları şifresi |
+| `SPRING_PROFILES_ACTIVE` | `dev` | Aktif Spring Boot profili (`prod` veya `dev`) |
+| `SESSION_COOKIE_SECURE` | `false` (prod'da `true`) | Session çerezi HTTPS Secure bayrağı |
+| `HSTS_ENABLED` | `false` (prod'da `true`) | HSTS başlığı aktifliği |
+
+### 4. Uygulamayı Çalıştırma
 - **Geliştirme / Yerel Test Modu (`dev` profili):**
   ```powershell
+  $env:DB_PASSWORD="GebzeVarlik2026"
   .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=dev"
   ```
-- **Üretim Modu (Özel Admin Şifresi ile Bootstrap):**
+- **Üretim Modu (`prod` profili - Seeder kapalı, hata detayları kapalı, Secure çerezler):**
   ```powershell
+  $env:DB_PASSWORD="GucluVeritabaniSifresi!"
   $env:APP_ADMIN_PASSWORD="GucluAdminSifresi2026!"
-  .\mvnw.cmd spring-boot:run
+  .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=prod"
   ```
 
-### 4. Testleri Çalıştırma
-- **Playwright E2E Test Paketi (Port 8080):**
+### 5. Testleri Çalıştırma
+- **Playwright E2E Test Paketi (Port 8080 - 51 Test):**
   ```powershell
   cd frontend
   npx playwright test
   ```
-- **Backend Güvenlik ve İzolasyon Testleri:**
+- **Backend Güvenlik, İzolasyon ve Regresyon Testleri:**
   ```powershell
   node scripts\test_menu_endpoints.js
   node scripts\test_faz1b1.js
@@ -129,17 +147,21 @@ powershell -ExecutionPolicy Bypass -File scripts\build-frontend.ps1
   node scripts\test_faz1c.js
   node scripts\test_faz1d.js
   node scripts\test_faz1e1.js
+  node scripts\verify_trigger_immutability.js
+  node scripts\test_restore_volume.js
   node scripts\verify_snapshot.js
   ```
 
-### 4. Doğrulama Adımları
+### 6. Doğrulama Adımları
 Uygulama varsayılan olarak `8080` portunda ayağa kalkar:
 - **Başlangıç Arayüzü:** `http://localhost:8080/`
-- **Sağlık Kontrolü (Health Check):** `http://localhost:8080/api/health` (`{"status":"ok"}` yanıtı döner)
+- **Sağlık Kontrolü (Actuator Health):** `http://localhost:8080/actuator/health` (`{"status":"UP"}` yanıtı döner, ayrıntılar gizlenir)
 
 ---
 
 ## İlgili Dokümanlar
+- [İşletim, Güvenlik Sertleştirme ve Dağıtım Kılavuzu](docs/operations.md)
+- [Frontend React Geçiş Planı](docs/plan-frontend.md)
 - [Başlangıç Mimarisi ve Teknik Kararlar](docs/architecture.md)
 - [Oracle 23ai Veritabanı Yapılandırması](docs/oracle-setup.md)
 - [Faz 1: Varlıklar Liste Ekranı (Demo Veri Kapsamı)](docs/phase-1-asset-list.md)

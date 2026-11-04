@@ -1,8 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
 
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+
 test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
   // Ortak giriş fonksiyonu
-  async function loginAs(page: Page, username = 'admin', password = 'YeniGucluAdmin2026!') {
+  async function loginAs(page: Page, username = 'admin', password = ADMIN_PASSWORD) {
     await page.goto('/login');
     await page.locator('#login-username').fill(username);
     await page.locator('#login-password').fill(password);
@@ -211,7 +214,7 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
   });
 
   test('11. Salt Okunur Denetçi (AUDITOR): 10 Ekranın Tamamına Hatasız Erişim', async ({ page }) => {
-    await loginAs(page, 'ic_denetci', 'GebzeDev2026!');
+    await loginAs(page, 'ic_denetci', DEV_PASSWORD);
 
     // Auditor 10 ekranın hepsine girebilir
     const readRoutes = ['/dashboard', '/tree', '/locations', '/departments', '/personnel', '/categories', '/movements', '/documents', '/reports', '/qrcodes'];
@@ -223,7 +226,7 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
   });
 
   test('12. Saha Personeli (STAFF): Kısıtlı Rotaya Girişte Pano Yönlendirmesi ve İzin Uyarısı', async ({ page }) => {
-    await loginAs(page, 'saha_personel', 'GebzeDev2026!');
+    await loginAs(page, 'saha_personel', DEV_PASSWORD);
 
     // STAFF /reports veya /tree rotasına girmeyi denerse ana ekrana yönlendirilmeli ve uyarı gösterilmeli
     await page.goto('/reports');

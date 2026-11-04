@@ -65,13 +65,14 @@ const menuViews = [
 
 async function testAllMenus() {
     console.log('Admin ile giriş yapılıyor...');
+    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
     const loginRes = await request({
         hostname: 'localhost',
         port: 8080,
         path: '/api/auth/login',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
-    }, { username: 'admin', password: 'YeniGucluAdmin2026!' });
+    }, { username: 'admin', password: adminPassword });
 
     if (loginRes.status !== 200) {
         console.error('Admin girişi başarısız!', loginRes.status, loginRes.json);

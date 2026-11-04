@@ -155,4 +155,52 @@ test.describe('Faz R5: Üretim Dağıtımı ve SPA Doğrulama Testleri (Port 808
     // Tekrar /login'e atmalı
     await page.waitForURL('**/login', { timeout: 5000 });
   });
+
+  test('7. Güvenlik Başlıkları ve Sıfır CSP İhlali Doğrulaması', async ({ page }) => {
+    const cspErrors: string[] = [];
+    page.on('console', msg => {
+      const text = msg.text();
+      if (text.includes('Content Security Policy') || text.includes('violates the following Content Security Policy directive')) {
+        cspErrors.push(text);
+      }
+    });
+
+    const response = await page.goto('/login');
+    const headers = response?.headers() || {};
+
+    // Güvenlik başlıklarının doğrulanması
+    expect(headers['content-security-policy']).toBeDefined();
+    expect(headers['content-security-policy']).toContain("default-src 'self'");
+    expect(headers['x-content-type-options']).toBe('nosniff');
+    expect(headers['x-frame-options']).toBe('DENY');
+    expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(headers['permissions-policy']).toContain('camera=()');
+
+    // Giriş yap ve ana ekranları gezerek CSP ihlali olmadığını doğrula
+    await login(page, 'admin', ADMIN_PASSWORD);
+
+    const routesToCheck = [
+      '/dashboard',
+      '/assets',
+      '/users',
+      '/assignments',
+      '/maintenances',
+      '/stock',
+      '/fleet',
+      '/procurement',
+      '/audits',
+      '/reports',
+      '/settings',
+      '/documents',
+      '/audit-logs'
+    ];
+
+    for (const route of routesToCheck) {
+      await page.goto(route);
+      await page.waitForSelector('table tbody tr, h1, div[role="alert"]', { timeout: 5000 });
+    }
+
+    // Konsolda tek bir CSP ihlali bile olmamalı
+    expect(cspErrors).toEqual([]);
+  });
 });

@@ -1,9 +1,12 @@
 import { test, expect, type Page } from '@playwright/test';
 import { execSync } from 'child_process';
 
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+
 test.describe('Faz R3a: Varlık Yönetimi Çekirdek E2E Test Paketi', () => {
   // Ortak giriş fonksiyonu
-  async function loginAs(page: Page, username = 'admin', password = 'YeniGucluAdmin2026!') {
+  async function loginAs(page: Page, username = 'admin', password = ADMIN_PASSWORD) {
     await page.goto('/login');
     await page.locator('#login-username').fill(username);
     await page.locator('#login-password').fill(password);
@@ -225,7 +228,7 @@ test.describe('Faz R3a: Varlık Yönetimi Çekirdek E2E Test Paketi', () => {
   });
 
   test('5. Rol İzolasyonu: DEPT_MANAGER (Fen İşleri) 5 Varlık Görür, Sil Butonu Yoktur', async ({ page }) => {
-    await loginAs(page, 'fen_isleri_mudur', 'GebzeDev2026!');
+    await loginAs(page, 'fen_isleri_mudur', DEV_PASSWORD);
     await page.goto('/assets');
 
     // Fen İşleri'ne ait 5 varlık listelenmeli
@@ -244,7 +247,7 @@ test.describe('Faz R3a: Varlık Yönetimi Çekirdek E2E Test Paketi', () => {
   });
 
   test('6. Rol İzolasyonu: STAFF (Saha Personel) Salt Okunurdur, Eylem Butonları Yoktur', async ({ page }) => {
-    await loginAs(page, 'saha_personel', 'GebzeDev2026!');
+    await loginAs(page, 'saha_personel', DEV_PASSWORD);
     await page.goto('/assets');
 
     // Yeni Varlık Ekle butonu olmamalıdır
@@ -261,7 +264,7 @@ test.describe('Faz R3a: Varlık Yönetimi Çekirdek E2E Test Paketi', () => {
   });
 
   test('7. Rol İzolasyonu: AUDITOR (İç Denetçi) Tüm Varlıkları Görür, Yazma Butonu Yoktur', async ({ page }) => {
-    await loginAs(page, 'ic_denetci', 'GebzeDev2026!');
+    await loginAs(page, 'ic_denetci', DEV_PASSWORD);
     await page.goto('/assets');
 
     // Tüm belediye demirbaşlarını görebilir (74 varlık)

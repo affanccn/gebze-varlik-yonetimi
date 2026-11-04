@@ -8,7 +8,7 @@ const artifactsDir = 'C:\\Users\\Asus\\.gemini\\antigravity\\brain\\b7d1c8b5-730
 async function loginAsAdmin(page: Page) {
   await page.goto('/login');
   await page.locator('#login-username').fill('admin');
-  await page.locator('#login-password').fill('YeniGucluAdmin2026!');
+  await page.locator('#login-password').fill(process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!');
   await page.locator('button[type="submit"]').click();
   await page.waitForURL('**/dashboard');
 }

@@ -71,9 +71,13 @@ async function loginUser(username, password) {
     };
 }
 
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
+const DB_PASSWORD = process.env.DB_PASSWORD || 'GebzeVarlik2026';
+
 function runSql(sql) {
     const script = `${sql.trim()}\nEXIT;\n`;
-    const res = execSync('docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/GebzeVarlik2026@//localhost:1521/FREEPDB1', {
+    const res = execSync(`docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/${DB_PASSWORD}@//localhost:1521/FREEPDB1`, {
         input: script,
         encoding: 'utf-8'
     });
@@ -91,12 +95,12 @@ async function runTests() {
     try {
         let adminSession;
         try {
-            adminSession = await loginUser('admin', 'YeniGucluAdmin2026!');
+            adminSession = await loginUser('admin', ADMIN_PASSWORD);
         } catch(e) {
             adminSession = await loginUser('admin', 'GebzeAdmin2026!');
         }
-        const deptSession = await loginUser('fen_isleri_mudur', 'GebzeDev2026!');
-        const staffSession = await loginUser('saha_personel', 'GebzeDev2026!');
+        const deptSession = await loginUser('fen_isleri_mudur', DEV_PASSWORD);
+        const staffSession = await loginUser('saha_personel', DEV_PASSWORD);
 
         console.log('Oturumlar açıldı: admin, fen_isleri_mudur, saha_personel\n');
 
@@ -577,14 +581,13 @@ async function runTests() {
         if (testAssetId) {
             try {
                 runSql(`
-                    DELETE FROM system_audit_logs WHERE entity_id = '${testAssetId}';
                     DELETE FROM asset_assignments WHERE asset_id = ${testAssetId};
                     DELETE FROM asset_maintenances WHERE asset_id = ${testAssetId};
                     DELETE FROM asset_movements WHERE asset_id = ${testAssetId};
                     DELETE FROM assets WHERE id = ${testAssetId};
                     COMMIT;
                 `);
-                console.log(`Geçici test varlığı (#${testAssetId}) ve ilişkili tüm test logları/hareketleri temizlendi.`);
+                console.log(`Geçici test varlığı (#${testAssetId}) ve ilişkili hareketleri temizlendi (denetim günlüğü korundu).`);
             } catch (e) {
                 console.error('Teardown SQL hatası:', e.message);
             }
