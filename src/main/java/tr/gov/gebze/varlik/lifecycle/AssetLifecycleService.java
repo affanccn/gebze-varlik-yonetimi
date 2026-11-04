@@ -42,7 +42,13 @@ public class AssetLifecycleService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Hedef yaşam döngüsü durumu belirtilmelidir.");
         }
 
-        // 1. Varlık varlık ve silinmemişlik kontrolü (is_deleted = 0)
+        // 1. Varlık satırını eşzamanlı çakışmalara karşı kilitle (Pessimistic Lock: SELECT FOR UPDATE)
+        Long lockedId = jdbcClient.sql("SELECT id FROM assets WHERE id = :id AND is_deleted = 0 FOR UPDATE")
+                .param("id", assetId)
+                .query(Long.class)
+                .optional()
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Varlık bulunamadı: ID=" + assetId));
+
         Asset asset = assetRepository.findById(assetId)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Varlık bulunamadı: ID=" + assetId));
 
