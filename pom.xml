@@ -52,6 +52,18 @@
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
+        <!-- Excel Toplu İçe Aktarım ve Şablon Motoru (Apache POI) -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
         <!-- En Güncel Oracle 23ai JDBC Sürücüsü (ojdbc17 - 23.26.3.0.0) ve Türkçe/NLS Desteği -->
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>

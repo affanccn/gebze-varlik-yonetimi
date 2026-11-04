@@ -1,7 +1,7 @@
 # Gebze Belediyesi Kurumsal Varlık ve Kaynak Yönetim Sistemi (GEBZE-EKYS)
-## Genişletme ve Mimari Yol Haritası Planı (Revizyon 7)
+## Genişletme ve Mimari Yol Haritası Planı (Revizyon 8)
 
-Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A (V9-V11), Faz 1B-1 (Spring Security, SPA CSRF, Roller, Şifre Değiştirme Modalı) ve Faz 1B-2 (Müdürlük ve STAFF Veri İzolasyonu / `TenantQueryScope` ve 12/12 Doğrulama Boşlukları Testi) başarıyla tamamlanmış; Faz 1C (Varlık Yaşam Döngüsü ve 11 Durum Makinesi) aşamasına geçilmiştir.
+Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A (V9-V11), Faz 1B-1 (Spring Security, SPA CSRF, Roller, Şifre Değiştirme Modalı), Faz 1B-2 (Müdürlük ve STAFF Veri İzolasyonu / `TenantQueryScope` ve 12/12 Doğrulama Boşlukları Testi) ve Faz 1C (Varlık Yaşam Döngüsü, 11 Durum Makinesi, V13 Bakım Öncesi Durum ve Satır Kilitleme) başarıyla tamamlanmış; Faz 1D (Excel ile Toplu Varlık İçe Aktarımı - Bulk Import Engine) aşamasına geçilmiştir.
 
 ---
 
@@ -922,10 +922,70 @@ Revizyon 6 sonrasında talep edilen ek doğrulama kontrolleri `scripts/test_1b2_
 ---
 
 ### FAZ 1D: Excel ile Toplu Varlık İçe Aktarımı (Bulk Import Engine)
-- Apache POI ile dinamik şablon üretimi (`/api/assets/export-template`).
-- Dry-run önizleme servisi (`/api/assets/import/dry-run`): Hatalı satırları, geçersiz oda veya mükerrer barkodları veritabanına yazmadan raporlama.
-- Kesin aktarım servisi (`/api/assets/import/commit`): Doğrulanmış satırların tek transaction ile aktarımı ve audit kaydı.
-- **1D Test Kriteri:** Hatalı satır içeren Excel dosyasında sadece geçerli kayıtlar aktarılır; hatalar kullanıcıya satır numarası ve sebebiyle bildirilir.
+
+Belediye birimlerinin sahadaki ve ambarlardaki çok sayıda demirbaşı sisteme hızlı, hatasız ve kurumsal veri standartlarına uygun şekilde aktarabilmesi için geliştirilen toplu aktarım motorudur.
+
+#### 1D.1 Yetkilendirme ve Güvenlik Kuralları
+1. **Rol Bazlı Erişim:**
+   - `ADMIN`: Tüm müdürlükler adına şablon indirebilir, doğrulama yapabilir ve toplu aktarım commit edebilir.
+   - `DEPT_MANAGER`: Yalnızca kendi müdürlüğüne (`user.getDepartmentId()`) ait satırları içe aktarabilir. Başka müdürlük kodu içeren satırlar doğrulama hatası olarak işaretlenir ve aktarılmaz.
+   - `STAFF`, `AUDITOR`, `VIEWER`: İçe aktarım uç noktalarına erişemez (`403 Forbidden`).
+2. **Dosya Kısıtlamaları ve Korumaları:**
+   - Yalnızca modern OpenXML formatındaki `.xlsx` dosyaları kabul edilir (`.xls`, `.csv`, `.xlsm` vb. geçersiz dosya biçimi olarak reddedilir).
+   - Maksimum dosya boyutu: **5 MB**.
+   - Maksimum veri satır sayısı: **2000 satır** (başlık hariç).
+   - Apache POI `ZipSecureFile` korumaları aktif tutulur (zip-bomb / DoS koruması).
+   - Hücre okuma: Formüller hesaplanmaz, tüm hücreler metin (String) olarak okunur (`DataFormatter`).
+   - **Formül / CSV Injection Koruması:** Şablon ve içe aktarım dosyasındaki metin hücreleri `'='`, `'+'`, `'-'`, `'@'` karakterleriyle başlayamaz; bu satırlar doğrudan güvenlik hatası olarak işaretlenir.
+
+#### 1D.2 Dinamik Şablon Üretimi (`GET /api/assets/export-template`)
+- Apache POI ile kullanıcı rolüne göre dinamik üretilen `gebze_varlik_ice_aktarim_sablonu.xlsx` dosyası.
+- **İki Çalışma Sayfası:**
+  1. `Varlik_Listesi` (Ana Sayfa):
+     - Zorunlu Alanlar: `Varlık Kodu` *, `Varlık Adı` *, `Kategori Kodu` *, `Müdürlük Kodu` *, `Oda QR Kodu` *.
+     - İsteğe Bağlı Alanlar: `Barkod No`, `TİF / Taşınır Kodu`, `Marka / Model`, `Seri No`, `Edinim Tarihi`, `Garanti Bitiş Tarihi`, `Tahmini Değer (₺)`, `Tedarikçi / Firma`, `Açıklama / Notlar`.
+     - Tarih biçimleri: `gg.aa.yyyy` ve `yyyy-aa-gg`.
+     - Sayı biçimleri: `1234.56` ve `1.234,56` (Türkçe format).
+  2. `Referans_Veriler` (Gizli Sayfa - `wb.setSheetHidden(1, true)`):
+     - Kullanıcının yetkili olduğu müdürlük kodları, kategori kodları ve oda QR kodları bu sayfada listelenir.
+     - Ana sayfadaki `Kategori Kodu`, `Müdürlük Kodu` ve `Oda QR Kodu` sütunlarına Excel Data Validation (açılır liste / dropdown) uygulanır.
+
+#### 1D.3 Doğrulama (Dry-Run / Önizleme Motoru - `POST /api/assets/import/validate`)
+- Veritabanına hiçbir şey yazmaz (salt-okunur doğrulama).
+- **Kontroller:**
+  1. Zorunlu alan eksikliği kontrolü.
+  2. Veritabanı sütun uzunluk kontrolleri (`code` <= 64, `name` <= 255, `barcode` <= 64 vb.).
+  3. Kategori kodu ve müdürlük kodu geçerlilik kontrolü.
+  4. Yetki kontrolü (`DEPT_MANAGER` başka müdürlük kodu yazamaz).
+  5. Oda QR kodu geçerlilik kontrolü ve odanın bulunduğu müdürlükle uyumu.
+  6. **Mükerrerlik Kontrolü:**
+     - Dosya içi mükerrer varlık kodu ve barkod tespiti.
+     - Veritabanında aktif kayıtlarda (`is_deleted = 0`) mükerrer varlık kodu ve barkod tespiti.
+  7. Tarih ve sayı biçim kontrolü.
+- **Dönüş:** Toplam satır, geçerli satır sayısı, hatalı satır sayısı, satır numarası + hatalı alan + Türkçe sebep içeren hata listesi.
+
+#### 1D.4 Kesin Aktarım Motoru (`POST /api/assets/import/commit`)
+- Dosyayı sunucuda **YENİDEN doğrular** (güvenlik gereği dry-run çıktısına güvenilmez).
+- **Aktarım Modları:**
+  - `partialImportAllowed = false` (Varsayılan - Hepsi ya Hiçbiri): Dosyada tek bir hata dahi varsa hiçbir kayıt aktarılmaz, HTTP 422 döner.
+  - `partialImportAllowed = true` (Kısmi Aktarım): Yalnızca geçerli satırlar aktarılır, hatalı satırlar atlanır ve raporda belirtilir.
+- **Kayıt Oluşturma:**
+  - Her satır `AssetService.create(...)` yolundan geçer (`lifecycle_status = 'KAYDEDILDI'`, `status = 'Depoda'`, `is_active = 1`).
+  - Bina ve kat odadan türetilir, `location_info` ve `unit_name` sistem tarafından oluşturulur.
+  - Eşzamanlı çakışmalarda `DataIntegrityViolationException` yakalanıp anlaşılır hata mesajına dönüştürülür.
+- **Denetim İzi (Audit Logging):**
+  - Her aktarım için benzersiz bir `import_batch_id` (UUID) üretilir.
+  - Aktarılan varlıkların `specifications` JSON alanına `"importBatchId": "..."` eklenir.
+  - `system_audit_logs` tablosuna `ASSET_IMPORT` aksiyonuyla kullanıcı, dosya adı, batch ID, toplam/başarılı/hatalı satır sayıları kaydedilir.
+
+#### 1D.5 Frontend Kullanıcı Deneyimi
+- Varlıklar ekranında `ADMIN` ve `DEPT_MANAGER` için "📥 Excel ile Toplu Aktar" butonu.
+- Modal pencere: Şablon indirme linki, sürükle-bırak dosya yükleme, dry-run önizleme, hata detay tablosu, kısmi aktarım onay kutusu ve aktarım tamamlama butonu.
+
+#### Kapsam Dışı Bırakılan Maddeler (Faz 1D)
+- Zimmet kaydı oluşturma (varlıklar depoya kaydedilir; zimmet atamaları zimmet ekranından yapılır).
+- 9 Zimmetli varlığın eksik fiş kaydı sorunu.
+- Yeni modül eklemeleri.
 
 ---
 
