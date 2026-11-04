@@ -243,11 +243,15 @@ gebze-varlik-yonetimi/
 - Güvenli Silme (Soft-delete) Onay Modalı (ADMIN yetkisiyle).
 - 7 Playwright E2E testi (%100 başarılı, toplamda 27/27 test geçmektedir).
 
-#### R3b: Operasyonel Akışlar (SIRADAKİ AŞAMA)
-- Zimmet işlemleri & iade, Bakım iş emirleri açma/kapatma, Stok kalemleri & giriş/çıkış, Excel toplu içe aktarım motoru (dry-run & commit).
+#### R3b: Operasyonel Akışlar (TAMAMLANDI)
+- Zimmet Yönetimi (`/assignments`): TanStack Table, KPI kartları, arama/durum filtreleri, "Yeni Zimmet Fişi Düzenle" modalı (varlık ve personel seçimi), "Zimmet İade Al" kabul modalı.
+- Bakım & Onarım Yönetimi (`/maintenances`): TanStack Table, KPI kartları, öncelik/durum filtreleri, "Yeni Bakım Talebi Aç" modalı, "Bakımı Tamamla ve Kapat" onarım sonuç modalı.
+- Depo & Stok Yönetimi (`/stock`): 2 sekmeli arayüz (Depo Envanteri ve Geçmiş Hareketler), KPI kartları (Kritik/Tükenen stok uyarıları), "Stok Hareketi Yap" modalı (Giriş/İkmal & Çıkış/Tahsis).
+- Excel Toplu İçe Aktarım (`/excel-import` ve `AssetsView` modalı): Şablon indirme (.xlsx), drag & drop/dosya seçimi, ön doğrulama (validate), satır hataları tablosu, kısmi içe aktarım seçeneği ve tamamlama (commit).
+- 7 Playwright E2E testi (%100 başarılı, toplamda 34/34 test geçmektedir).
 
-#### R4: Yönetim, Denetim ve Kalan Modüller
-- Kullanıcı Yönetimi (`/users`), Sistem Ayarları (`/settings`), Araç & Filo, Tedarik, Sayım, Denetim Günlüğü (`system_audit_logs`).
+#### R4: Yönetim, Denetim ve Kalan Modüller (SIRADAKİ AŞAMA)
+- Kullanıcı Yönetimi (`/users`), Sistem Ayarları (`/settings`), Araç & Filo (`/fleet`), Satın Alma & Tedarik (`/procurement`), Fiziksel Sayım (`/counting`), Denetim Günlüğü (`/audit`).
 
 #### R5: Doğrulama, SPA Fallback ve Eski Ön Yüzün Kaldırılması
 - Tam Playwright regresyonu, Spring Boot SPA Fallback entegrasyonu, prod build kopyalama, eski `index.html`/`app.js`/`app.css` arşivlenmesi.

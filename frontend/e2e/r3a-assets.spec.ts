@@ -13,10 +13,7 @@ test.describe('Faz R3a: Varlık Yönetimi Çekirdek E2E Test Paketi', () => {
 
   function cleanupDb() {
     try {
-      execSync(
-        `echo "DELETE FROM asset_movements WHERE asset_code LIKE 'GBZ-E2E%'; DELETE FROM assets WHERE code LIKE 'GBZ-E2E%'; COMMIT; EXIT;" | docker exec -i gebze-varlik-oracle23ai sqlplus -s varlik_app/GebzeVarlik2026@localhost:1521/FREEPDB1`,
-        { stdio: 'ignore' }
-      );
+      execSync('node ../scripts/cleanup_e2e.js', { stdio: 'ignore' });
     } catch {
       // ignore
     }

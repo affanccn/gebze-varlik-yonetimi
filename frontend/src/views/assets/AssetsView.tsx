@@ -21,6 +21,7 @@ import { AssetFormModal } from './AssetFormModal';
 import { AssetTransferModal } from './AssetTransferModal';
 import { AssetLifecycleModal } from './AssetLifecycleModal';
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
+import { BulkImportModal } from './BulkImportModal';
 import {
   ArrowDown,
   ArrowUp,
@@ -28,6 +29,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  FileSpreadsheet,
   FilterX,
   Package,
   Pencil,
@@ -65,6 +67,8 @@ export const AssetsView: React.FC = () => {
 
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
+
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
   // Lookups Queries
   const { data: departments = [] } = useQuery({
@@ -387,20 +391,35 @@ export const AssetsView: React.FC = () => {
           </p>
         </div>
 
-        {canWrite && (
-          <button
-            type="button"
-            id="btn-open-asset-form"
-            onClick={() => {
-              setAssetToEdit(null);
-              setIsFormOpen(true);
-            }}
-            className="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow-sm transition-colors shrink-0"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Yeni Varlık Ekle
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {(user?.role === 'ADMIN' || user?.role === 'DEPT_MANAGER') && (
+            <button
+              type="button"
+              id="btn-open-bulk-import"
+              data-action="open-bulk-import"
+              onClick={() => setIsBulkImportOpen(true)}
+              className="inline-flex items-center px-3.5 py-2 rounded-xl bg-white text-slate-700 border border-slate-300 text-sm font-semibold hover:bg-slate-50 shadow-xs transition-colors shrink-0"
+            >
+              <FileSpreadsheet className="w-4 h-4 mr-2 text-emerald-600" />
+              Excel ile Toplu Aktar
+            </button>
+          )}
+
+          {canWrite && (
+            <button
+              type="button"
+              id="btn-open-asset-form"
+              onClick={() => {
+                setAssetToEdit(null);
+                setIsFormOpen(true);
+              }}
+              className="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow-sm transition-colors shrink-0"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Yeni Varlık Ekle
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Filter Toolbar */}
@@ -693,6 +712,15 @@ export const AssetsView: React.FC = () => {
           setAssetToDelete(null);
         }}
         asset={assetToDelete}
+        onSuccess={() => {
+          refetch();
+        }}
+      />
+
+      {/* 6. Bulk Import Modal */}
+      <BulkImportModal
+        isOpen={isBulkImportOpen}
+        onClose={() => setIsBulkImportOpen(false)}
         onSuccess={() => {
           refetch();
         }}

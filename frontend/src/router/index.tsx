@@ -17,6 +17,9 @@ import { DocumentsView } from '../views/documents/DocumentsView';
 import { ReportsView } from '../views/reports/ReportsView';
 import { QRCodesView } from '../views/qrcodes/QRCodesView';
 import { AssetsView } from '../views/assets/AssetsView';
+import { AssignmentsView } from '../views/assignments/AssignmentsView';
+import { MaintenancesView } from '../views/maintenances/MaintenancesView';
+import { StockView } from '../views/stock/StockView';
 
 export const router = createBrowserRouter([
   {
@@ -74,17 +77,17 @@ export const router = createBrowserRouter([
         path: PATHS.CATEGORIES.replace('/', ''),
         element: <CategoriesView />,
       },
-      // Assignments (R3b)
+      // Assignments (Faz R3b)
       {
         path: PATHS.ASSIGNMENTS.replace('/', ''),
-        element: <PlaceholderView title="Zimmet İşlemleri ve Fişler" phase="R3b" />,
+        element: <AssignmentsView />,
       },
-      // Maintenances (R3b)
+      // Maintenances (Faz R3b)
       {
         path: PATHS.MAINTENANCES.replace('/', ''),
         element: (
           <ProtectedRoute forbiddenRoles={['STAFF']}>
-            <PlaceholderView title="Bakım & Onarım İş Emirleri" phase="R3b" />
+            <MaintenancesView />
           </ProtectedRoute>
         ),
       },
@@ -93,12 +96,12 @@ export const router = createBrowserRouter([
         path: PATHS.MOVEMENTS.replace('/', ''),
         element: <MovementsView />,
       },
-      // Stock (R3b)
+      // Stock (Faz R3b)
       {
         path: PATHS.STOCK.replace('/', ''),
         element: (
           <ProtectedRoute forbiddenRoles={['STAFF']}>
-            <PlaceholderView title="Depo ve Stok Yönetimi" phase="R3b" />
+            <StockView />
           </ProtectedRoute>
         ),
       },
