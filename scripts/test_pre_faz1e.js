@@ -246,3 +246,4 @@ runPreTests().catch(err => {
     console.error('Test hatası:', err);
     process.exit(1);
 });
+

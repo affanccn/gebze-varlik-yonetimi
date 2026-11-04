@@ -9,3 +9,4 @@ public record UserUpdateRequest(
         Boolean isActive
 ) {
 }
+

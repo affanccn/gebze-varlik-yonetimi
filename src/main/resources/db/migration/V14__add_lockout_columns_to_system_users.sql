@@ -6,3 +6,4 @@ ALTER TABLE system_users ADD (
     failed_attempts NUMBER(3) DEFAULT 0 NOT NULL,
     locked_until    TIMESTAMP
 );
+
