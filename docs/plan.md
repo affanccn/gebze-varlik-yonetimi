@@ -1,7 +1,7 @@
 # Gebze Belediyesi Kurumsal Varlık ve Kaynak Yönetim Sistemi (GEBZE-EKYS)
-## Genişletme ve Mimari Yol Haritası Planı (Revizyon 8)
+## Genişletme ve Mimari Yol Haritası Planı (Revizyon 9)
 
-Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A (V9-V11), Faz 1B-1 (Spring Security, SPA CSRF, Roller, Şifre Değiştirme Modalı), Faz 1B-2 (Müdürlük ve STAFF Veri İzolasyonu / `TenantQueryScope` ve 12/12 Doğrulama Boşlukları Testi) ve Faz 1C (Varlık Yaşam Döngüsü, 11 Durum Makinesi, V13 Bakım Öncesi Durum ve Satır Kilitleme) başarıyla tamamlanmış; Faz 1D (Excel ile Toplu Varlık İçe Aktarımı - Bulk Import Engine) aşamasına geçilmiştir.
+Bu belge, mevcut Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Spring Boot 4.1.2, Oracle Database 23ai, Flyway, Vanilla HTML5/CSS3/ES6) veri bütünlüğünü ve çalışan özelliklerini koruyarak tam ölçekli bir **Belediye Kurumsal Kaynak & Varlık Yönetim Sistemi (ERP / Enterprise Asset Management)** düzeyine taşınması için hazırlanan revize edilmiş mimari analiz, karar matrisi ve fazlama planıdır. Faz 1A (V9-V11), Faz 1B-1 (Spring Security, SPA CSRF, Roller, Şifre Değiştirme Modalı), Faz 1B-2 (Müdürlük ve STAFF Veri İzolasyonu / `TenantQueryScope` ve 12/12 Doğrulama Boşlukları Testi), Faz 1C (Varlık Yaşam Döngüsü, 11 Durum Makinesi, V13 Bakım Öncesi Durum ve Satır Kilitleme) ve Faz 1D (Excel ile Toplu Varlık İçe Aktarımı - Bulk Import Engine) başarıyla tamamlanmış; Faz 1E-1 (Kullanıcı Yönetimi, Şifre Politikası ve Giriş Güvenliği: Kilitleme & Oturum Zaman Aşımı) aşamasına geçilmiştir.
 
 ---
 
@@ -486,7 +486,7 @@ Mevcut servis sınıfları doğrudan incelenerek kodun ürettiği tüm durum ge�
 - **`AssetService`:**
   - `create`: Hedef: `SATIN_ALINDI` veya `KAYDEDILDI`
   - `updateOperationalState`: Doğrudan serbest durum yazımı (kaldırılacak, validator'a bağlanacak).
-  - `delete`: Soft delete (`is_deleted = 1`, `is_active = 0`, `lifecycle_status = PASIF_ASKIDA`).
+  - `delete`: Soft delete (`is_deleted = 1`, `is_active = 0`, `deleted_at = CURRENT_TIMESTAMP`, `deleted_by = :currentUser`; `lifecycle_status` DEĞİŞTİRİLMEZ, varlığın mevcut durumunda kalır).
 
 #### 2. Tam Durum Makinesi Geçiş Matrisi (State Machine Matrix):
 
@@ -587,10 +587,13 @@ Sistemde iki farklı durum bayrağı bulunmakta olup görevleri net biçimde ayr
 1. **`is_deleted` (Silinme Durumu):**
    - Tüm standart kullanıcı sorguları (`AssetRepository.findAll`, `findById`, `findByCode`, `HierarchyRepository`, `PersonnelRepository`, `EnterpriseRepository`) istisnasız `WHERE is_deleted = 0` filtresi içerecektir.
    - Silinen kayıtlar asla fiziksel olarak silinmez (`DELETE FROM`); soft delete yapılarak `is_deleted = 1`, `deleted_at = CURRENT_TIMESTAMP`, `deleted_by = :currentUser`, `is_active = 0` olarak güncellenir.
+   - **Kritik İlke:** Soft delete işlemi `lifecycle_status` alanını **DEĞİŞTİRMEZ**; varlığın silinmeden önceki yaşam döngüsü durumu (`KAYDEDILDI`, `ZIMMETLENDI`, `KULLANIMDA`, `BAKIMDA` vb.) tarihsel ve operasyonel doğruluk için aynen korunur.
    - `uk_assets_active_code` gibi tekil indeksler `is_deleted = 0` şartı içerdiğinden, bir varlık silindikten sonra aynı kod veya barkod yeniden kullanılabilir hale gelir.
 
 2. **`is_active` (Operasyonel Çalışma Durumu):**
-   - Varlık silinmemiştir (`is_deleted = 0`), fakat geçici olarak hizmet dışıdır (`is_active = 0`). Bu durum `lifecycle_status = 'PASIF_ASKIDA'` ile birebir eşlenir.
+   - Varlık silinmemiştir (`is_deleted = 0`); `is_active` alanı daima `lifecycle_status` üzerinden türetilir ve her durum geçişinde senkronize edilir:
+     - **`is_active = 0` (Pasif / Hizmet Dışı - 6 Durum):** `PASIF_ASKIDA`, `HURDAYA_AYRILDI`, `DEVREDILDI`, `BAGISLANDI`, `SATILDI`, `ZAYIAT_CALINMA`.
+     - **`is_active = 1` (Aktif / Operasyonel Faal - 5 Durum):** `SATIN_ALINDI`, `KAYDEDILDI`, `ZIMMETLENDI`, `KULLANIMDA`, `BAKIMDA`.
    - Listeleme ekranlarında "Pasifleri Göster" filtresi seçildiğinde `is_deleted = 0 AND is_active = 0` kayıtları filtrelenebilir.
 
 ---
@@ -804,12 +807,12 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 ## BÖLÜM 3: Faz 1 Alt Adımları ve Faz 0 Durumu
 
 ### FAZ 0: UI Hazırlığı — Kurumsal Sol Menü (Sidebar) & %100 Tablo Sığdırma
-*(TAMAMLANDI)*
+*(TAMAMLANDI - Commit: `b9c5f21`)*
 
 ---
 
 ### FAZ 1A: Veritabanı Migrasyonları (V9, V10, V11) & Admin Bootstrap
-*(TAMAMLANDI - Commit: e929795)*
+*(TAMAMLANDI - Commit: `e929795` / `f0b7415`)*
 - V9, V10, V11 başarıyla uygulandı (`success = 1`).
 - 74 varlık için pre-migration snapshot karşılaştırmasında **0 fark** doğrulandı.
 - Admin bootstrap ortam değişkeni ile oluşturuldu (`must_change_password = 1`).
@@ -817,7 +820,7 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 ---
 
 ### FAZ 1B-1: Kimlik Doğrulama, SPA CSRF, Roller, Güvenlik Filtreleri ve Frontend Güvenlik Entegrasyonu
-*(ŞU ANKİ KAPSAM)*
+*(TAMAMLANDI - Commit: `68ab2d5` / `14e5cfb`)*
 1. **Spring Security Yapılandırması:**
    - `spring-boot-starter-security` entegrasyonu.
    - Session authentication, `SessionFixationConfigurer::changeSessionId`.
@@ -841,7 +844,7 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 ---
 
 ### FAZ 1B-2: Kurumsal İzolasyon (TenantQueryScope), STAFF Filtresi ve Bağlı Modül Sahipliği
-*(ŞU ANKİ KAPSAM)*
+*(TAMAMLANDI - Commit: `5063363` / `4526017`)*
 1. **Flyway `V12__add_personnel_fk_to_assignments.sql`:**
    - `asset_assignments` tablosuna `personnel_id NUMBER(19) REFERENCES personnel(id)` eklenmesi.
    - İndeks: `idx_assignments_personnel`.
@@ -865,7 +868,7 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 
 ---
 
-#### 11. Faz 1B-2 Doğrulama Boşlukları (Gap) Test Sonuçları (12/12 Kapalı)
+#### Faz 1B-2 Doğrulama Boşlukları (Gap) Test Sonuçları (12/12 Kapalı - Commit: `8b10a0c`)
 
 Revizyon 6 sonrasında talep edilen ek doğrulama kontrolleri `scripts/test_1b2_gaps.js` ile test edilmiş ve tüm güvenlik açıklarının kapalı olduğu doğrulanmıştır:
 
@@ -890,8 +893,9 @@ Revizyon 6 sonrasında talep edilen ek doğrulama kontrolleri `scripts/test_1b2_
 ---
 
 ### FAZ 1C: Varlık Yaşam Döngüsü Servisi, 11 Durum Makinesi ve Doğrulayıcı
+*(TAMAMLANDI - Commit: `5793d59` / `264ff8f`)*
 
-1. **Temel Prensipler ve Durum Kuralları (Revizyon 7):**
+1. **Temel Prensipler ve Durum Kuralları:**
    - **Soft Delete Bağımsızlığı:** Silme işlemi (`deleteAsset`) bir durum geçişi **değildir**. `lifecycle_status` alanına kesinlikle dokunulmaz. Yalnızca `is_deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = :user, is_active = 0` güncellenir.
    - **is_active Türetim Kuralı:** `is_active` alanı daima `lifecycle_status` üzerinden türetilir:
      - `is_active = 0`: `PASIF_ASKIDA`, `HURDAYA_AYRILDI`, `DEVREDILDI`, `BAGISLANDI`, `SATILDI`, `ZAYIAT_CALINMA`
@@ -899,25 +903,77 @@ Revizyon 6 sonrasında talep edilen ek doğrulama kontrolleri `scripts/test_1b2_
      - `assets.status` alanı da 11 durum tablosuna göre (`Depoda`, `Zimmetli`, `Aktif`, `Bakımda`, `Pasif`, `Hurda`) tek merkezden senkronize edilir.
    - **Aynı-Durum Operasyonları:** Konum/Oda transferleri (`MovementService.TRANSFER`) veya bir personelden diğerine doğrudan zimmet devri (`ZIMMETLENDI` ➔ `ZIMMETLENDI`), durum makinesi geçiş validator'ını çağırmaz. Bu işlemler operasyonel hareket ve audit kaydı olarak işlenir.
    - **V13 Flyway Migrasyonu (`previous_lifecycle_status`):**
-     - `asset_maintenances` tablosuna `previous_lifecycle_status VARCHAR2(32 CHAR)` kolonu eklenir.
+     - `asset_maintenances` tablosuna `previous_lifecycle_status VARCHAR2(32 CHAR)` kolonu eklendi.
      - Varlık bakıma alınırken o anki `lifecycle_status` değeri (`ZIMMETLENDI`, `KULLANIMDA`, `KAYDEDILDI`) bu kolona yazılır.
      - Bakım tamamlandığında (`completeMaintenance`), varlık tam olarak bu önceki durumuna geri döner.
-     - Eski bakım kayıtları için geriye dönük uyumluluk korunur (`previous_lifecycle_status` null ise zimmetli personeli varsa `ZIMMETLENDI`, yoksa `KAYDEDILDI`).
-   - **Bilinçli Mevzuat ve Yetki Kuralları:**
-     - Kurumlararası devir (`DEVREDILDI`), resmi bağış (`BAGISLANDI`) ve ihale ile satış (`SATILDI`) yalnızca ambarda (`KAYDEDILDI`) bekleyen varlıklar üzerinden başlatılabilir.
-     - **Son Durum Geçiş Yetkisi (ADMIN Kısıtı):** `HURDAYA_AYRILDI`, `DEVREDILDI`, `BAGISLANDI`, `SATILDI`, `ZAYIAT_CALINMA` durumlarına geçişler yalnızca `ADMIN` rolü tarafından yapılabilir. `DEPT_MANAGER` bu durumları seçtiğinde HTTP 403 Forbidden döner. Diğer geçişler `DEPT_MANAGER` için kendi müdürlüğü varlıklarında serbesttir; `STAFF` sadece bakım talebi açabilir.
-   - **Yeni Varlık Oluşturma:** Arayüzden kaydedilen yeni demirbaşlar doğrudan `KAYDEDILDI` durumuyla başlar (`SATIN_ALINDI` yalnızca 4734 sayılı ihale/satın alma akışından gelir).
-   - **Atomik Durum Geçişi:** Her durum geçişi `AssetLifecycleService.transitionState` içinde tek `@Transactional` blokta yürütülür:
-     1. Varlık varlık ve silinmemişlik kontrolü (`is_deleted = 0`)
-     2. Müdürlük ve rol yetki kontrolü (`TenantQueryScope`)
-     3. Durum makinesi matris doğrulaması (`AssetLifecycleValidator`)
-     4. `lifecycle_status`, `status` ve `is_active` atomik güncellemesi
-     5. `system_audit_logs` tablosuna `old_value_json` ve `new_value_json` formatında denetim günlüğü kaydı
-     6. Geçersiz geçiş veya yetki hatasında HTTP 409 / 422 / 403 ile açıklayıcı Türkçe hata mesajı.
+   - **Kötümser Satır Kilitleme (Pessimistic Row Locking):** `AssetLifecycleService.transitionState` içinde `SELECT ... FOR UPDATE` ile eşzamanlı çakışmalar engellenir.
 
-2. **Frontend ve UI İyileştirmeleri:**
-   - Varlık detay görünümünde mevcut durum için rozet (`badge`) ve kullanıcının yetkisine göre geçebileceği **"Sonraki Geçerli Durumlar"** aksiyon butonları/seçenekleri sunulur.
-   - Varlık düzenleme formundaki serbest durum (`status`) seçimi kaldırılır; durum yönetimi durum makinesi motoruna bağlanır.
+---
+
+### FAZ 1D: Excel ile Toplu Varlık İçe Aktarımı (Bulk Import Engine)
+*(TAMAMLANDI - Commit: `0976ddb`)*
+
+1. **Yetkilendirme ve Korumalar:**
+   - `ADMIN` tüm belediyeye, `DEPT_MANAGER` yalnızca kendi müdürlüğüne aktarır. `STAFF`, `AUDITOR`, `VIEWER` 403 alır.
+   - Dinamik şablon üretimi (`GET /api/assets/export-template`), POI Data Validation açılır listeleri.
+   - Dry-Run doğrulama motoru (`POST /api/assets/import/validate`) ve atomik içe aktarım (`POST /api/assets/import/commit`).
+   - Mükerrer kod ve barkod kontrolü, formül koruması, `system_audit_logs` entegrasyonu.
+
+---
+
+### FAZ 1E-1: Kullanıcı Yönetimi, Şifre Politikası ve Giriş Güvenliği: Kilitleme & Oturum Zaman Aşımı
+*(TAMAMLANDI)*
+
+#### 1E-1.1 Kullanıcı Yönetimi (`/api/users`):
+- **Erişim Kısıtı:** Sadece `ADMIN` rolü erişebilir (SecurityFilterChain ve `@PreAuthorize("hasRole('ADMIN')")` ile çift katman koruma).
+- **CRUD & Eylemler:**
+  - Listeleme: `GET /api/users` (`role`, `department_id`, `is_active` filtreleriyle). Şifre hash'i asla döndürülmez.
+  - Oluşturma: `POST /api/users` (`username`, `fullName`, `email`, `role`, `departmentId`, `personnelId`, `password`). Şifre boşsa sistem kurallara uygun rastgele geçici şifre üretir ve yanıtta tek seferlik döner (`must_change_password = 1`).
+  - Güncelleme: `PUT /api/users/{id}` (`fullName`, `email`, `role`, `departmentId`, `personnelId`, `isActive`).
+  - Pasife Alma: `POST /api/users/{id}/deactivate` veya `PUT /api/users/{id}` üzerinden `isActive = false`. Fiziksel silme yapılmaz.
+  - Şifre Sıfırlama: `POST /api/users/{id}/reset-password`. Güvenli rastgele geçici şifre üretilir, hash'lenir, `must_change_password = 1` yapılır, arayüzde tek seferlik gösterilir.
+- **İş Mantığı ve Doğrulama Kuralları:**
+  - `DEPT_MANAGER`: `department_id` zorunlu.
+  - `STAFF`: `personnel_id` zorunlu; seçilen personelin `department_id`'si kullanıcının müdürlüğüyle eşleşmeli.
+  - `VIEWER`: `department_id` opsiyonel (boşsa tüm belediye, dolu ise birim izleyicisi).
+  - `AUDITOR` ve `ADMIN`: `department_id = NULL` (tüm belediye).
+  - **Son Aktif Admin Koruması:** Sistemdeki son aktif `ADMIN` hesabı pasife alınamaz veya rolü değiştirilemez.
+  - **Kendi Hesabını Koruma:** Giriş yapan admin kendi hesabını pasife alamaz ve kendi rolünü düşüremez.
+  - **Oturum Düşürme (Session Invalidation):** Kullanıcı pasife alındığında aktif oturumu anında geçersiz kılınır.
+  - **Denetim İzi:** Tüm kullanıcı yönetim işlemleri `system_audit_logs` tablosuna yazılır (şifreler asla loglanmaz).
+
+#### 1E-1.2 Kurumsal Şifre Politikası (`PasswordPolicyValidator`):
+- En az 10 karakter uzunluk.
+- En az 1 büyük harf, 1 küçük harf, 1 rakam, 1 özel karakter.
+- Kullanıcı adını (büyük/küçük harf duyarsız) içeremez.
+- En az 50 yaygın ve zayıf şifreyi reddetme sözlüğü (`123456`, `password`, `admin`, `Gebze`, `Gebze2026`, `qwerty` vb.).
+- Detaylı ve anlaşılır Türkçe hata mesajları.
+- Hem `/api/auth/change-password` hem de adminin kullanıcı oluşturma/sıfırlama akışında zorunlu.
+
+#### 1E-1.3 Giriş Güvenliği, Hesap Kilitleme ve Zaman Aşımı:
+- **Flyway V14:** `system_users` tablosuna `failed_attempts NUMBER(3) DEFAULT 0 NOT NULL` ve `locked_until TIMESTAMP` sütunları.
+- **5 Hatalı Deneme Kuralı:** Üst üste 5 başarısız denemede hesap 15 dakika süreyle kilitlenir (`locked_until = SYSTIMESTAMP + 15 dakika`).
+- **Kilitli Hesap Yanıtı:** "Hesabınız çok sayıda hatalı deneme nedeniyle kilitlenmiştir. Lütfen {X} dakika sonra tekrar deneyiniz."
+- **Kalan Hak Bilgisi:** Hatalı şifrede: "Kullanıcı adı veya şifre hatalı. Kalan deneme hakkınız: {N}." (Kullanıcı yoksa da genel mesaj dönülerek kullanıcı varlığı sızdırılmaz).
+- **Başarılı Girişte Sıfırlama:** Doğru kimlik doğrulamasında `failed_attempts = 0` ve `locked_until = NULL` yapılır.
+- **REQUIRES_NEW Loglama:** Kilitlenme olayı `system_audit_logs` tablosuna bağımsız transaction ile kalıcı olarak yazılır.
+- **Hareketsizlik Zaman Aşımı:** 30 dakika hareketsizlik sonrası oturum düşer; UI otomatik olarak giriş ekranına yönlendirir.
+
+#### 1E-1.4 UI Sistem Yönetimi > Kullanıcılar Ekranı:
+- Sistem Yönetimi menüsü altında "Kullanıcılar" sayfası.
+- Kullanıcı tablosu: Kullanıcı adı, Ad Soyad, Rol etiketi, Müdürlük, Personel, Durum (Aktif/Pasif rozeti), Kilit durumu.
+- Filtreler: Rol, Müdürlük, Durum arama çubuğu.
+- "Yeni Kullanıcı Ekle" modalı (role göre dinamik form alanları).
+- "Kullanıcı Düzenle" modalı.
+- "Şifre Sıfırla" onay modalı ve tek seferlik geçici şifre gösterim ekranı.
+
+---
+
+### FAZ 1E-2: Güvenlik Sıkılaştırma & Raporlar (Gelecek Kapsam)
+*(KAPSAM DIŞI - Dokunulmayacak)*
+- `system_audit_logs` tablosunun veritabanı seviyesinde değiştirilemezliği (immutability / trigger / yetki kısıtlaması).
+- Güvenlik yanıt başlıkları (CSP, HSTS, X-Content-Type-Options vb.).
+- Excel içe aktarım şablonuna doğrudan zimmet sütunu eklenmesi.
 
 ---
 

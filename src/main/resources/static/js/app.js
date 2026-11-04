@@ -171,6 +171,11 @@
             importElements[im].style.display = canImport ? "" : "none";
         }
 
+        var navUsersBtn = document.getElementById("nav-item-users");
+        if (navUsersBtn) {
+            navUsersBtn.style.display = isAdmin ? "" : "none";
+        }
+
         // Salt okunur roller (AUDITOR ve VIEWER) için arayüzdeki yazma/düzenleme/silme butonlarını gizle
         var actionBtns = document.querySelectorAll(".btn-action-edit, .btn-action-delete, .btn-action-add");
         for (var b = 0; b < actionBtns.length; b++) {
@@ -258,8 +263,13 @@
             "dashboard", "tree", "assets", "locations", "departments", "personnel",
             "categories", "assignments", "maintenances", "movements",
             "stock", "fleet", "procurement", "counting", "qrcodes",
-            "documents", "reports", "audit", "settings"
+            "documents", "reports", "audit", "users", "settings"
         ];
+        if (viewName === "users" && (!currentSession || currentSession.role !== "ADMIN")) {
+            showToast("Kullanıcı yönetimi yalnızca Sistem Yöneticisi (ADMIN) yetkisine açıktır.", true);
+            switchView("dashboard");
+            return;
+        }
         for (var i = 0; i < views.length; i++) {
             var v = document.getElementById("view-" + views[i]);
             if (v) v.hidden = views[i] !== viewName;
@@ -288,6 +298,7 @@
             "documents": "Belge & Evrak Arşivi",
             "reports": "Raporlama & Amortisman Analizi",
             "audit": "Sistem Denetim ve Onay Günlüğü",
+            "users": "Kullanıcı Yönetimi & Hesap Güvenliği",
             "settings": "Sistem Ayarları & Yetki Matrisi"
         };
         var currentViewTitleEl = document.getElementById("top-bar-current-view");
@@ -323,6 +334,7 @@
         else if (viewName === "documents") loadDocuments();
         else if (viewName === "reports") loadReports();
         else if (viewName === "audit") loadAuditLogs();
+        else if (viewName === "users") loadUsers();
         else if (viewName === "settings") loadSettings();
     }
 
@@ -2969,6 +2981,70 @@
                 }
             };
         }
+
+        // Kullanıcı Yönetimi Olayları
+        var btnOpenCreateUser = document.getElementById("btn-open-create-user-modal");
+        if (btnOpenCreateUser) {
+            btnOpenCreateUser.addEventListener("click", openCreateUserModal);
+        }
+
+        var formUser = document.getElementById("form-user");
+        if (formUser) {
+            formUser.addEventListener("submit", submitUserForm);
+        }
+
+        var roleSelect = document.getElementById("user-form-role");
+        if (roleSelect) {
+            roleSelect.addEventListener("change", handleUserRoleChange);
+        }
+
+        var persSelect = document.getElementById("user-form-pers");
+        if (persSelect) {
+            persSelect.addEventListener("change", function () {
+                var selectedOpt = this.options[this.selectedIndex];
+                if (selectedOpt) {
+                    var deptId = selectedOpt.getAttribute("data-dept-id");
+                    if (deptId) {
+                        var deptInput = document.getElementById("user-form-dept");
+                        if (deptInput) deptInput.value = deptId;
+                    }
+                }
+            });
+        }
+
+        var btnConfirmReset = document.getElementById("btn-confirm-reset-password");
+        if (btnConfirmReset) {
+            btnConfirmReset.addEventListener("click", confirmResetPassword);
+        }
+
+        var btnCopyTemp = document.getElementById("btn-copy-temp-password");
+        if (btnCopyTemp) {
+            btnCopyTemp.addEventListener("click", function () {
+                var pass = document.getElementById("temp-password-text").textContent.trim();
+                if (pass && pass !== "-") {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(pass).then(function () {
+                            showToast("Geçici şifre panoya kopyalandı.");
+                            closeModal("modal-user-temp-password");
+                        }).catch(function () {
+                            closeModal("modal-user-temp-password");
+                        });
+                    } else {
+                        closeModal("modal-user-temp-password");
+                    }
+                } else {
+                    closeModal("modal-user-temp-password");
+                }
+            });
+        }
+
+        ["filter-user-search", "filter-user-role", "filter-user-dept", "filter-user-status"].forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.addEventListener("input", function () { renderUsersTable(filterUsers(cachedUsers)); });
+                el.addEventListener("change", function () { renderUsersTable(filterUsers(cachedUsers)); });
+            }
+        });
     }
 
     // ==========================================
@@ -4578,6 +4654,334 @@
             showToast(err.message, true);
         });
     }
+
+    // ==========================================
+    // 21. KULLANICI YÖNETİMİ (USER MANAGEMENT)
+    // ==========================================
+    var cachedUsers = [];
+    var cachedPersonnelList = [];
+    var cachedDeptList = [];
+
+    function loadUsers() {
+        var tbody = document.getElementById("users-table-body");
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="8" class="loading-cell">Kullanıcı listesi yükleniyor...</td></tr>';
+
+        Promise.all([
+            apiRequest("/api/users"),
+            apiRequest("/api/departments"),
+            apiRequest("/api/personnel")
+        ]).then(function (results) {
+            cachedUsers = results[0] || [];
+            cachedDeptList = results[1] || [];
+            cachedPersonnelList = results[2] || [];
+
+            populateUserDropdowns();
+            renderUsersTable(filterUsers(cachedUsers));
+        }).catch(function (err) {
+            tbody.innerHTML = '<tr><td colspan="8" class="error-cell">Kullanıcılar yüklenemedi: ' + escapeHtml(err.message) + '</td></tr>';
+            showToast("Kullanıcı listesi alınamadı: " + err.message, true);
+        });
+    }
+
+    function populateUserDropdowns() {
+        var filterDept = document.getElementById("filter-user-dept");
+        var formDept = document.getElementById("user-form-dept");
+        var formPers = document.getElementById("user-form-pers");
+
+        if (filterDept && filterDept.options.length <= 1) {
+            cachedDeptList.forEach(function (d) {
+                var opt = document.createElement("option");
+                opt.value = d.id;
+                opt.textContent = d.name;
+                filterDept.appendChild(opt);
+            });
+        }
+
+        if (formDept && formDept.options.length <= 1) {
+            cachedDeptList.forEach(function (d) {
+                var opt = document.createElement("option");
+                opt.value = d.id;
+                opt.textContent = d.name;
+                formDept.appendChild(opt);
+            });
+        }
+
+        if (formPers && formPers.options.length <= 1) {
+            cachedPersonnelList.forEach(function (p) {
+                var opt = document.createElement("option");
+                opt.value = p.id;
+                opt.textContent = p.fullName + " (" + (p.title || "Personel") + " - " + (p.departmentName || "") + ")";
+                opt.setAttribute("data-dept-id", p.departmentId || "");
+                formPers.appendChild(opt);
+            });
+        }
+    }
+
+    function filterUsers(users) {
+        var q = (document.getElementById("filter-user-search") ? document.getElementById("filter-user-search").value : "").toLowerCase().trim();
+        var role = document.getElementById("filter-user-role") ? document.getElementById("filter-user-role").value : "";
+        var deptId = document.getElementById("filter-user-dept") ? document.getElementById("filter-user-dept").value : "";
+        var status = document.getElementById("filter-user-status") ? document.getElementById("filter-user-status").value : "";
+
+        return users.filter(function (u) {
+            if (role && u.role !== role) return false;
+            if (deptId && String(u.departmentId) !== String(deptId)) return false;
+            if (status !== "") {
+                var isAct = status === "1";
+                if (u.isActive !== isAct) return false;
+            }
+            if (q) {
+                var un = (u.username || "").toLowerCase();
+                var fn = (u.fullName || "").toLowerCase();
+                var em = (u.email || "").toLowerCase();
+                if (un.indexOf(q) === -1 && fn.indexOf(q) === -1 && em.indexOf(q) === -1) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    function renderUsersTable(users) {
+        var tbody = document.getElementById("users-table-body");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-cell">Kriterlere uygun kullanıcı kaydı bulunamadı.</td></tr>';
+            return;
+        }
+
+        users.forEach(function (u, idx) {
+            var tr = document.createElement("tr");
+
+            var roleBadge = '<span class="badge" style="background:#64748b; color:#fff;">' + escapeHtml(u.roleLabel || u.role) + '</span>';
+            if (u.role === "ADMIN") {
+                roleBadge = '<span class="badge" style="background:#1e293b; color:#fff;">🛡️ ' + escapeHtml(u.roleLabel) + '</span>';
+            } else if (u.role === "DEPT_MANAGER") {
+                roleBadge = '<span class="badge" style="background:#0284c7; color:#fff;">👔 ' + escapeHtml(u.roleLabel) + '</span>';
+            } else if (u.role === "STAFF") {
+                roleBadge = '<span class="badge" style="background:#059669; color:#fff;">👷 ' + escapeHtml(u.roleLabel) + '</span>';
+            } else if (u.role === "AUDITOR") {
+                roleBadge = '<span class="badge" style="background:#7c3aed; color:#fff;">🔍 ' + escapeHtml(u.roleLabel) + '</span>';
+            }
+
+            var statusBadge = '';
+            if (u.isLocked) {
+                statusBadge = '<span class="badge" style="background:#dc2626; color:#fff;">🔒 Kilitli</span>';
+            } else if (u.isActive) {
+                statusBadge = '<span class="badge badge-success">Aktif</span>';
+            } else {
+                statusBadge = '<span class="badge badge-secondary" style="background:#9ca3af; color:#fff;">Pasif</span>';
+            }
+
+            var isSelf = currentSession && (currentSession.username === u.username);
+
+            var actionsHtml = '<div style="display:flex; gap:0.4rem; justify-content:center;">' +
+                '<button type="button" class="btn-action btn-action-edit" onclick="window.appEditUser(' + u.id + ')" title="Düzenle">✏️ Düzenle</button>' +
+                '<button type="button" class="btn-action" onclick="window.appResetPassword(' + u.id + ', \'' + escapeHtml(u.username) + '\')" title="Şifre Sıfırla" style="background:#fef3c7; color:#92400e;">🔑 Sıfırla</button>';
+
+            if (u.isActive && !isSelf) {
+                actionsHtml += '<button type="button" class="btn-action btn-action-delete" onclick="window.appDeactivateUser(' + u.id + ', \'' + escapeHtml(u.username) + '\')" title="Pasife Al">⛔ Pasif</button>';
+            }
+            actionsHtml += '</div>';
+
+            var deptText = escapeHtml(u.departmentName || (u.role === "ADMIN" || u.role === "AUDITOR" || !u.departmentId ? "Belediye Geneli" : "Müdürlük #" + u.departmentId));
+            var persText = escapeHtml(u.personnelName || "-");
+
+            tr.innerHTML =
+                '<td style="text-align:center;">' + (idx + 1) + '</td>' +
+                '<td><strong>' + escapeHtml(u.username) + '</strong></td>' +
+                '<td>' + escapeHtml(u.fullName) + '<br><small style="color:var(--gray-500);">' + escapeHtml(u.email || (u.username + '@gebze.bel.tr')) + '</small></td>' +
+                '<td>' + roleBadge + '</td>' +
+                '<td>' + deptText + '</td>' +
+                '<td>' + persText + '</td>' +
+                '<td style="text-align:center;">' + statusBadge + '</td>' +
+                '<td>' + actionsHtml + '</td>';
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    function handleUserRoleChange() {
+        var role = document.getElementById("user-form-role").value;
+        var deptGroup = document.getElementById("user-form-dept-group");
+        var deptReq = document.getElementById("user-form-dept-required");
+        var deptHint = document.getElementById("user-form-dept-hint");
+        var persGroup = document.getElementById("user-form-pers-group");
+
+        if (role === "ADMIN" || role === "AUDITOR") {
+            if (deptGroup) deptGroup.hidden = true;
+            if (persGroup) persGroup.hidden = true;
+        } else if (role === "DEPT_MANAGER") {
+            if (deptGroup) deptGroup.hidden = false;
+            if (deptReq) deptReq.hidden = false;
+            if (deptHint) deptHint.textContent = "Müdürlük yöneticisi için müdürlük seçimi zorunludur.";
+            if (persGroup) persGroup.hidden = true;
+        } else if (role === "STAFF") {
+            if (deptGroup) deptGroup.hidden = false;
+            if (deptReq) deptReq.hidden = true;
+            if (deptHint) deptHint.textContent = "Personel seçildiğinde personelin bağlı olduğu müdürlük otomatik atanır.";
+            if (persGroup) persGroup.hidden = false;
+        } else if (role === "VIEWER") {
+            if (deptGroup) deptGroup.hidden = false;
+            if (deptReq) deptReq.hidden = true;
+            if (deptHint) deptHint.textContent = "Boş bırakılırsa tüm belediyeyi salt okunur görür; seçilirse sadece o müdürlüğü görür.";
+            if (persGroup) persGroup.hidden = true;
+        } else {
+            if (deptGroup) deptGroup.hidden = false;
+            if (persGroup) persGroup.hidden = true;
+        }
+    }
+
+    function openCreateUserModal() {
+        var form = document.getElementById("form-user");
+        if (form) form.reset();
+
+        document.getElementById("user-form-id").value = "";
+        var uInput = document.getElementById("user-form-username");
+        if (uInput) {
+            uInput.disabled = false;
+            uInput.value = "";
+        }
+        document.getElementById("modal-user-title").textContent = "👤 Yeni Kullanıcı Tanımla";
+        document.getElementById("user-form-password-group").hidden = false;
+        document.getElementById("user-form-status-group").hidden = true;
+        document.getElementById("user-form-role").value = "";
+        handleUserRoleChange();
+        openModal("modal-user-form");
+    }
+
+    function openEditUserModal(id) {
+        var user = cachedUsers.find(function (u) { return u.id === id; });
+        if (!user) return;
+
+        document.getElementById("user-form-id").value = user.id;
+        var uInput = document.getElementById("user-form-username");
+        if (uInput) {
+            uInput.value = user.username;
+            uInput.disabled = true;
+        }
+        document.getElementById("user-form-fullname").value = user.fullName || "";
+        document.getElementById("user-form-email").value = user.email || "";
+        document.getElementById("user-form-role").value = user.role || "";
+        document.getElementById("user-form-dept").value = user.departmentId || "";
+        document.getElementById("user-form-pers").value = user.personnelId || "";
+        document.getElementById("user-form-is-active").checked = user.isActive;
+
+        document.getElementById("modal-user-title").textContent = "✏️ Kullanıcı Düzenle: " + user.username;
+        document.getElementById("user-form-password-group").hidden = true;
+        document.getElementById("user-form-status-group").hidden = false;
+
+        handleUserRoleChange();
+        openModal("modal-user-form");
+    }
+
+    function openResetPasswordModal(id, username) {
+        document.getElementById("reset-user-target-id").value = id;
+        document.getElementById("reset-user-target-name").textContent = username;
+        openModal("modal-user-reset-confirm");
+    }
+
+    function confirmResetPassword() {
+        var id = document.getElementById("reset-user-target-id").value;
+        if (!id) return;
+
+        apiRequest("/api/users/" + id + "/reset-password", { method: "POST" })
+            .then(function (res) {
+                closeModal("modal-user-reset-confirm");
+                document.getElementById("temp-password-text").textContent = res.temporaryPassword;
+                openModal("modal-user-temp-password");
+                loadUsers();
+            })
+            .catch(function (err) {
+                showToast("Şifre sıfırlanamadı: " + err.message, true);
+            });
+    }
+
+    function deactivateUser(id, username) {
+        if (!confirm(username + " kullanıcısını pasife almak istediğinizden emin misiniz? Kullanıcının aktif oturumu hemen sonlandırılacaktır.")) {
+            return;
+        }
+
+        apiRequest("/api/users/" + id + "/deactivate", { method: "POST" })
+            .then(function () {
+                showToast(username + " kullanıcısı başarıyla pasife alındı.");
+                loadUsers();
+            })
+            .catch(function (err) {
+                showToast("Kullanıcı pasife alınamadı: " + err.message, true);
+            });
+    }
+
+    function submitUserForm(e) {
+        if (e) e.preventDefault();
+        var id = document.getElementById("user-form-id").value;
+        var isEdit = Boolean(id);
+
+        var username = document.getElementById("user-form-username").value.trim();
+        var fullName = document.getElementById("user-form-fullname").value.trim();
+        var email = document.getElementById("user-form-email").value.trim();
+        var role = document.getElementById("user-form-role").value;
+        var deptId = document.getElementById("user-form-dept").value || null;
+        var persId = document.getElementById("user-form-pers").value || null;
+
+        if (isEdit) {
+            var isActive = document.getElementById("user-form-is-active").checked;
+            var updatePayload = {
+                fullName: fullName,
+                email: email || null,
+                role: role,
+                departmentId: deptId ? Number(deptId) : null,
+                personnelId: persId ? Number(persId) : null,
+                isActive: isActive
+            };
+
+            apiRequest("/api/users/" + id, {
+                method: "PUT",
+                body: JSON.stringify(updatePayload)
+            }).then(function () {
+                closeModal("modal-user-form");
+                showToast("Kullanıcı bilgileri başarıyla güncellendi.");
+                loadUsers();
+            }).catch(function (err) {
+                showToast("Güncelleme hatası: " + err.message, true);
+            });
+
+        } else {
+            var rawPass = document.getElementById("user-form-password").value.trim();
+            var createPayload = {
+                username: username,
+                fullName: fullName,
+                email: email || null,
+                role: role,
+                departmentId: deptId ? Number(deptId) : null,
+                personnelId: persId ? Number(persId) : null,
+                password: rawPass || null
+            };
+
+            apiRequest("/api/users", {
+                method: "POST",
+                body: JSON.stringify(createPayload)
+            }).then(function (res) {
+                closeModal("modal-user-form");
+                if (res.temporaryPassword) {
+                    document.getElementById("temp-password-text").textContent = res.temporaryPassword;
+                    openModal("modal-user-temp-password");
+                } else {
+                    showToast("Yeni kullanıcı başarıyla oluşturuldu.");
+                }
+                loadUsers();
+            }).catch(function (err) {
+                showToast("Kullanıcı oluşturma hatası: " + err.message, true);
+            });
+        }
+    }
+
+    window.appEditUser = function (id) { openEditUserModal(id); };
+    window.appResetPassword = function (id, username) { openResetPasswordModal(id, username); };
+    window.appDeactivateUser = function (id, username) { deactivateUser(id, username); };
 
     window.appOpenMaint = function (id) {
         openNewMaintenanceModal(id);

@@ -108,6 +108,28 @@ public class SecurityAuditService {
     }
 
     /**
+     * Hesap kilitleme olayı - REQUIRES_NEW ile bağımsız kalıcı kaydedilir.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logAccountLocked(String username, String clientIp, int minutes) {
+        try {
+            jdbcClient.sql("""
+                INSERT INTO system_audit_logs (
+                    action_type, entity_type, entity_id, actor_username, actor_name, ip_address, description
+                ) VALUES (
+                    'ACCOUNT_LOCKED', 'SECURITY', :username, :username, 'Sistem Güvenlik Servisi', :clientIp, :description
+                )
+            """)
+            .param("username", username != null ? username.trim().toLowerCase() : "bilinmiyor")
+            .param("clientIp", clientIp != null ? clientIp : "127.0.0.1")
+            .param("description", String.format("Hesap 5 hatalı giriş denemesi nedeniyle %d dakika süreyle kilitlendi.", minutes))
+            .update();
+        } catch (Exception ex) {
+            logger.error("Hesap kilitleme audit logu kaydedilemedi: {}", ex.getMessage());
+        }
+    }
+
+    /**
      * Şifre değiştirme.
      */
     @Transactional

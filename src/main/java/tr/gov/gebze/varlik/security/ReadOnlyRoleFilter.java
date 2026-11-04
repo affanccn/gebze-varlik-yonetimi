@@ -30,8 +30,9 @@ public class ReadOnlyRoleFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         String uri = request.getRequestURI();
 
-        // GET, HEAD ve çıkış (logout) istekleri kısıtlanmaz
-        if ("GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method) || "/api/auth/logout".equalsIgnoreCase(uri)) {
+        // GET, HEAD, çıkış (logout) ve şifre değiştirme (change-password) istekleri kısıtlanmaz
+        if ("GET".equalsIgnoreCase(method) || "HEAD".equalsIgnoreCase(method) ||
+                "/api/auth/logout".equalsIgnoreCase(uri) || "/api/auth/change-password".equalsIgnoreCase(uri)) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -51,6 +51,15 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleMaxUploadSize(org.springframework.web.multipart.MaxUploadSizeExceededException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Yüklenen dosya boyutu 5 MB sınırını aşamaz. Lütfen daha küçük bir dosya yükleyiniz.",
+                "status", HttpStatus.BAD_REQUEST.value(),
+                "timestamp", Instant.now().toString()
+        ));
+    }
+
     private String resolveConstraintErrorMessage(String msg) {
         if (msg.contains("UK_ASSETS_ACTIVE_CODE") || msg.contains("UK_ASSETS_CODE")) {
             return "Bu varlık kodu sistemde zaten aktif bir demirbaşta kullanılmaktadır.";

@@ -216,6 +216,10 @@
                         <span class="sidebar-icon">🛡️</span>
                         <span class="sidebar-label">Denetim &amp; Onay</span>
                     </button>
+                    <button type="button" class="nav-tab sidebar-item" data-view="users" title="Kullanıcı Yönetimi" id="nav-item-users">
+                        <span class="sidebar-icon">👥</span>
+                        <span class="sidebar-label">Kullanıcılar</span>
+                    </button>
                     <button type="button" class="nav-tab sidebar-item" data-view="settings" title="Sistem Yönetimi">
                         <span class="sidebar-icon">⚙️</span>
                         <span class="sidebar-label">Sistem Yönetimi</span>
@@ -1349,6 +1353,73 @@
             </div>
         </section>
 
+        <!-- 20. GÖRÜNÜM: KULLANICI YÖNETİMİ -->
+        <section id="view-users" class="app-view" hidden>
+            <div class="page-header">
+                <div>
+                    <h1>👥 Kullanıcı Yönetimi</h1>
+                    <p class="page-description">Sistem kullanıcıları, kurumsal roller, müdürlük yetkileri, şifre sıfırlama ve hesap güvenliği.</p>
+                </div>
+                <div class="header-actions">
+                    <button type="button" class="btn-primary" id="btn-open-create-user-modal">+ Yeni Kullanıcı Ekle</button>
+                </div>
+            </div>
+
+            <div class="filter-card">
+                <div class="form-grid-4">
+                    <div class="form-field">
+                        <label for="filter-user-search">Kullanıcı / Personel Ara</label>
+                        <input type="text" id="filter-user-search" placeholder="Kullanıcı adı, isim veya e-posta...">
+                    </div>
+                    <div class="form-field">
+                        <label for="filter-user-role">Rol Filtresi</label>
+                        <select id="filter-user-role">
+                            <option value="">Tüm Roller</option>
+                            <option value="ADMIN">Sistem Yöneticisi (ADMIN)</option>
+                            <option value="DEPT_MANAGER">Müdürlük Yöneticisi (DEPT_MANAGER)</option>
+                            <option value="STAFF">Birim Personeli (STAFF)</option>
+                            <option value="AUDITOR">İç Denetçi (AUDITOR)</option>
+                            <option value="VIEWER">Kurum İzleyicisi (VIEWER)</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="filter-user-dept">Müdürlük</label>
+                        <select id="filter-user-dept">
+                            <option value="">Tüm Müdürlükler</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="filter-user-status">Hesap Durumu</label>
+                        <select id="filter-user-status">
+                            <option value="">Tüm Durumlar</option>
+                            <option value="1">Yalnızca Aktifler</option>
+                            <option value="0">Yalnızca Pasifler</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <table class="data-table" id="users-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 14%;">Kullanıcı Adı</th>
+                            <th style="width: 16%;">Ad Soyad / E-Posta</th>
+                            <th style="width: 14%;">Rol</th>
+                            <th style="width: 16%;">Müdürlük Kapsamı</th>
+                            <th style="width: 13%;">Zimmetli Personel</th>
+                            <th style="width: 8%;">Durum</th>
+                            <th style="width: 14%;">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <tr><td colspan="8" class="loading-cell">Kullanıcı listesi yükleniyor...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- 19. GÖRÜNÜM: SİSTEM YÖNETİMİ -->
         <section id="view-settings" class="app-view" hidden>
             <div class="page-header">
@@ -2097,6 +2168,124 @@
             <div class="modal-footer">
                 <button type="button" class="btn-secondary" data-close-modal="modal-bulk-import">Vazgeç</button>
                 <button type="button" class="btn-primary" id="btn-commit-import" disabled>🚀 İçe Aktarımı Tamamla (Commit)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: KULLANICI EKLE / DÜZENLE -->
+    <div id="modal-user-form" class="modal-backdrop" hidden>
+        <div class="modal-dialog" role="dialog" aria-labelledby="modal-user-title" aria-modal="true">
+            <div class="modal-header">
+                <h2 id="modal-user-title">👤 Yeni Kullanıcı Tanımla</h2>
+                <button type="button" class="modal-close" data-close-modal="modal-user-form" aria-label="Kapat">&times;</button>
+            </div>
+            <form id="form-user" class="modal-body" novalidate>
+                <input type="hidden" id="user-form-id">
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label for="user-form-username">Kullanıcı Adı *</label>
+                        <input type="text" id="user-form-username" required placeholder="ornek.kullanici">
+                    </div>
+                    <div class="form-field">
+                        <label for="user-form-role">Sistem Rolü *</label>
+                        <select id="user-form-role" required>
+                            <option value="">Rol Seçiniz...</option>
+                            <option value="ADMIN">ADMIN (Sistem Yöneticisi - Tüm Belediye)</option>
+                            <option value="DEPT_MANAGER">DEPT_MANAGER (Müdürlük Yöneticisi)</option>
+                            <option value="STAFF">STAFF (Birim Personeli - Zimmetli)</option>
+                            <option value="AUDITOR">AUDITOR (İç Denetçi - Salt Okunur)</option>
+                            <option value="VIEWER">VIEWER (Kurum İzleyicisi - Salt Okunur)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label for="user-form-fullname">Adı Soyadı *</label>
+                        <input type="text" id="user-form-fullname" required placeholder="Ad Soyad">
+                    </div>
+                    <div class="form-field">
+                        <label for="user-form-email">Kurumsal E-Posta</label>
+                        <input type="email" id="user-form-email" placeholder="ad.soyad@gebze.bel.tr">
+                    </div>
+                </div>
+
+                <div class="form-field" id="user-form-dept-group">
+                    <label for="user-form-dept">Bağlı Olduğu Müdürlük <span id="user-form-dept-required" style="color:var(--danger);" hidden>*</span></label>
+                    <select id="user-form-dept">
+                        <option value="">Müdürlük Seçiniz (Tüm Belediye için boş bırakabilirsiniz)...</option>
+                    </select>
+                    <small style="color:var(--gray-500); font-size:0.8rem;" id="user-form-dept-hint">DEPT_MANAGER için zorunludur. VIEWER için boş bırakılırsa tüm belediyeyi görür.</small>
+                </div>
+
+                <div class="form-field" id="user-form-pers-group" hidden>
+                    <label for="user-form-pers">İlişkili Personel Kaydı *</label>
+                    <select id="user-form-pers">
+                        <option value="">Personel Seçiniz...</option>
+                    </select>
+                    <small style="color:var(--gray-500); font-size:0.8rem;">STAFF rolündeki kullanıcı yalnızca bu personele zimmetli varlıkları görebilir.</small>
+                </div>
+
+                <div class="form-field" id="user-form-password-group">
+                    <label for="user-form-password">İlk Şifre (İsteğe Bağlı)</label>
+                    <input type="password" id="user-form-password" placeholder="Boş bırakırsanız sistem güvenli geçici şifre üretir">
+                    <small style="color:var(--gray-500); font-size:0.8rem;">En az 10 karakter, büyük/küçük harf, rakam ve özel karakter. Boş bırakılması önerilir.</small>
+                </div>
+
+                <div class="form-field" id="user-form-status-group" hidden>
+                    <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                        <input type="checkbox" id="user-form-is-active" checked>
+                        <span>Hesap Aktif (Kullanıcı sisteme giriş yapabilir)</span>
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" data-close-modal="modal-user-form">Vazgeç</button>
+                    <button type="submit" class="btn-primary" id="btn-save-user">Kullanıcıyı Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ŞİFRE SIFIRLAMA ONAYI -->
+    <div id="modal-user-reset-confirm" class="modal-backdrop" hidden>
+        <div class="modal-dialog modal-sm" role="dialog" aria-labelledby="modal-reset-title" aria-modal="true">
+            <div class="modal-header">
+                <h2 id="modal-reset-title">🔑 Şifre Sıfırlama Onayı</h2>
+                <button type="button" class="modal-close" data-close-modal="modal-user-reset-confirm" aria-label="Kapat">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong id="reset-user-target-name"></strong> kullanıcısının şifresi sıfırlanacaktır.</p>
+                <p style="font-size:0.85rem; color:var(--gray-600); margin-top:0.5rem;">
+                    Sistem rastgele güvenli bir geçici şifre üretecek ve kullanıcının bir sonraki girişinde şifre değiştirmesi zorunlu olacaktır. Onaylıyor musunuz?
+                </p>
+                <input type="hidden" id="reset-user-target-id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" data-close-modal="modal-user-reset-confirm">Vazgeç</button>
+                <button type="button" class="btn-primary" id="btn-confirm-reset-password" style="background:var(--danger); border-color:var(--danger);">Şifreyi Sıfırla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: GEÇİCİ ŞİFRE TEK SEFERLİK GÖSTERİM -->
+    <div id="modal-user-temp-password" class="modal-backdrop" hidden>
+        <div class="modal-dialog modal-sm" role="dialog" aria-labelledby="modal-temp-title" aria-modal="true">
+            <div class="modal-header">
+                <h2 id="modal-temp-title">🔐 Geçici Şifre Oluşturuldu</h2>
+                <button type="button" class="modal-close" data-close-modal="modal-user-temp-password" aria-label="Kapat">&times;</button>
+            </div>
+            <div class="modal-body" style="text-align:center;">
+                <p style="font-size:0.9rem; color:var(--gray-700);">Kullanıcı için tek seferlik geçici şifre:</p>
+                <div style="margin:1rem 0; padding:0.75rem 1rem; background:var(--gray-100); border:2px dashed var(--navy-900); border-radius:8px; font-family:monospace; font-size:1.3rem; font-weight:700; color:var(--navy-900); letter-spacing:1px;" id="temp-password-text">
+                    -
+                </div>
+                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:0.6rem; font-size:0.8rem; color:#991b1b; text-align:left;">
+                    ⚠️ <strong>DİKKAT:</strong> Bu şifre güvenlik gerekçesiyle veritabanında saklanmaz ve <strong>yalnızca bir kez</strong> görüntülenir. Lütfen kopyalayıp ilgili kullanıcıya güvenli bir yolla iletiniz.
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content:center;">
+                <button type="button" class="btn-primary" id="btn-copy-temp-password">📋 Şifreyi Kopyala &amp; Kapat</button>
             </div>
         </div>
     </div>

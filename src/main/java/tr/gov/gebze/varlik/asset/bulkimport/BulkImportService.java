@@ -30,7 +30,6 @@ public class BulkImportService {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
     private static final int MAX_ROWS = 2000;
-    private static final Set<Character> FORMULA_INJECTION_PREFIXES = Set.of('=', '+', '-', '@');
 
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter TR_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
@@ -227,7 +226,15 @@ public class BulkImportService {
         DataFormatter formatter = new DataFormatter();
         int totalRows = 0;
 
-        try (InputStream in = file.getInputStream(); Workbook wb = WorkbookFactory.create(in)) {
+        Workbook wb;
+        try {
+            wb = WorkbookFactory.create(file.getInputStream());
+        } catch (Exception e) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Geçersiz veya bozuk Excel dosyası: Yalnızca modern Excel (.xlsx) biçimi desteklenmektedir. Eski format (.xls) veya bozuk dosyalar işlenemez.");
+        }
+
+        try (wb) {
             Sheet sheet = wb.getSheetAt(0);
             if (sheet == null) {
                 errors.add(new BulkImportError(0, "Dosya", file.getOriginalFilename(), "Excel dosyasında çalışma sayfası bulunamadı."));
@@ -279,18 +286,34 @@ public class BulkImportService {
                     }
                 }
 
-                String[] allFields = {code, name, catCode, deptCode, roomQr, barcode, tifCode, brandModel, serial, acqDateStr, warDateStr, estValStr, supplier, notes};
-                String[] fieldNames = {"Varlık Kodu", "Varlık Adı", "Kategori Kodu", "Müdürlük Kodu", "Oda QR Kodu", "Barkod", "TİF No", "Marka/Model", "Seri No", "Edinim Tarihi", "Garanti Bitiş", "Değer", "Tedarikçi", "Notlar"};
+                // Metin alanlarında sadece '=' ve '@' engellenir; '+' ve '-' metin alanlarında kabul edilir
+                String[] textFields = {code, name, catCode, deptCode, roomQr, barcode, tifCode, brandModel, serial, acqDateStr, warDateStr, supplier, notes};
+                String[] textFieldNames = {"Varlık Kodu", "Varlık Adı", "Kategori Kodu", "Müdürlük Kodu", "Oda QR Kodu", "Barkod", "TİF No", "Marka/Model", "Seri No", "Edinim Tarihi", "Garanti Bitiş", "Tedarikçi", "Notlar"};
 
-                for (int i = 0; i < allFields.length; i++) {
-                    String val = allFields[i];
+                for (int i = 0; i < textFields.length; i++) {
+                    String val = textFields[i];
                     if (val != null && !val.isBlank()) {
                         char first = val.trim().charAt(0);
-                        if (FORMULA_INJECTION_PREFIXES.contains(first)) {
-                            errors.add(new BulkImportError(rowNum, fieldNames[i], val,
-                                    "Güvenlik Uyarısı: Formül veya zararlı içerik tespiti ('=', '+', '-', '@' ile başlayan metinler kabul edilmez)."));
+                        if (first == '=' || first == '@') {
+                            errors.add(new BulkImportError(rowNum, textFieldNames[i], val,
+                                    "Güvenlik Uyarısı: Formül veya zararlı içerik tespiti ('=' veya '@' ile başlayan metinler kabul edilmez)."));
                             rowHasError = true;
                         }
+                    }
+                }
+
+                // Sayısal alanda (Tahmini Değer): '=' ve '@' güvenlik hatası; '+' ve '-' ile başlayan metin yalnızca sayısal alanlarda hata
+                if (estValStr != null && !estValStr.isBlank()) {
+                    String trimmedEst = estValStr.trim();
+                    char first = trimmedEst.charAt(0);
+                    if (first == '=' || first == '@') {
+                        errors.add(new BulkImportError(rowNum, "Tahmini Değer", estValStr,
+                                "Güvenlik Uyarısı: Formül veya zararlı içerik tespiti ('=' veya '@' ile başlayan metinler kabul edilmez)."));
+                        rowHasError = true;
+                    } else if (first == '+' || first == '-') {
+                        errors.add(new BulkImportError(rowNum, "Tahmini Değer", estValStr,
+                                "Sayısal alanda '+' veya '-' işaretiyle başlayan değer girilemez. Lütfen pozitif sayı giriniz."));
+                        rowHasError = true;
                     }
                 }
 
@@ -439,10 +462,13 @@ public class BulkImportService {
 
                 Double parsedEstValue = null;
                 if (estValStr != null && !estValStr.isBlank()) {
-                    parsedEstValue = parseNumberString(estValStr);
-                    if (parsedEstValue == null || parsedEstValue < 0) {
-                        errors.add(new BulkImportError(rowNum, "Tahmini Değer", estValStr, "Geçersiz sayısal tutar."));
-                        rowHasError = true;
+                    String trimmedEst = estValStr.trim();
+                    if (!trimmedEst.startsWith("+") && !trimmedEst.startsWith("-") && !trimmedEst.startsWith("=") && !trimmedEst.startsWith("@")) {
+                        parsedEstValue = parseNumberString(estValStr);
+                        if (parsedEstValue == null || parsedEstValue < 0) {
+                            errors.add(new BulkImportError(rowNum, "Tahmini Değer", estValStr, "Geçersiz sayısal tutar."));
+                            rowHasError = true;
+                        }
                     }
                 }
 

@@ -2,8 +2,10 @@ package tr.gov.gebze.varlik.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
@@ -15,18 +17,22 @@ import org.springframework.security.web.csrf.CsrfFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final SecurityAuditService securityAuditService;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
     private final CustomAccessDeniedHandler accessDeniedHandler;
+    private final JdbcClient jdbcClient;
 
     public SecurityConfig(SecurityAuditService securityAuditService,
                           CustomAuthenticationEntryPoint authenticationEntryPoint,
-                          CustomAccessDeniedHandler accessDeniedHandler) {
+                          CustomAccessDeniedHandler accessDeniedHandler,
+                          JdbcClient jdbcClient) {
         this.securityAuditService = securityAuditService;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.accessDeniedHandler = accessDeniedHandler;
+        this.jdbcClient = jdbcClient;
     }
 
     @Bean
@@ -66,13 +72,15 @@ public class SecurityConfig {
                 ).permitAll()
                 .requestMatchers("/api/auth/login", "/api/auth/demo-users").permitAll()
                 .requestMatchers("/api/health").permitAll()
+                .requestMatchers("/api/users/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )
             // 5. ÖZEL GÜVENLİK FİLTRELERİ
             .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
             .addFilterAfter(new ReadOnlyRoleFilter(securityAuditService), CsrfCookieFilter.class)
-            .addFilterAfter(new MustChangePasswordFilter(), ReadOnlyRoleFilter.class);
+            .addFilterAfter(new MustChangePasswordFilter(), ReadOnlyRoleFilter.class)
+            .addFilterAfter(new UserActiveFilter(jdbcClient), MustChangePasswordFilter.class);
 
         return http.build();
     }

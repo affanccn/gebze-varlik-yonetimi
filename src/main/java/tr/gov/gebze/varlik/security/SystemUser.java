@@ -13,6 +13,8 @@ public class SystemUser {
     private Long personnelId;
     private boolean mustChangePassword;
     private boolean isActive;
+    private int failedAttempts;
+    private java.time.LocalDateTime lockedUntil;
     private OffsetDateTime createdAt;
 
     public SystemUser() {}
@@ -62,6 +64,16 @@ public class SystemUser {
 
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { isActive = active; }
+
+    public int getFailedAttempts() { return failedAttempts; }
+    public void setFailedAttempts(int failedAttempts) { this.failedAttempts = failedAttempts; }
+
+    public java.time.LocalDateTime getLockedUntil() { return lockedUntil; }
+    public void setLockedUntil(java.time.LocalDateTime lockedUntil) { this.lockedUntil = lockedUntil; }
+
+    public boolean isAccountLocked() {
+        return lockedUntil != null && lockedUntil.isAfter(java.time.LocalDateTime.now());
+    }
 
     public OffsetDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt) { this.createdAt = createdAt; }

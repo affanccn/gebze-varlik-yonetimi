@@ -25,7 +25,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         Optional<SystemUser> userOpt = jdbcClient.sql("""
             SELECT id, username, password_hash, full_name, email, role,
-                   department_id, personnel_id, must_change_password, is_active, created_at
+                   department_id, personnel_id, must_change_password, is_active,
+                   failed_attempts, locked_until, created_at
             FROM system_users
             WHERE LOWER(username) = LOWER(:username)
         """)
@@ -47,6 +48,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
             u.setMustChangePassword(rs.getInt("must_change_password") == 1);
             u.setActive(rs.getInt("is_active") == 1);
+            u.setFailedAttempts(rs.getInt("failed_attempts"));
+
+            try {
+                java.sql.Timestamp lockedTs = rs.getTimestamp("locked_until");
+                u.setLockedUntil(lockedTs != null ? lockedTs.toLocalDateTime() : null);
+            } catch (Exception ignored) {}
 
             try {
                 u.setCreatedAt(rs.getObject("created_at", OffsetDateTime.class));

@@ -73,9 +73,21 @@ public class SystemUserDetails implements UserDetails {
         return true;
     }
 
+    public int getFailedAttempts() {
+        return systemUser.getFailedAttempts();
+    }
+
+    public java.time.LocalDateTime getLockedUntil() {
+        return systemUser.getLockedUntil();
+    }
+
+    public boolean isAccountLocked() {
+        return systemUser.isAccountLocked();
+    }
+
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return !systemUser.isAccountLocked();
     }
 
     @Override
