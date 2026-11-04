@@ -4555,13 +4555,6 @@
                     var el6 = document.getElementById("set-label-size");
                     if (el6) el6.value = s.paramValue;
                 }
-            } else {
-                var statusElNew = document.getElementById("asset-status");
-                if (statusElNew) {
-                    statusElNew.value = "Depoda";
-                    statusElNew.disabled = true;
-                    statusElNew.title = "Yeni varlıklar otomatik olarak 'KAYDEDILDI (Depoda)' durumuyla kaydedilir.";
-                }
             }
         });
     }
