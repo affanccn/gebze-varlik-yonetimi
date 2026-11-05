@@ -19,3 +19,4 @@ public record PageResponse<T>(
         return new PageResponse<>(items, total, page, safeSize, totalPages, hasNext, hasPrevious);
     }
 }
+

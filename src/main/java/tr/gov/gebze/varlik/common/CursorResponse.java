@@ -12,3 +12,4 @@ public record CursorResponse<T>(
         return new CursorResponse<>(items, nextCursor, hasMore, size);
     }
 }
+

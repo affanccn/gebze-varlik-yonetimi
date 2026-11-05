@@ -55,6 +55,7 @@ public class AssetService {
             Long floorId,
             Long roomId,
             Long categoryId,
+            Long assignedPersonnelId,
             String lifecycleStatus,
             Boolean isActive,
             int page,
@@ -62,7 +63,7 @@ public class AssetService {
     ) {
         return assetRepository.findPage(
                 query, category, unit, status, condition, warrantyFilter, sortBy,
-                departmentId, subUnitId, buildingId, floorId, roomId, categoryId,
+                departmentId, subUnitId, buildingId, floorId, roomId, categoryId, assignedPersonnelId,
                 lifecycleStatus, isActive, page, size
         );
     }

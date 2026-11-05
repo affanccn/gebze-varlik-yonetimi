@@ -28,3 +28,4 @@ CREATE INDEX idx_stock_tx_keyset ON stock_transactions (stock_item_id, tx_date D
 CREATE INDEX idx_syslog_keyset ON system_audit_logs (created_at DESC, id DESC);
 CREATE INDEX idx_syslog_entity ON system_audit_logs (entity_type, entity_id, created_at DESC);
 CREATE INDEX idx_syslog_actor ON system_audit_logs (actor_username, created_at DESC);
+

@@ -72,6 +72,7 @@ public class AssetController {
             @RequestParam(required = false) Long floorId,
             @RequestParam(required = false) Long roomId,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long assignedPersonnelId,
             @RequestParam(required = false) String lifecycleStatus,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(defaultValue = "0") int page,
@@ -82,7 +83,7 @@ public class AssetController {
 
         return assetService.findPage(
                 searchQuery, category, unit, status, condition, warrantyFilter, sortParam,
-                departmentId, subUnitId, buildingId, floorId, roomId, categoryId,
+                departmentId, subUnitId, buildingId, floorId, roomId, categoryId, assignedPersonnelId,
                 lifecycleStatus, isActive, page, size
         );
     }

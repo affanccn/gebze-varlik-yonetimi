@@ -36,6 +36,7 @@ public class AssetRepository {
             Long floorId,
             Long roomId,
             Long categoryId,
+            Long assignedPersonnelId,
             String lifecycleStatus,
             Boolean isActive,
             int page,
@@ -141,6 +142,22 @@ public class AssetRepository {
         if (categoryId != null) {
             whereClause.append(" AND a.category_id = ?");
             params.add(categoryId);
+        }
+
+        if (assignedPersonnelId != null) {
+            whereClause.append("""
+                 AND (
+                     a.assignee_name = (SELECT p.full_name FROM personnel p WHERE p.id = ?)
+                     OR EXISTS (
+                         SELECT 1 FROM asset_assignments aa
+                         WHERE aa.asset_id = a.id
+                           AND aa.personnel_id = ?
+                           AND aa.status = 'AKTIF'
+                     )
+                 )
+            """);
+            params.add(assignedPersonnelId);
+            params.add(assignedPersonnelId);
         }
 
         if (lifecycleStatus != null && !lifecycleStatus.isBlank() && !"Tümü".equalsIgnoreCase(lifecycleStatus)) {

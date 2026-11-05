@@ -116,7 +116,6 @@ export const MaintenanceFormModal: React.FC<MaintenanceFormModalProps> = ({
               Öncelik Derecesi
             </label>
             <select
-              id="maint-priority-select"
               className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
@@ -135,7 +134,6 @@ export const MaintenanceFormModal: React.FC<MaintenanceFormModalProps> = ({
               Servis / Teknisyen / Firma
             </label>
             <input
-              id="maint-vendor-input"
               type="text"
               className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               value={vendorOrTechnician}
@@ -149,7 +147,6 @@ export const MaintenanceFormModal: React.FC<MaintenanceFormModalProps> = ({
               Tahmini Maliyet (₺)
             </label>
             <input
-              id="maint-cost-input"
               type="number"
               step="0.01"
               min="0"
@@ -166,7 +163,6 @@ export const MaintenanceFormModal: React.FC<MaintenanceFormModalProps> = ({
             Arıza / İş Detay Açıklaması *
           </label>
           <textarea
-            id="maint-desc-input"
             className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             rows={3}
             value={issueDescription}

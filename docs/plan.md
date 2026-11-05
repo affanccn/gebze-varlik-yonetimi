@@ -12,7 +12,7 @@ Bu belge, Gebze Belediyesi Varlık Yönetimi uygulamasının (Java 25 LTS, Sprin
 - **Faz 1E-1:** Kullanıcı Yönetimi (`/api/users`), Şifre Politikası, 5 Hatalı Denemede Hesap Kilitleme, 30 Dk Zaman Aşımı *(TAMAMLANDI)*
 - **Faz 1E-2:** Güvenlik Sertleştirmesi (V15 Denetim Günlüğü Immutability Trigger'ı, CSP/HSTS Güvenlik Başlıkları, Çerez Sertleştirmesi, Actuator Kısıtlaması, İşletim Rehberi `docs/operations.md`) *(TAMAMLANDI - Commit: `529c39c`)*
 - **Frontend Dönüşümü (R1–R5):** Vanilla HTML/JS'ten React 18 + Vite + TypeScript + Tailwind SPA mimarisine geçiş, 23 menü ekranı, modallar, SPA Fallback, 51/51 Playwright E2E duman testleri *(TAMAMLANDI - Tag: `vanilla-ui-final`, Commit: `d15d43e`)*
-- **Faz 1F-1:** Sunucu Tarafı Sayfalama (Varlıklar & Personel), Türkçe Arama (`NLS_COMP=LINGUISTIC`, `NLS_SORT=TURKISH_AI`), V16 İndeksleri, Asenkron Seçici Modalları *(TAMAMLANDI - Commit: `bbdc0f5`)*
+- **Faz 1F-1:** Sunucu Tarafı Sayfalama (Varlıklar & Personel), Türkçe Arama (`NLS_COMP=LINGUISTIC`, `NLS_SORT=TURKISH_AI`), V16 İndeksleri, Asenkron Seçici Modalları *(ŞU AN UYGULANIYOR)*
 
 ---
 
@@ -1256,13 +1256,13 @@ Yeni `{items, total, page, size, totalPages}` API sözleşmesi devreye girdiğin
 
 ### 5.8. Faz 1F-1 Kapsamı (Bu Oturumda Uygulanacak Olanlar)
 - [x] Planın Revizyon 11 olarak güncellenmesi ve temizlenmesi
-- [x] Ortak Backend Altyapısı: `PageRequest`, `PageResponse`, `CursorResponse`, `SortValidator`
-- [x] HikariCP `connectionInitSql` ile Türkçe NLS (`NLS_COMP=LINGUISTIC; NLS_SORT=TURKISH_AI;`)
-- [x] Flyway V16 İndeks Migrasyonu (`V16__performance_and_fk_indexes.sql`)
-- [x] `/api/assets` ve `/api/personnel` uç noktalarının sayfalama, arama, filtre ve sıralamaya uyarlanması
-- [x] `/api/assets/lookup` ve personel arama uç noktalarının hafifletilmesi
-- [x] Frontend: TanStack Table manualPagination, URL arama parametreleri (`useSearchParams`), arama debounce, `AsyncSearchSelect` seçici bileşeni
-- [x] Güvenlik, Türkçe arama matrisi, yürütme planları ve tüm testlerin (backend + Playwright + snapshot) doğrulanması
+- [ ] Ortak Backend Altyapısı: `PageRequest`, `PageResponse`, `CursorResponse`, `SortValidator`
+- [ ] HikariCP `connectionInitSql` ile Türkçe NLS (`NLS_COMP=LINGUISTIC; NLS_SORT=TURKISH_AI;`)
+- [ ] Flyway V16 İndeks Migrasyonu (`V16__performance_and_fk_indexes.sql`)
+- [ ] `/api/assets` ve `/api/personnel` uç noktalarının sayfalama, arama, filtre ve sıralamaya uyarlanması
+- [ ] `/api/assets/lookup` ve personel arama uç noktalarının hafifletilmesi
+- [ ] Frontend: TanStack Table manualPagination, URL arama parametreleri (`useSearchParams`), arama debounce, `AsyncSearchSelect` seçici bileşeni
+- [ ] Güvenlik, Türkçe arama matrisi, yürütme planları ve tüm testlerin (backend + Playwright + snapshot) doğrulanması
 
 *Kapsam Dışı (1F-2 ve 1F-3'e bırakılanlar):* Keyset uç noktaları (`/api/audit-logs`, `/api/movements`, `/api/stock/transactions`), diğer ekranların sayfalanması, sunucu tarafı streaming CSV dışa aktarımı, 100k verili ayrı DB performans testi.
 

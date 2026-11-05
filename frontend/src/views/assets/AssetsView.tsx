@@ -7,7 +7,7 @@ import {
   flexRender,
   SortingState,
 } from '@tanstack/react-table';
-import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { assetService } from '../../services/assetService';
 import { hierarchyService } from '../../services/hierarchyService';
 import { Asset } from '../../types/asset';
@@ -40,7 +40,6 @@ import {
 
 export const AssetsView: React.FC = () => {
   const { canWrite, canDelete, user } = useAuth();
-  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // URL state
@@ -126,6 +125,7 @@ export const AssetsView: React.FC = () => {
   const {
     data: pageData,
     isLoading,
+    refetch,
   } = useQuery({
     queryKey: ['assets', urlPage, urlSize, debouncedQ, urlDept, urlCat, urlStatus, urlSort],
     queryFn: () =>
@@ -720,7 +720,7 @@ export const AssetsView: React.FC = () => {
         }}
         assetToEdit={assetToEdit}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['assets'] });
+          refetch();
         }}
       />
 
@@ -733,7 +733,7 @@ export const AssetsView: React.FC = () => {
         }}
         asset={assetToTransfer}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['assets'] });
+          refetch();
         }}
       />
 
@@ -748,7 +748,7 @@ export const AssetsView: React.FC = () => {
         asset={assetForLifecycle}
         preselectedTarget={lifecyclePreselectedTarget}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['assets'] });
+          refetch();
         }}
       />
 
@@ -761,7 +761,7 @@ export const AssetsView: React.FC = () => {
         }}
         asset={assetToDelete}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['assets'] });
+          refetch();
         }}
       />
 
@@ -770,7 +770,7 @@ export const AssetsView: React.FC = () => {
         isOpen={isBulkImportOpen}
         onClose={() => setIsBulkImportOpen(false)}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['assets'] });
+          refetch();
         }}
       />
     </div>

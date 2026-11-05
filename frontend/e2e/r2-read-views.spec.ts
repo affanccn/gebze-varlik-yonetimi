@@ -124,7 +124,11 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
     // Tablo satırları
     await expect(page.locator('table tbody tr')).not.toHaveCount(0);
 
-    // "Zimmetleri Gör" butonu
+    // "Yeni Personel Ekle" butonu görünürlüğü
+    const addBtn = page.locator('#btn-open-personnel-form');
+    await expect(addBtn).toBeVisible();
+
+    // Zimmeti olmayan ilk personelde "Zimmetleri Gör" -> 0 kayıt / boş durum mesajı
     const firstZimmetBtn = page.locator('button:has-text("Zimmetleri Gör")').first();
     await expect(firstZimmetBtn).toBeVisible();
     await firstZimmetBtn.click();
@@ -132,6 +136,19 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
     const modal = page.locator('div[role="dialog"]');
     await expect(modal).toBeVisible();
     await expect(modal.locator('text=Personele Zimmetli Varlıklar')).toBeVisible();
+    await expect(modal.locator('text=Bu personele tahsis edilmiş zimmetli demirbaş bulunmuyor.')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toBeVisible();
+
+    // Zimmeti olan personeli ara (Derya -> GBZ-AST-144)
+    await page.fill('input[placeholder*="sicil no ara"]', 'Derya');
+    const deryaRow = page.locator('tr:has-text("Derya")').first();
+    await expect(deryaRow).toBeVisible();
+    await deryaRow.locator('button:has-text("Zimmetleri Gör")').click();
+
+    await expect(modal).toBeVisible();
+    await expect(modal.locator('text=Personele Zimmetli Varlıklar (1)')).toBeVisible();
+    await expect(modal.locator('text=GBZ-AST-144')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(modal).not.toBeVisible();
   });

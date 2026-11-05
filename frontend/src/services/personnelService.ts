@@ -35,6 +35,26 @@ export const personnelService = {
   getById: (id: number): Promise<Personnel> => {
     return apiRequest<Personnel>(`${API_ENDPOINTS.PERSONNEL}/${id}`);
   },
+
+  create: (data: Partial<Personnel>): Promise<Personnel> => {
+    return apiRequest<Personnel>(API_ENDPOINTS.PERSONNEL, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  update: (id: number, data: Partial<Personnel>): Promise<Personnel> => {
+    return apiRequest<Personnel>(`${API_ENDPOINTS.PERSONNEL}/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  delete: (id: number): Promise<void> => {
+    return apiRequest<void>(`${API_ENDPOINTS.PERSONNEL}/${id}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 
