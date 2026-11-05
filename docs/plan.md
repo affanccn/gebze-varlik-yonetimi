@@ -1403,3 +1403,39 @@ Uygulama servisleri kullanılmadan doğrudan veritabanı içerisinde PL/SQL topl
 5. **Adım 5: Ayrı Veritabanında Yüksek Ölçekli Performans ve Yük Testi (TAMAMLANDI):**
    - 100k varlık, 1M audit test verisinin yüklenmesi, 300 ms kriterinin doğrulanması, benchmark ve plan raporu tamamlandı.
 
+---
+
+## BÖLÜM 6: FAZ 2 - Kurumsal Operasyonlar, İK Entegrasyonu, Saha Sayım ve Analitik Yol Haritası (Revizyon 12)
+
+Kullanıcının belirlediği öncelik sıralaması doğrultusunda Faz 2 geliştirme planı:
+
+1. **FAZ 2A (Öncelik 1): Gelişmiş Analitik Raporlar & Yönetici Gösterge Paneli (Dashboard) - (TAMAMLANDI)**
+   - **Dashboard Genişletmesi:**
+     - Yaşam döngüsü durum dağılımı grafiği (Aktif, Depoda, Bakımda, Hurda, vb. 11 durum).
+     - Müdürlükler arası bütçe ve demirbaş değeri dağılımı.
+     - Kategori bazlı değer ve adet analizi.
+     - Zaman serisi / Trend analizi: Yıllara göre edinim bedeli ve varlık giriş eğrisi.
+     - Kritik bakım, garanti ve amortisman uyarı listeleri.
+     - `TenantQueryScope` entegrasyonu (Müdürlük yöneticisi sadece kendi kapsamını görür).
+   - **Taşınır Mal Yönetmeliği Resmi Raporları (`/api/reports`):**
+     - **Form 13: Taşınır Sayım ve Döküm Cetveli** (`GET /api/reports/form13`, resmi mevzuat formatı, 253/254/255 hesap kodları, ambar, miktar, birim fiyat, tutar).
+     - **Amortisman & Defter Değeri Raporu** (`GET /api/reports/depreciation`, faydalı ömür, birikmiş amortisman, NDD).
+     - **Hurda / Terkin / Zayiat Cetveli** (`GET /api/reports/disposal`, `HURDAYA_AYRILDI`, `ZAYIAT_CALINMA`, `SATILDI`).
+     - UTF-8 BOM destekli CSV streaming indirme (`GET /api/reports/export`) ve kurumsal resmi yazdırma (Print/PDF) şablonları.
+   - **Doğrulama:** `test_faz2a_reports.js` (100% Geçti), 23/23 Menü Testi (200 OK), 51/51 Playwright E2E Testi (Tamamı Başarılı), Altın Snapshot (74 varlık, 0 fark).
+
+2. **FAZ 2B (Öncelik 2): Belediye İK Entegrasyon Servisi (Personel Senkronizasyonu & Excel Toplu Yükleme)**
+   - **Toplu Personel İçe Aktarımı:** POI tabanlı Excel içe aktarım motoru (`POST /api/personnel/import/validate` ve `commit`).
+   - Sicil no, ad, soyad, unvan, müdürlük kodu, oda no alanlarının doğrulanması.
+   - **Kurumsal İK Senkronizasyon Servisi (`POST /api/personnel/sync-hr`):** Mock/REST entegrasyon servisi ile personellerin güncellenmesi.
+
+3. **FAZ 2C (Öncelik 3): Kamera & QR Kod ile Saha Sayım Modülü (Barkod Okuma / Hızlı Sayım)**
+   - WebRTC / Kamera entegrasyonu ile mobil ve masaüstü tarayıcılarda anlık kamera barkod/QR okuyucu.
+   - Sayım seansı yönetimi (`inventory_audits`), okunan barkodun varlıkla eşleştirilerek `audit_scans` tablosuna yazılması.
+   - Sayım fark analizi: Zimmette olup bulunamayanlar, oda uyuşmazlıkları ve sayılanlar özeti.
+
+4. **FAZ 2D (Öncelik 4): Bakım & Onarım Süreçleri Genişletmesi (Teknisyen Atama & İş Emri Çıktısı)**
+   - Servis ve bakım talepleri için teknisyen atama akışı.
+   - Bakım maliyet onay süreci.
+   - Yazdırılabilir / PDF iş emri ve servis kabul/teslim tutanağı.
+

@@ -890,6 +890,85 @@ public class EnterpriseRepository {
         }).list();
     }
 
+    public List<Form13ReportItem> generateForm13Report(Long filterDeptId) {
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
+        String deptClause = (filterDeptId != null) ? " AND a.department_id = " + filterDeptId : "";
+
+        return jdbcClient.sql("""
+            SELECT a.code, a.name, a.category, COALESCE(d.name, a.unit_name) AS dept_name,
+                   a.location_info, COALESCE(a.estimated_value, 0) AS est_val,
+                   a.status, a.condition_status
+            FROM assets a
+            LEFT JOIN departments d ON a.department_id = d.id
+            WHERE a.is_deleted = 0 AND a.is_active = 1
+              AND (""" + assetFilter + deptClause + """
+            )
+            ORDER BY a.category ASC, a.code ASC
+        """).query((rs, rowNum) -> {
+            String cat = rs.getString("category");
+            String accountCode = "255.99.99";
+            if (cat != null) {
+                String c = cat.toLowerCase();
+                if (c.contains("bilgisayar") || c.contains("bilişim") || c.contains("elektronik")) {
+                    accountCode = "255.02.01";
+                } else if (c.contains("mobilya") || c.contains("büro") || c.contains("mefruşat")) {
+                    accountCode = "255.03.01";
+                } else if (c.contains("makine") || c.contains("cihaz") || c.contains("alet")) {
+                    accountCode = "253.02.05";
+                } else if (c.contains("taşıt") || c.contains("araç") || c.contains("kamyon")) {
+                    accountCode = "254.01.01";
+                } else if (c.contains("bina") || c.contains("tesis")) {
+                    accountCode = "252.01.01";
+                }
+            }
+            double val = rs.getDouble("est_val");
+
+            return new Form13ReportItem(
+                    accountCode,
+                    rs.getString("code"),
+                    rs.getString("name"),
+                    cat != null ? cat : "Genel",
+                    rs.getString("dept_name") != null ? rs.getString("dept_name") : "Merkez",
+                    rs.getString("location_info") != null ? rs.getString("location_info") : "-",
+                    1,
+                    "Adet",
+                    val,
+                    val,
+                    rs.getString("status"),
+                    rs.getString("condition_status") != null ? rs.getString("condition_status") : "İyi"
+            );
+        }).list();
+    }
+
+    public List<DisposalReportItem> generateDisposalReport() {
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
+
+        return jdbcClient.sql("""
+            SELECT a.code, a.name, a.category, COALESCE(d.name, a.unit_name) AS dept_name,
+                   a.lifecycle_status, COALESCE(a.estimated_value, 0) AS est_val,
+                   TO_CHAR(a.acquisition_date, 'YYYY-MM-DD') AS acq_date,
+                   TO_CHAR(COALESCE(a.deleted_at, a.updated_at), 'YYYY-MM-DD HH24:MI') AS disp_date,
+                   COALESCE(a.notes, 'Kullanım ömrü tükenmesi ve teknik heyet terkin kararı') AS reason
+            FROM assets a
+            LEFT JOIN departments d ON a.department_id = d.id
+            WHERE a.is_deleted = 0
+              AND a.lifecycle_status IN ('HURDAYA_AYRILDI', 'ZAYIAT_CALINMA', 'SATILDI', 'DEVREDILDI', 'BAGISLANDI', 'PASIF_ASKIDA')
+              AND (""" + assetFilter + """
+            )
+            ORDER BY a.updated_at DESC
+        """).query((rs, rowNum) -> new DisposalReportItem(
+                rs.getString("code"),
+                rs.getString("name"),
+                rs.getString("category") != null ? rs.getString("category") : "Diğer",
+                rs.getString("dept_name") != null ? rs.getString("dept_name") : "Merkez",
+                rs.getString("lifecycle_status"),
+                rs.getDouble("est_val"),
+                rs.getString("acq_date") != null ? rs.getString("acq_date") : "-",
+                rs.getString("disp_date") != null ? rs.getString("disp_date") : "-",
+                rs.getString("reason")
+        )).list();
+    }
+
     // ==========================================
     // 9. OTOMATİK UYARILAR VE BİLDİRİMLER
     // ==========================================

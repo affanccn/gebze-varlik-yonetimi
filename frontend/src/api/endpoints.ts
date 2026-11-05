@@ -34,6 +34,9 @@ export const API_ENDPOINTS = {
   AUDITS: '/api/audits',
   DOCUMENTS: '/api/documents',
   REPORTS_DEPRECIATION: '/api/reports/depreciation',
+  REPORTS_FORM13: '/api/reports/form13',
+  REPORTS_DISPOSAL: '/api/reports/disposal',
+  REPORTS_EXPORT: '/api/reports/export',
   AUDIT_LOGS: '/api/audit-logs',
 
   // System

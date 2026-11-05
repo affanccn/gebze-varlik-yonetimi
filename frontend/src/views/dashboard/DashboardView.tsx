@@ -148,6 +148,81 @@ export const DashboardView: React.FC = () => {
         />
       </div>
 
+      {/* YÖNETİCİ ANALİTİK PANELİ: Yaşam Döngüsü & Yıllık Trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Yaşam Döngüsü Durum Dağılımı */}
+        <Card
+          title="Varlık Yaşam Döngüsü Analizi"
+          subtitle="11 yaşam döngüsü durumu bazında demirbaş adedi ve parasal değeri"
+        >
+          <div className="space-y-3 pt-1">
+            {(!dashboard.lifecycleDistribution || dashboard.lifecycleDistribution.length === 0) ? (
+              <p className="text-xs text-slate-500 py-4 text-center">Veri bulunmuyor</p>
+            ) : (
+              dashboard.lifecycleDistribution.map((item, idx) => {
+                const pct = dashboard.totalAssets > 0 ? Math.round((item.count / dashboard.totalAssets) * 100) : 0;
+                return (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={item.status} />
+                        <span className="font-semibold text-slate-800">{item.count} adet</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500 text-[11px]">%{pct}</span>
+                        <strong className="text-slate-900 font-mono">{formatCurrency(item.totalValue)}</strong>
+                      </div>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(4, pct)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </Card>
+
+        {/* Yıllık Edinim ve Harcama Trendi */}
+        <Card
+          title="Yıllık Varlık Edinim ve Yatırım Trendi"
+          subtitle="Kayıtlı edinim yıllarına göre demirbaş sayısı ve yatırım tutarı"
+        >
+          <div className="space-y-3 pt-1">
+            {(!dashboard.acquisitionTrends || dashboard.acquisitionTrends.length === 0) ? (
+              <p className="text-xs text-slate-500 py-4 text-center">Veri bulunmuyor</p>
+            ) : (
+              dashboard.acquisitionTrends.map((item, idx) => {
+                const maxVal = Math.max(...(dashboard.acquisitionTrends || []).map((t) => t.totalValue), 1);
+                const pct = Math.round((item.totalValue / maxVal) * 100);
+                return (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-800 font-mono bg-slate-100 px-2 py-0.5 rounded">
+                        {item.year || 'Tanımsız'}
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-600 font-medium">{item.count} varlık</span>
+                        <strong className="text-emerald-700 font-mono">{formatCurrency(item.totalValue)}</strong>
+                      </div>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(4, pct)}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </Card>
+      </div>
+
       {/* Akıllı Sistem Uyarıları (Varsa) */}
       {((dashboard.warrantyAlerts && dashboard.warrantyAlerts.length > 0) ||
         (dashboard.conditionAlerts && dashboard.conditionAlerts.length > 0)) && (

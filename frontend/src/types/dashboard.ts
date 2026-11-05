@@ -24,6 +24,7 @@ export interface BuildingDistributionRow {
 export interface CategoryDistributionRow {
   name: string;
   count: number;
+  totalValue?: number;
 }
 
 export interface TopRoomRow {
@@ -53,6 +54,18 @@ export interface ConditionAlertRow {
   condition: string;
 }
 
+export interface LifecycleDistributionRow {
+  status: string;
+  count: number;
+  totalValue: number;
+}
+
+export interface AcquisitionTrendRow {
+  year: string;
+  count: number;
+  totalValue: number;
+}
+
 export interface DashboardSummary {
   totalAssets: number;
   totalBuildings: number;
@@ -69,6 +82,8 @@ export interface DashboardSummary {
   byCategory: CategoryDistributionRow[];
   byStatus: Record<string, number>;
   byCondition: Record<string, number>;
+  lifecycleDistribution?: LifecycleDistributionRow[];
+  acquisitionTrends?: AcquisitionTrendRow[];
   unitSummaries: DepartmentSummaryRow[];
   buildingsDistribution: BuildingDistributionRow[];
   topRooms: TopRoomRow[];
@@ -76,4 +91,3 @@ export interface DashboardSummary {
   conditionAlerts: ConditionAlertRow[];
   recentMovements: AssetMovement[];
 }
-

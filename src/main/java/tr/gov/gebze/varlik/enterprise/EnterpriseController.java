@@ -1,5 +1,11 @@
 package tr.gov.gebze.varlik.enterprise;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -209,11 +215,97 @@ public class EnterpriseController {
         return Map.of("status", "SUCCESS", "message", "Ayar başarıyla güncellendi.");
     }
 
-    // 8. AMORTİSMAN & RAPORLAR
+    // 8. AMORTİSMAN & KURUMSAL RAPORLAR
     @GetMapping("/reports/depreciation")
     public List<DepreciationReportItem> getDepreciationReport() {
         tenantQueryScope.enforceStaffModuleRestriction("reports/depreciation");
         return enterpriseService.calculateDepreciation();
+    }
+
+    @GetMapping("/reports/form13")
+    public List<Form13ReportItem> getForm13Report(@RequestParam(required = false) Long departmentId) {
+        tenantQueryScope.enforceStaffModuleRestriction("reports/form13");
+        if (tenantQueryScope.isDeptManager()) {
+            departmentId = tenantQueryScope.getDepartmentId();
+        }
+        return enterpriseService.generateForm13Report(departmentId);
+    }
+
+    @GetMapping("/reports/disposal")
+    public List<DisposalReportItem> getDisposalReport() {
+        tenantQueryScope.enforceStaffModuleRestriction("reports/disposal");
+        return enterpriseService.generateDisposalReport();
+    }
+
+    @GetMapping("/reports/export")
+    public void exportReport(
+            HttpServletResponse response,
+            @RequestParam(defaultValue = "form13") String type,
+            @RequestParam(required = false) Long departmentId
+    ) throws IOException {
+        tenantQueryScope.enforceStaffModuleRestriction("reports/export");
+        if (tenantQueryScope.isDeptManager()) {
+            departmentId = tenantQueryScope.getDepartmentId();
+        }
+
+        response.setContentType("text/csv; charset=UTF-8");
+        OutputStream out = response.getOutputStream();
+        // UTF-8 BOM
+        out.write(0xEF);
+        out.write(0xBB);
+        out.write(0xBF);
+        out.flush();
+
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+
+        if ("form13".equalsIgnoreCase(type)) {
+            response.setHeader("Content-Disposition", "attachment; filename=\"Tasinir_Sayim_ve_Dokum_Cetveli_Form13.csv\"");
+            writer.println("Tasınır Hesap Kodu;Varlık Kodu;Demirbaş Adı;Kategori;Müdürlük / Ambar;Konum;Miktar;Ölçü Birimi;Birim Değer (TL);Toplam Tutar (TL);Durum;Kondisyon");
+            for (Form13ReportItem item : enterpriseService.generateForm13Report(departmentId)) {
+                writer.println(String.format("%s;%s;\"%s\";\"%s\";\"%s\";\"%s\";%d;%s;%.2f;%.2f;%s;%s",
+                        item.accountCode(), item.assetCode(),
+                        item.assetName().replace("\"", "\"\""),
+                        item.category().replace("\"", "\"\""),
+                        item.departmentName().replace("\"", "\"\""),
+                        item.location().replace("\"", "\"\""),
+                        item.quantity(), item.unit(), item.unitPrice(), item.totalPrice(),
+                        item.status(), item.conditionStatus()));
+            }
+        } else if ("disposal".equalsIgnoreCase(type)) {
+            response.setHeader("Content-Disposition", "attachment; filename=\"Hurda_Terkin_ve_Zayiat_Raporu.csv\"");
+            writer.println("Varlık Kodu;Demirbaş Adı;Kategori;Müdürlük;Durum;Edinim Bedeli (TL);Edinim Tarihi;Terkin Tarihi;Terkin Gerekçesi");
+            for (DisposalReportItem item : enterpriseService.generateDisposalReport()) {
+                writer.println(String.format("%s;\"%s\";\"%s\";\"%s\";%s;%.2f;%s;%s;\"%s\"",
+                        item.assetCode(),
+                        item.assetName().replace("\"", "\"\""),
+                        item.category().replace("\"", "\"\""),
+                        item.departmentName().replace("\"", "\"\""),
+                        item.lifecycleStatus(),
+                        item.originalValue(),
+                        item.acquisitionDate(),
+                        item.disposalDate(),
+                        item.disposalReason().replace("\"", "\"\"")));
+            }
+        } else {
+            response.setHeader("Content-Disposition", "attachment; filename=\"Amortisman_ve_Defter_Degeri_Raporu.csv\"");
+            writer.println("Varlık Kodu;Demirbaş Adı;Kategori;Müdürlük;Edinim Tarihi;İlk Bedel (TL);Faydalı Ömür (Yıl);Yıllık Oran;Birikmiş Amortisman (TL);Net Defter Değeri (TL);Durum");
+            for (DepreciationReportItem item : enterpriseService.calculateDepreciation()) {
+                writer.println(String.format("%s;\"%s\";\"%s\";\"%s\";%s;%.2f;%d;%.1f;%.2f;%.2f;%s",
+                        item.assetCode(),
+                        item.assetName().replace("\"", "\"\""),
+                        item.category().replace("\"", "\"\""),
+                        item.departmentName().replace("\"", "\"\""),
+                        item.acquisitionDate(),
+                        item.originalValue(),
+                        item.usefulLifeYears(),
+                        item.annualDepreciationRate(),
+                        item.accumulatedDepreciation(),
+                        item.currentBookValue(),
+                        item.status()));
+            }
+        }
+
+        writer.flush();
     }
 
     // 9. OTOMATİK UYARILAR

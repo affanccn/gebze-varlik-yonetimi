@@ -138,6 +138,40 @@ public class DashboardController {
         jdbcClient.sql("SELECT a.condition_status, COUNT(*) AS cnt FROM assets a WHERE a.is_active = 1 AND a.is_deleted = 0 AND (" + assetScope + ") GROUP BY a.condition_status ORDER BY cnt DESC")
                 .query((rs, r) -> byCondition.put(rs.getString("condition_status"), rs.getLong("cnt"))).list();
 
+        // 5.1 YAŞAM DÖNGÜSÜ (11 DURUM) DAĞILIMI
+        List<Map<String, Object>> lifecycleDistribution = jdbcClient.sql("""
+            SELECT a.lifecycle_status, COUNT(*) AS cnt, COALESCE(SUM(a.estimated_value), 0) AS total_val
+            FROM assets a
+            WHERE a.is_deleted = 0 AND (""" + assetScope + """
+            )
+            GROUP BY a.lifecycle_status
+            ORDER BY cnt DESC
+        """).query((rs, rowNum) -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("status", rs.getString("lifecycle_status"));
+            m.put("count", rs.getLong("cnt"));
+            m.put("totalValue", rs.getDouble("total_val"));
+            return m;
+        }).list();
+
+        // 5.2 YILLIK EDİNİM TRENDİ (SON 10 YIL)
+        List<Map<String, Object>> acquisitionTrends = jdbcClient.sql("""
+            SELECT TO_CHAR(a.acquisition_date, 'YYYY') AS acq_year,
+                   COUNT(*) AS asset_count,
+                   COALESCE(SUM(a.estimated_value), 0) AS total_val
+            FROM assets a
+            WHERE a.is_deleted = 0 AND a.acquisition_date IS NOT NULL AND (""" + assetScope + """
+            )
+            GROUP BY TO_CHAR(a.acquisition_date, 'YYYY')
+            ORDER BY acq_year ASC
+        """).query((rs, rowNum) -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("year", rs.getString("acq_year"));
+            m.put("count", rs.getLong("asset_count"));
+            m.put("totalValue", rs.getDouble("total_val"));
+            return m;
+        }).list();
+
         // 6. EN ÇOK DEMİRBAŞ BULUNAN ODALAR
         List<Map<String, Object>> topRooms = jdbcClient.sql("""
             SELECT r.id, r.room_number, r.name, r.room_type, b.name AS bld_name, COUNT(a.id) AS asset_count
@@ -220,6 +254,8 @@ public class DashboardController {
         response.put("byCategory", categoriesDistribution);
         response.put("byStatus", byStatus);
         response.put("byCondition", byCondition);
+        response.put("lifecycleDistribution", lifecycleDistribution);
+        response.put("acquisitionTrends", acquisitionTrends);
         response.put("unitSummaries", departmentsSummary);
         response.put("buildingsDistribution", buildingsDistribution);
         response.put("topRooms", topRooms);

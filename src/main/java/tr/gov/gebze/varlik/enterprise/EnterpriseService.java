@@ -122,6 +122,14 @@ public class EnterpriseService {
         return repository.calculateDepreciation();
     }
 
+    public List<Form13ReportItem> generateForm13Report(Long departmentId) {
+        return repository.generateForm13Report(departmentId);
+    }
+
+    public List<DisposalReportItem> generateDisposalReport() {
+        return repository.generateDisposalReport();
+    }
+
     public List<SystemAlert> calculateSystemAlerts() {
         return repository.calculateSystemAlerts();
     }
