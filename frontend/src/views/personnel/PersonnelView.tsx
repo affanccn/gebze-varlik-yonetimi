@@ -231,9 +231,9 @@ export const PersonnelView: React.FC = () => {
         title={`Belediye Personeli (${total})`}
         subtitle="Zimmetli demirbaşları listelemek veya incelemek için personeli seçin"
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[calc(100vh-270px)] overflow-y-auto rounded-xl border border-slate-200">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
               <tr>
                 <th className="py-3 px-4">Sicil No</th>
                 <th className="py-3 px-4">Ad Soyad / Görevi</th>

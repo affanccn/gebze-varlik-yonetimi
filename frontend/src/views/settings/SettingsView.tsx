@@ -87,7 +87,7 @@ export const SettingsView: React.FC = () => {
           {isLoading ? (
             <div className="p-8 text-center text-slate-500">Parametreler yükleniyor...</div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 max-h-[340px] overflow-y-auto scrollbar-thin">
               {settings.map((s) => (
                 <div key={s.paramKey} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition-colors">
                   <div className="space-y-0.5 max-w-xl">
@@ -124,9 +124,9 @@ export const SettingsView: React.FC = () => {
         </h2>
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[380px] overflow-y-auto scrollbar-thin">
             <table className="w-full text-left text-xs text-slate-600">
-              <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+              <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                 <tr>
                   <th className="px-4 py-3">Modül / İşlem</th>
                   <th className="px-4 py-3 text-rose-700 font-bold">ADMIN</th>

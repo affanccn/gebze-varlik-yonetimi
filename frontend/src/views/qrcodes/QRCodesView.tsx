@@ -193,8 +193,9 @@ export const QRCodesView: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 print:grid-cols-2">
-            {assets.slice(0, 18).map((asset) => {
+          <div className="max-h-[calc(100vh-330px)] min-h-[360px] overflow-y-auto scrollbar-thin p-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 print:grid-cols-2">
+              {assets.slice(0, 18).map((asset) => {
               const roomStr = asset.roomNumber ? `Oda ${asset.roomNumber}` : asset.location || '-';
 
               return (
@@ -233,6 +234,7 @@ export const QRCodesView: React.FC = () => {
                 </div>
               );
             })}
+            </div>
           </div>
         )}
       </Card>

@@ -83,9 +83,9 @@ export const DocumentsView: React.FC = () => {
         title={`Kayıtlı Dijital Evraklar (${filteredDocuments.length})`}
         subtitle="Belediye varlıkları ile ilişkilendirilmiş resmi belgeler"
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[calc(100vh-270px)] overflow-y-auto rounded-xl border border-slate-200 scrollbar-thin">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
               <tr>
                 <th className="py-3 px-4">Evrak Kodu</th>
                 <th className="py-3 px-4">Belge Türü</th>

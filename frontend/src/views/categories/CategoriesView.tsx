@@ -71,42 +71,44 @@ export const CategoriesView: React.FC = () => {
           <p className="text-xs text-slate-400 mt-1">Arama kriterlerinize uygun varlık kategorisi bulunamadı.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {filteredCategories.map((cat) => (
-            <div
-              key={cat.id}
-              onClick={() => setSelectedCat(cat)}
-              className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between group"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="font-mono text-xs font-bold text-gebze-navy bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                    {cat.code}
-                  </span>
-                  <span className="text-xl">
-                    {cat.icon || '📦'}
-                  </span>
+        <div className="max-h-[calc(100vh-210px)] min-h-[400px] overflow-y-auto p-1 pr-2 rounded-xl scrollbar-thin">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {filteredCategories.map((cat) => (
+              <div
+                key={cat.id}
+                onClick={() => setSelectedCat(cat)}
+                className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between group"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <span className="font-mono text-xs font-bold text-gebze-navy bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+                      {cat.code}
+                    </span>
+                    <span className="text-xl">
+                      {cat.icon || '📦'}
+                    </span>
+                  </div>
+
+                  <h3 className="font-bold text-base text-slate-900 group-hover:text-gebze-navy transition-colors">
+                    {cat.name}
+                  </h3>
+
+                  <p className="text-xs text-slate-500 mt-2 line-clamp-2 min-h-8">
+                    {cat.description || 'Taşınır mal envanteri standart kategori kaydı.'}
+                  </p>
                 </div>
 
-                <h3 className="font-bold text-base text-slate-900 group-hover:text-gebze-navy transition-colors">
-                  {cat.name}
-                </h3>
-
-                <p className="text-xs text-slate-500 mt-2 line-clamp-2 min-h-8">
-                  {cat.description || 'Taşınır mal envanteri standart kategori kaydı.'}
-                </p>
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <span className="font-bold text-gebze-navy bg-blue-50 px-2 py-0.5 rounded">
+                    {cat.assetCount} Demirbaş
+                  </span>
+                  <span className="text-gebze-navy font-semibold text-[11px] group-hover:underline">
+                    Varlıkları Gör &rarr;
+                  </span>
+                </div>
               </div>
-
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="font-bold text-gebze-navy bg-blue-50 px-2 py-0.5 rounded">
-                  {cat.assetCount} Demirbaş
-                </span>
-                <span className="text-gebze-navy font-semibold text-[11px] group-hover:underline">
-                  Varlıkları Gör &rarr;
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 

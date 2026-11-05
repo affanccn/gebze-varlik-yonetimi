@@ -291,9 +291,9 @@ export const ReportsView: React.FC = () => {
             title={`Amortisman ve Net Defter Değeri Raporu (${filteredDep.length} Varlık)`}
             subtitle="TMS-16 ve Taşınır Mal Yönetmeliği amortisman hesaplama tablosu"
           >
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto print:max-h-none scrollbar-thin">
               <table className="w-full text-left text-sm print:text-xs">
-                <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+                <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                   <tr>
                     <th className="py-2.5 px-3">Varlık Kodu</th>
                     <th className="py-2.5 px-3">Demirbaş Adı</th>
@@ -393,9 +393,9 @@ export const ReportsView: React.FC = () => {
             title={`Taşınır Sayım ve Döküm Cetveli (Form 13) - ${filteredForm13.length} Kalem`}
             subtitle="Taşınır Mal Yönetmeliği hesap kodları ve fiziki envanter dökümü"
           >
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto print:max-h-none scrollbar-thin">
               <table className="w-full text-left text-sm print:text-[10px]">
-                <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+                <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                   <tr>
                     <th className="py-2.5 px-3">Hesap Kodu</th>
                     <th className="py-2.5 px-3">Taşınır Kodu</th>
@@ -500,9 +500,9 @@ export const ReportsView: React.FC = () => {
             title={`Hurda, Terkin ve Zayiat Cetveli (${filteredDisposal.length} Varlık)`}
             subtitle="Ekonomik ömrünü tamamlamış (HEK), çalınmış veya kayıptan terkin edilen varlıklar"
           >
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto print:max-h-none scrollbar-thin">
               <table className="w-full text-left text-sm print:text-xs">
-                <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+                <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                   <tr>
                     <th className="py-2.5 px-3">Varlık Kodu</th>
                     <th className="py-2.5 px-3">Demirbaş Adı</th>

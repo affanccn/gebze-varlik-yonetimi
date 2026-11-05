@@ -82,8 +82,9 @@ export const DepartmentsView: React.FC = () => {
           <p className="text-xs text-slate-400 mt-1">Arama kriterinize uygun müdürlük kaydı bulunamadı.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredDepartments.map((dept) => {
+        <div className="max-h-[calc(100vh-210px)] min-h-[400px] overflow-y-auto p-1 pr-2 rounded-xl scrollbar-thin">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredDepartments.map((dept) => {
             const deptSubs = subUnits.filter((s) => s.departmentId === dept.id);
 
             return (
@@ -154,6 +155,7 @@ export const DepartmentsView: React.FC = () => {
               </div>
             );
           })}
+          </div>
         </div>
       )}
 

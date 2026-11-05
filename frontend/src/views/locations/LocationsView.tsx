@@ -202,8 +202,9 @@ export const LocationsView: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredRooms.map((room) => (
+        <div className="max-h-[calc(100vh-340px)] min-h-[420px] overflow-y-auto p-1 pr-2 rounded-xl scrollbar-thin">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredRooms.map((room) => (
             <div
               key={room.id}
               onClick={() => setSelectedRoomId(room.id)}
@@ -247,6 +248,7 @@ export const LocationsView: React.FC = () => {
               </div>
             </div>
           ))}
+          </div>
         </div>
       )}
 

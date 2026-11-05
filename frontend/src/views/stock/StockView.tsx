@@ -274,9 +274,9 @@ export const StockView: React.FC = () => {
                 Filtrelere uygun stok kalemi bulunamadı.
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto scrollbar-thin">
                 <table className="w-full text-left text-xs text-slate-600">
-                  <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                  <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                     <tr>
                       <th className="px-4 py-3">Malzeme Kodu</th>
                       <th className="px-4 py-3">Malzeme Adı</th>
@@ -376,9 +376,9 @@ export const StockView: React.FC = () => {
               Henüz kayıtlı stok hareketi bulunmuyor.
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto scrollbar-thin">
               <table className="w-full text-left text-xs text-slate-600">
-                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 sticky top-0 z-10 shadow-2xs">
                   <tr>
                     <th className="px-4 py-3">İşlem Kodu</th>
                     <th className="px-4 py-3">Tarih</th>
