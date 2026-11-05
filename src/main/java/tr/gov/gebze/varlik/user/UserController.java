@@ -12,7 +12,6 @@ import tr.gov.gebze.varlik.security.SystemUserDetails;
 
 @RestController
 @RequestMapping("/api/users")
-@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private final UserService userService;

@@ -150,4 +150,25 @@ public class SecurityAuditService {
             logger.error("Şifre değişim audit logu kaydedilemedi: {}", ex.getMessage());
         }
     }
+
+    public void logAction(String actionType, String entityType, String entityId, String username, String fullName, String clientIp, String description) {
+        try {
+            jdbcClient.sql("""
+                INSERT INTO system_audit_logs (
+                    action_type, entity_type, entity_id, actor_username, actor_name,
+                    ip_address, description, created_at
+                ) VALUES (:actionType, :entityType, :entityId, :username, :fullName, :clientIp, :description, CURRENT_TIMESTAMP)
+            """)
+            .param("actionType", actionType)
+            .param("entityType", entityType)
+            .param("entityId", entityId != null ? entityId : "-")
+            .param("username", username != null ? username : "SISTEM")
+            .param("fullName", fullName != null ? fullName : "Sistem")
+            .param("clientIp", clientIp != null ? clientIp : "127.0.0.1")
+            .param("description", description)
+            .update();
+        } catch (Exception ex) {
+            logger.error("Genel audit logu kaydedilemedi: {}", ex.getMessage());
+        }
+    }
 }

@@ -18,7 +18,6 @@ export const API_ENDPOINTS = {
   PERSONNEL_EXPORT_TEMPLATE: '/api/personnel/export-template',
   PERSONNEL_IMPORT_VALIDATE: '/api/personnel/import/validate',
   PERSONNEL_IMPORT_COMMIT: '/api/personnel/import/commit',
-  PERSONNEL_SYNC_HR: '/api/personnel/sync-hr',
   CATEGORIES: '/api/categories',
 
   // Assets & Lifecycle

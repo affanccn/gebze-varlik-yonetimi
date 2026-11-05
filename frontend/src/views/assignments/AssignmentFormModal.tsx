@@ -84,6 +84,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
     try {
       const res = await assignmentService.create({
         assetId: Number(selectedAssetId),
+        personnelId: selectedPersonId ? Number(selectedPersonId) : undefined,
         assigneeName,
         assigneeTitle,
         unit,

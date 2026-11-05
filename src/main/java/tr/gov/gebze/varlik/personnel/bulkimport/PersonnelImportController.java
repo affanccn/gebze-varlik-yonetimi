@@ -47,8 +47,8 @@ public class PersonnelImportController {
             HttpServletResponse response
     ) throws IOException {
         UserSession session = requirePersonnelManageAccess(token);
-        SystemUserDetails userDetails = tenantQueryScope.getCurrentUser();
-        Long deptId = userDetails != null ? userDetails.getDepartmentId() : null;
+        Long deptId = session.departmentId() != null ? session.departmentId() :
+                (tenantQueryScope.getCurrentUser() != null ? tenantQueryScope.getCurrentUser().getDepartmentId() : null);
 
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=\"gebze_personel_ice_aktarim_sablonu.xlsx\"");
@@ -65,8 +65,8 @@ public class PersonnelImportController {
         if (file.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Yüklenecek Excel dosyası boş olamaz.");
         }
-        SystemUserDetails userDetails = tenantQueryScope.getCurrentUser();
-        Long deptId = userDetails != null ? userDetails.getDepartmentId() : null;
+        Long deptId = session.departmentId() != null ? session.departmentId() :
+                (tenantQueryScope.getCurrentUser() != null ? tenantQueryScope.getCurrentUser().getDepartmentId() : null);
 
         return importService.validateExcel(file.getInputStream(), session.role(), deptId);
     }
@@ -80,18 +80,10 @@ public class PersonnelImportController {
         if (file.isEmpty()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Yüklenecek Excel dosyası boş olamaz.");
         }
-        SystemUserDetails userDetails = tenantQueryScope.getCurrentUser();
-        Long deptId = userDetails != null ? userDetails.getDepartmentId() : null;
+        Long deptId = session.departmentId() != null ? session.departmentId() :
+                (tenantQueryScope.getCurrentUser() != null ? tenantQueryScope.getCurrentUser().getDepartmentId() : null);
 
         return importService.commitImport(file.getInputStream(), session.role(), deptId, session.username());
-    }
-
-    @PostMapping("/sync-hr")
-    public Map<String, Object> syncFromHrSystem(
-            @RequestHeader(value = "X-Auth-Token", required = false) String token
-    ) {
-        UserSession session = requirePersonnelManageAccess(token);
-        return importService.syncFromHrSystem(session.username());
     }
 }
 

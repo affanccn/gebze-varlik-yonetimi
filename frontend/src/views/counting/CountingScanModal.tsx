@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 import { enterpriseService } from '../../services/enterpriseService';
@@ -7,7 +7,6 @@ import {
   QrCode,
   ScanLine,
   Camera,
-  CameraOff,
   Volume2,
   VolumeX,
   Zap,
@@ -80,73 +79,16 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [lockLocation, setLockLocation] = useState(true); // Odayı Sabitle
 
-  // Kamera ve Tarama Durumu
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const scanIntervalRef = useRef<number | null>(null);
-
   // Canlı Okutulanlar Geçmişi (Bu oturumda okutulanlar)
   const [sessionScans, setSessionScans] = useState<AuditScanResult[]>([]);
-
-  // Kamera Başlatma
-  const startCamera = useCallback(async () => {
-    setCameraError(null);
-    try {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error('Tarayıcınız kamera akışını desteklemiyor.');
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      setIsCameraActive(true);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Kameraya erişilemedi.';
-      setCameraError(msg);
-      setIsCameraActive(false);
-    }
-  }, []);
-
-  // Kamera Durdurma
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current);
-      scanIntervalRef.current = null;
-    }
-    setIsCameraActive(false);
-  }, []);
-
-  // Sekme değiştiğinde kamerayı yönet
-  useEffect(() => {
-    if (isOpen && activeTab === 'CAMERA') {
-      startCamera();
-    } else {
-      stopCamera();
-    }
-    return () => {
-      stopCamera();
-    };
-  }, [isOpen, activeTab, startCamera, stopCamera]);
 
   // Modal kapandığında sıfırla
   useEffect(() => {
     if (!isOpen) {
-      stopCamera();
       setAssetCode('');
       setSessionScans([]);
     }
-  }, [isOpen, stopCamera]);
+  }, [isOpen]);
 
   // Sayım Kaydı Gönderme Fonksiyonu
   const executeScan = async (codeToScan: string, locationToScan: string) => {
@@ -223,7 +165,7 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
               }`}
             >
               <ScanLine className="w-3.5 h-3.5" />
-              Lazer / Manuel Giriş
+              Barkod Okuyucu / El Terminali (USB)
             </button>
             <button
               type="button"
@@ -236,6 +178,9 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
             >
               <Camera className="w-3.5 h-3.5" />
               Kamera ile Say
+              <span className="text-[10px] bg-amber-500/20 text-amber-700 px-1 py-0.2 rounded font-semibold border border-amber-300">
+                Yakında
+              </span>
             </button>
           </div>
 
@@ -264,58 +209,25 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
           </div>
         </div>
 
-        {/* KAMERA VİZÖR ALANI */}
+        {/* KAMERA BİLGİLENDİRME VE YAKINDA ALANI */}
         {activeTab === 'CAMERA' && (
-          <div className="relative bg-slate-900 rounded-xl overflow-hidden aspect-video flex flex-col items-center justify-center border-2 border-slate-700">
-            {isCameraActive ? (
-              <>
-                <video
-                  ref={videoRef}
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-                {/* Lazer Tarayıcı Hedef Vizörü */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-56 h-56 border-2 border-dashed border-emerald-400 rounded-2xl relative shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                    {/* Köşe Vurguları */}
-                    <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-emerald-500 rounded-tl-lg" />
-                    <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-emerald-500 rounded-tr-lg" />
-                    <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-emerald-500 rounded-bl-lg" />
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-emerald-500 rounded-br-lg" />
-                    {/* Kırmızı Lazer Tarama Çizgisi */}
-                    <div className="absolute left-2 right-2 h-0.5 bg-red-500 animate-pulse top-1/2 shadow-[0_0_10px_red]" />
-                  </div>
-                </div>
-                <div className="absolute bottom-2 left-3 right-3 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-xs flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-emerald-400 font-medium">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                    Kamera Hazır (Vizöre QR/Barkodu Yaklaştırın)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={stopCamera}
-                    className="text-slate-300 hover:text-white flex items-center gap-1"
-                  >
-                    <CameraOff className="w-3.5 h-3.5" /> Kapat
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="text-center p-6 text-slate-400 space-y-3">
-                <Camera className="w-12 h-12 mx-auto text-slate-500" />
-                <p className="text-sm font-medium text-slate-300">
-                  {cameraError || 'Kamera akışı başlatılamadı veya izin verilmedi.'}
-                </p>
-                <button
-                  type="button"
-                  onClick={startCamera}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold"
-                >
-                  Kamerayı Yeniden Başlat
-                </button>
-              </div>
-            )}
+          <div className="bg-slate-900 rounded-xl p-6 text-center text-slate-300 border-2 border-slate-700 space-y-3">
+            <Camera className="w-12 h-12 mx-auto text-amber-400" />
+            <h4 className="text-sm font-bold text-white">
+              Kamera & Barkod Çözümleyici Modülü (Pilot Hazırlığı)
+            </h4>
+            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+              Mobil tarayıcı kamera entegrasyonu belediye HTTPS sertifikasyonu ve donanım kararı (Karar S.8) doğrultusunda aktifleşecektir. Lütfen USB barkod okuyucu tabanca veya klavye girişi ile sayım yapınız.
+            </p>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setActiveTab('MANUAL')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
+              >
+                Barkod / Klavye Girişine Dön
+              </button>
+            </div>
           </div>
         )}
 

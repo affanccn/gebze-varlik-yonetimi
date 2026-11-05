@@ -67,7 +67,7 @@ async function sendFile(endpoint, filePath, fields = {}, cookies) {
 }
 
 const DB_PASSWORD = process.env.DB_PASSWORD || 'GebzeVarlik2026';
-const APP_ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const APP_ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
 const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 
 async function runSql(sql) {

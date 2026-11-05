@@ -53,7 +53,7 @@ async function run() {
   console.log('=== FAZ 2C: KAMERA & QR KOD İLE SAHA SAYIM VE MUTABAKAT MODÜLÜ TESTİ ===\n');
 
   // 1. Admin Girişi
-  const adminCookies = await login('admin', 'YeniGucluAdmin2026!');
+  const adminCookies = await login('admin', 'GebzeDev2026!');
   console.log('1. Admin Oturumu Başarılı ✅');
 
   // 2. Sayım Seanslarını Listele

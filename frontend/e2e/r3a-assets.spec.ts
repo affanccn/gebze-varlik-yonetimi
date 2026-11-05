@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { execSync } from 'child_process';
 
-const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
 const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 
 test.describe('Faz R3a: Varlık Yönetimi Çekirdek E2E Test Paketi', () => {
@@ -152,10 +152,10 @@ test.describe('Faz R3a: Varlık Yönetimi Çekirdek E2E Test Paketi', () => {
 
     // Müdürlük ve alt birim seç
     await page.locator('select[name="departmentId"]').selectOption({ index: 1 });
-    await page.waitForTimeout(300);
-    const subSelect = page.locator('select[name="subUnitId"]');
-    if (await subSelect.isEnabled()) {
-      await subSelect.selectOption({ index: 1 });
+    await page.waitForTimeout(500);
+    const subOptionCount = await page.locator('select[name="subUnitId"] option').count();
+    if (subOptionCount > 1) {
+      await page.locator('select[name="subUnitId"]').selectOption({ index: 1 });
     }
 
     // Hizmet binası seç

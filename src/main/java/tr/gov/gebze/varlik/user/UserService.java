@@ -240,7 +240,7 @@ public class UserService {
                 email = :email,
                 role = :role,
                 department_id = :deptId,
-                personnel_id = :persId,
+                personnel_id = :personnelId,
                 is_active = :isActive
             WHERE id = :id
         """)

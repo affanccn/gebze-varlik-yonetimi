@@ -1,0 +1,1750 @@
+[
+  {
+    "id": 1,
+    "httpMethod": "GET",
+    "path": "/api/alerts",
+    "controller": "EnterpriseController",
+    "methodName": "getAlerts",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 2,
+    "httpMethod": "GET",
+    "path": "/api/assets",
+    "controller": "AssetController",
+    "methodName": "listAssets",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Kendi Zimmetli Varlıkları (kapsam dışı ID: 403)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Varlık sayfalı arama ve listeleme"
+  },
+  {
+    "id": 3,
+    "httpMethod": "POST",
+    "path": "/api/assets",
+    "controller": "AssetController",
+    "methodName": "createAsset",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı 403); STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Yeni demirbaş varlık kaydı"
+  },
+  {
+    "id": 4,
+    "httpMethod": "DELETE",
+    "path": "/api/assets/{id}",
+    "controller": "AssetController",
+    "methodName": "deleteAsset",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Varlık Arşivleme / Düşüm)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Varlığı pasife alma ve kayıttan düşme"
+  },
+  {
+    "id": 5,
+    "httpMethod": "GET",
+    "path": "/api/assets/{id}",
+    "controller": "AssetController",
+    "methodName": "getAssetDetail",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Kendi Zimmetli Varlıkları (kapsam dışı ID: 403)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Varlık detay / geçiş / barkod arama"
+  },
+  {
+    "id": 6,
+    "httpMethod": "PUT",
+    "path": "/api/assets/{id}",
+    "controller": "AssetController",
+    "methodName": "updateAsset",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı 403); STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Varlık bilgilerini güncelleme"
+  },
+  {
+    "id": 7,
+    "httpMethod": "POST",
+    "path": "/api/assets/{id}/transfer",
+    "controller": "AssetController",
+    "methodName": "transferAsset",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı 403); STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Varlık konum / birim transferi"
+  },
+  {
+    "id": 8,
+    "httpMethod": "POST",
+    "path": "/api/assets/{id}/transition",
+    "controller": "AssetController",
+    "methodName": "transitionAsset",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı 403); STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Yaşam döngüsü durum geçişi"
+  },
+  {
+    "id": 9,
+    "httpMethod": "GET",
+    "path": "/api/assets/{id}/transitions",
+    "controller": "AssetController",
+    "methodName": "getAvailableTransitions",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Kendi Zimmetli Varlıkları (kapsam dışı ID: 403)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Varlık detay / geçiş / barkod arama"
+  },
+  {
+    "id": 10,
+    "httpMethod": "GET",
+    "path": "/api/assets/export",
+    "controller": "AssetController",
+    "methodName": "exportAssets",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": true,
+    "description": "Varlık listesini CSV formatında dışa aktarma"
+  },
+  {
+    "id": 11,
+    "httpMethod": "GET",
+    "path": "/api/assets/export-template",
+    "controller": "BulkImportController",
+    "methodName": "exportTemplate",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN ve DEPT_MANAGER",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Varlık Excel toplu aktarım şablonu indirme"
+  },
+  {
+    "id": 12,
+    "httpMethod": "POST",
+    "path": "/api/assets/import/commit",
+    "controller": "BulkImportController",
+    "methodName": "commitImport",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Toplu varlık aktarımını veritabanına kaydetme"
+  },
+  {
+    "id": 13,
+    "httpMethod": "POST",
+    "path": "/api/assets/import/validate",
+    "controller": "BulkImportController",
+    "methodName": "validateImport",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü",
+    "csrfRequired": true,
+    "auditLogged": false,
+    "description": "Varlık Excel dosyasını doğrulama"
+  },
+  {
+    "id": 14,
+    "httpMethod": "GET",
+    "path": "/api/assets/lookup",
+    "controller": "AssetController",
+    "methodName": "lookupAsset",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Kendi Zimmetli Varlıkları (kapsam dışı ID: 403)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Varlık detay / geçiş / barkod arama"
+  },
+  {
+    "id": 15,
+    "httpMethod": "GET",
+    "path": "/api/assignments",
+    "controller": "AssignmentController",
+    "methodName": "listAssignments",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Kendi Zimmet Kayıtları",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Zimmet fişleri ve geçmişi listeleme"
+  },
+  {
+    "id": 16,
+    "httpMethod": "POST",
+    "path": "/api/assignments",
+    "controller": "AssignmentController",
+    "methodName": "createAssignment",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü Varlığı ve Personeli; STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Personele yeni demirbaş zimmetleme"
+  },
+  {
+    "id": 17,
+    "httpMethod": "POST",
+    "path": "/api/assignments/{id}/return",
+    "controller": "AssignmentController",
+    "methodName": "returnAssignment",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü Varlığı ve Personeli; STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Zimmet iadesi ve fiş sonlandırma"
+  },
+  {
+    "id": 18,
+    "httpMethod": "GET",
+    "path": "/api/audit-logs",
+    "controller": "EnterpriseController",
+    "methodName": "listAuditLogs",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN, AUDITOR ve VIEWER (Denetim İzi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Sistem güvenlik ve işlem denetim günlüğü listesi"
+  },
+  {
+    "id": 19,
+    "httpMethod": "GET",
+    "path": "/api/audits",
+    "controller": "EnterpriseController",
+    "methodName": "listAudits",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 20,
+    "httpMethod": "GET",
+    "path": "/api/audits/{id}/reconciliation",
+    "controller": "EnterpriseController",
+    "methodName": "getAuditReconciliation",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 21,
+    "httpMethod": "POST",
+    "path": "/api/audits/{id}/scan",
+    "controller": "EnterpriseController",
+    "methodName": "addAuditScan",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi müdürlük sayım seansı; ADMIN: Tüm sayımlar",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Saha sayımında barkod okutma ve sayım kaydı ekleme"
+  },
+  {
+    "id": 22,
+    "httpMethod": "GET",
+    "path": "/api/audits/{id}/scans",
+    "controller": "EnterpriseController",
+    "methodName": "listAuditScans",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 23,
+    "httpMethod": "POST",
+    "path": "/api/auth/change-password",
+    "controller": "AuthController",
+    "methodName": "changePassword",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Kendi Oturumu / Hesabı",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Kullanıcı kendi parolasını değiştirme"
+  },
+  {
+    "id": 24,
+    "httpMethod": "GET",
+    "path": "/api/auth/demo-users",
+    "controller": "AuthController",
+    "methodName": "getDemoUsers",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 200
+    },
+    "scopeRule": "Genel (Herkese Açık)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Geliştirme test hesapları listesi"
+  },
+  {
+    "id": 25,
+    "httpMethod": "POST",
+    "path": "/api/auth/login",
+    "controller": "AuthController",
+    "methodName": "login",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 200
+    },
+    "scopeRule": "Genel (Kimlik Doğrulama)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Kullanıcı oturum açma"
+  },
+  {
+    "id": 26,
+    "httpMethod": "POST",
+    "path": "/api/auth/logout",
+    "controller": "AuthController",
+    "methodName": "logout",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Kendi Oturumu / Hesabı",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Oturumu kapatma"
+  },
+  {
+    "id": 27,
+    "httpMethod": "GET",
+    "path": "/api/auth/me",
+    "controller": "AuthController",
+    "methodName": "currentSession",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Kendi Oturumu / Hesabı",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Aktif oturum bilgisi"
+  },
+  {
+    "id": 28,
+    "httpMethod": "GET",
+    "path": "/api/buildings",
+    "controller": "HierarchyController",
+    "methodName": "getAllBuildings",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 29,
+    "httpMethod": "POST",
+    "path": "/api/buildings",
+    "controller": "HierarchyController",
+    "methodName": "createBuilding",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 30,
+    "httpMethod": "DELETE",
+    "path": "/api/buildings/{id}",
+    "controller": "HierarchyController",
+    "methodName": "deleteBuilding",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 31,
+    "httpMethod": "GET",
+    "path": "/api/buildings/{id}",
+    "controller": "HierarchyController",
+    "methodName": "getBuildingById",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 32,
+    "httpMethod": "PUT",
+    "path": "/api/buildings/{id}",
+    "controller": "HierarchyController",
+    "methodName": "updateBuilding",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 33,
+    "httpMethod": "GET",
+    "path": "/api/categories",
+    "controller": "HierarchyController",
+    "methodName": "getAllCategories",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 34,
+    "httpMethod": "GET",
+    "path": "/api/dashboard",
+    "controller": "DashboardController",
+    "methodName": "getSummary",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Kullanıcı Rolü ve Müdürlüğüne Göre Dinamik KPI Özeti",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Ana kontrol paneli gösterge ve özet istatistikleri"
+  },
+  {
+    "id": 35,
+    "httpMethod": "GET",
+    "path": "/api/departments",
+    "controller": "HierarchyController",
+    "methodName": "getAllDepartments",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 36,
+    "httpMethod": "POST",
+    "path": "/api/departments",
+    "controller": "HierarchyController",
+    "methodName": "createDepartment",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 37,
+    "httpMethod": "DELETE",
+    "path": "/api/departments/{id}",
+    "controller": "HierarchyController",
+    "methodName": "deleteDepartment",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 38,
+    "httpMethod": "GET",
+    "path": "/api/departments/{id}",
+    "controller": "HierarchyController",
+    "methodName": "getDepartmentById",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 39,
+    "httpMethod": "PUT",
+    "path": "/api/departments/{id}",
+    "controller": "HierarchyController",
+    "methodName": "updateDepartment",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 40,
+    "httpMethod": "GET",
+    "path": "/api/documents",
+    "controller": "EnterpriseController",
+    "methodName": "listDocuments",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 41,
+    "httpMethod": "GET",
+    "path": "/api/fleet",
+    "controller": "EnterpriseController",
+    "methodName": "listFleet",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 42,
+    "httpMethod": "POST",
+    "path": "/api/fleet/{id}/status",
+    "controller": "EnterpriseController",
+    "methodName": "updateFleetStatus",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi müdürlük araçları; ADMIN: Tüm filo",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Araç KM, servis ve durum güncelleme"
+  },
+  {
+    "id": 43,
+    "httpMethod": "GET",
+    "path": "/api/floors",
+    "controller": "HierarchyController",
+    "methodName": "getFloors",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 44,
+    "httpMethod": "POST",
+    "path": "/api/floors",
+    "controller": "HierarchyController",
+    "methodName": "createFloor",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 45,
+    "httpMethod": "DELETE",
+    "path": "/api/floors/{id}",
+    "controller": "HierarchyController",
+    "methodName": "deleteFloor",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 46,
+    "httpMethod": "GET",
+    "path": "/api/floors/{id}",
+    "controller": "HierarchyController",
+    "methodName": "getFloorById",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 47,
+    "httpMethod": "PUT",
+    "path": "/api/floors/{id}",
+    "controller": "HierarchyController",
+    "methodName": "updateFloor",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 48,
+    "httpMethod": "GET",
+    "path": "/api/health",
+    "controller": "HealthController",
+    "methodName": "health",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 200
+    },
+    "scopeRule": "Genel (Herkese Açık)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Sistem sağlık kontrolü"
+  },
+  {
+    "id": 49,
+    "httpMethod": "GET",
+    "path": "/api/hierarchy/tree",
+    "controller": "HierarchyController",
+    "methodName": "getTree",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi müdürlük ağacı; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal teşkilat ve lokasyon hiyerarşi ağacı"
+  },
+  {
+    "id": 50,
+    "httpMethod": "GET",
+    "path": "/api/maintenances",
+    "controller": "MaintenanceController",
+    "methodName": "listMaintenances",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Kendi Zimmetli Varlık Bakımları",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Bakım kayıtlarını sorgulama ve detay görüntüleme"
+  },
+  {
+    "id": 51,
+    "httpMethod": "POST",
+    "path": "/api/maintenances",
+    "controller": "MaintenanceController",
+    "methodName": "createMaintenance",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü Varlıkları; STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Yeni bakım / arıza kaydı açma"
+  },
+  {
+    "id": 52,
+    "httpMethod": "GET",
+    "path": "/api/maintenances/{id}",
+    "controller": "MaintenanceController",
+    "methodName": "getMaintenance",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Kendi Zimmetli Varlık Bakımları",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Bakım kayıtlarını sorgulama ve detay görüntüleme"
+  },
+  {
+    "id": 53,
+    "httpMethod": "POST",
+    "path": "/api/maintenances/{id}/complete",
+    "controller": "MaintenanceController",
+    "methodName": "completeMaintenance",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü Varlıkları; STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Bakım iş emrini tamamlama ve masraf kaydı"
+  },
+  {
+    "id": 54,
+    "httpMethod": "GET",
+    "path": "/api/maintenances/{id}/work-order",
+    "controller": "MaintenanceController",
+    "methodName": "getWorkOrder",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: 403",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Yazdırılabilir bakım iş emri çıktısı"
+  },
+  {
+    "id": 55,
+    "httpMethod": "GET",
+    "path": "/api/movements",
+    "controller": "MovementController",
+    "methodName": "listMovements",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Kendi Varlık Hareketleri",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Varlık hareket geçmişini listeleme"
+  },
+  {
+    "id": 56,
+    "httpMethod": "POST",
+    "path": "/api/movements",
+    "controller": "MovementController",
+    "methodName": "createMovement",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Manuel varlık hareket kaydı oluşturma"
+  },
+  {
+    "id": 57,
+    "httpMethod": "GET",
+    "path": "/api/personnel",
+    "controller": "PersonnelController",
+    "methodName": "getAll",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Yalnızca Kendi Sicil Kaydı",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Personel listesi"
+  },
+  {
+    "id": 58,
+    "httpMethod": "POST",
+    "path": "/api/personnel",
+    "controller": "PersonnelController",
+    "methodName": "create",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı 403); STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Yeni personel tanımlama"
+  },
+  {
+    "id": 59,
+    "httpMethod": "DELETE",
+    "path": "/api/personnel/{id}",
+    "controller": "PersonnelController",
+    "methodName": "delete",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı 403); STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Personeli pasife alma (arşivleme)"
+  },
+  {
+    "id": 60,
+    "httpMethod": "GET",
+    "path": "/api/personnel/{id}",
+    "controller": "PersonnelController",
+    "methodName": "getById",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN/AUDITOR/VIEWER: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü; STAFF: Yalnızca Kendi Sicil Kaydı",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Personel detay bilgisi"
+  },
+  {
+    "id": 61,
+    "httpMethod": "PUT",
+    "path": "/api/personnel/{id}",
+    "controller": "PersonnelController",
+    "methodName": "update",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı 403); STAFF: Yasak",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Personel bilgilerini güncelleme"
+  },
+  {
+    "id": 62,
+    "httpMethod": "GET",
+    "path": "/api/personnel/export-template",
+    "controller": "PersonnelImportController",
+    "methodName": "exportTemplate",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN ve DEPT_MANAGER (Kendi Müdürlüğü)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Personel Excel yükleme şablonu indirme"
+  },
+  {
+    "id": 63,
+    "httpMethod": "POST",
+    "path": "/api/personnel/import/commit",
+    "controller": "PersonnelImportController",
+    "methodName": "commitImport",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı satırlar reddedilir)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Toplu personel aktarımını onaylama ve kaydetme"
+  },
+  {
+    "id": 64,
+    "httpMethod": "POST",
+    "path": "/api/personnel/import/validate",
+    "controller": "PersonnelImportController",
+    "methodName": "validateImport",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "ADMIN: Tüm Kurum; DEPT_MANAGER: Kendi Müdürlüğü (kapsam dışı satırlar reddedilir)",
+    "csrfRequired": true,
+    "auditLogged": false,
+    "description": "Personel Excel dosyasını doğrulama (dry-run)"
+  },
+  {
+    "id": 65,
+    "httpMethod": "GET",
+    "path": "/api/procurement",
+    "controller": "EnterpriseController",
+    "methodName": "listProcurement",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 66,
+    "httpMethod": "GET",
+    "path": "/api/reports/depreciation",
+    "controller": "EnterpriseController",
+    "methodName": "getDepreciationReport",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 67,
+    "httpMethod": "GET",
+    "path": "/api/reports/disposal",
+    "controller": "EnterpriseController",
+    "methodName": "getDisposalReport",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 68,
+    "httpMethod": "GET",
+    "path": "/api/reports/export",
+    "controller": "EnterpriseController",
+    "methodName": "exportReport",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": true,
+    "description": "Rapor verisini CSV formatında dışa aktarma"
+  },
+  {
+    "id": 69,
+    "httpMethod": "GET",
+    "path": "/api/reports/form13",
+    "controller": "EnterpriseController",
+    "methodName": "getForm13Report",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 70,
+    "httpMethod": "GET",
+    "path": "/api/rooms",
+    "controller": "HierarchyController",
+    "methodName": "getRooms",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 71,
+    "httpMethod": "POST",
+    "path": "/api/rooms",
+    "controller": "HierarchyController",
+    "methodName": "createRoom",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Yalnızca kendi müdürlüğüne oda ekleme; ADMIN: Tüm binalar",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Yeni oda / ambar tanımlama"
+  },
+  {
+    "id": 72,
+    "httpMethod": "DELETE",
+    "path": "/api/rooms/{id}",
+    "controller": "HierarchyController",
+    "methodName": "deleteRoom",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 73,
+    "httpMethod": "GET",
+    "path": "/api/rooms/{id}",
+    "controller": "HierarchyController",
+    "methodName": "getRoomById",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 74,
+    "httpMethod": "PUT",
+    "path": "/api/rooms/{id}",
+    "controller": "HierarchyController",
+    "methodName": "updateRoom",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 75,
+    "httpMethod": "GET",
+    "path": "/api/rooms/{id}/assets",
+    "controller": "HierarchyController",
+    "methodName": "getAssetsInRoom",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi müdürlük odası (kapsam dışı 403); Diğer: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Odadaki zimmetli ve kayıtlı demirbaşlar listesi"
+  },
+  {
+    "id": 76,
+    "httpMethod": "GET",
+    "path": "/api/rooms/qr/{qrCode}",
+    "controller": "HierarchyController",
+    "methodName": "getRoomByQr",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 77,
+    "httpMethod": "GET",
+    "path": "/api/settings",
+    "controller": "EnterpriseController",
+    "methodName": "listSettings",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Sistem Yapılandırması",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Sistem ayarlarını listeleme"
+  },
+  {
+    "id": 78,
+    "httpMethod": "POST",
+    "path": "/api/settings",
+    "controller": "EnterpriseController",
+    "methodName": "updateSetting",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Sistem Yapılandırması",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Sistem ayarlarını güncelleme"
+  },
+  {
+    "id": 79,
+    "httpMethod": "GET",
+    "path": "/api/stock",
+    "controller": "EnterpriseController",
+    "methodName": "listStock",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 80,
+    "httpMethod": "GET",
+    "path": "/api/stock/transactions",
+    "controller": "EnterpriseController",
+    "methodName": "listStockTransactions",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kurumsal operasyonel veri / rapor okuma"
+  },
+  {
+    "id": 81,
+    "httpMethod": "POST",
+    "path": "/api/stock/transactions",
+    "controller": "EnterpriseController",
+    "methodName": "addStockTx",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi müdürlük stok kalemi; ADMIN: Tüm ambarlar",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Stok giriş / çıkış / sayım düzeltme hareketi kaydetme"
+  },
+  {
+    "id": 82,
+    "httpMethod": "GET",
+    "path": "/api/sub-units",
+    "controller": "HierarchyController",
+    "methodName": "getSubUnits",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 83,
+    "httpMethod": "POST",
+    "path": "/api/sub-units",
+    "controller": "HierarchyController",
+    "methodName": "createSubUnit",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 84,
+    "httpMethod": "DELETE",
+    "path": "/api/sub-units/{id}",
+    "controller": "HierarchyController",
+    "methodName": "deleteSubUnit",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 85,
+    "httpMethod": "GET",
+    "path": "/api/sub-units/{id}",
+    "controller": "HierarchyController",
+    "methodName": "getSubUnitById",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 200,
+      "AUDITOR": 200,
+      "VIEWER": 200,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Tüm Kurum (Salt Okunur Seçici / Tanım Listesi)",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
+  },
+  {
+    "id": 86,
+    "httpMethod": "PUT",
+    "path": "/api/sub-units/{id}",
+    "controller": "HierarchyController",
+    "methodName": "updateSubUnit",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi)",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
+  },
+  {
+    "id": 87,
+    "httpMethod": "GET",
+    "path": "/api/users",
+    "controller": "UserController",
+    "methodName": "listUsers",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Sistem Yönetimi",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kullanıcıları listeleme"
+  },
+  {
+    "id": 88,
+    "httpMethod": "POST",
+    "path": "/api/users",
+    "controller": "UserController",
+    "methodName": "createUser",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Sistem Yönetimi",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Kullanıcı oluşturma / güncelleme / pasife alma / şifre sıfırlama"
+  },
+  {
+    "id": 89,
+    "httpMethod": "GET",
+    "path": "/api/users/{id}",
+    "controller": "UserController",
+    "methodName": "getUserById",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 200,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Sistem Yönetimi",
+    "csrfRequired": false,
+    "auditLogged": false,
+    "description": "Kullanıcı detayını görme"
+  },
+  {
+    "id": 90,
+    "httpMethod": "PUT",
+    "path": "/api/users/{id}",
+    "controller": "UserController",
+    "methodName": "updateUser",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Sistem Yönetimi",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Kullanıcı oluşturma / güncelleme / pasife alma / şifre sıfırlama"
+  },
+  {
+    "id": 91,
+    "httpMethod": "POST",
+    "path": "/api/users/{id}/deactivate",
+    "controller": "UserController",
+    "methodName": "deactivateUser",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Sistem Yönetimi",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Kullanıcı oluşturma / güncelleme / pasife alma / şifre sıfırlama"
+  },
+  {
+    "id": 92,
+    "httpMethod": "POST",
+    "path": "/api/users/{id}/reset-password",
+    "controller": "UserController",
+    "methodName": "resetPassword",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 403,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "Sistem Yönetimi",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Kullanıcı oluşturma / güncelleme / pasife alma / şifre sıfırlama"
+  }
+]

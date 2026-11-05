@@ -52,7 +52,7 @@ async function runTests() {
   console.log('=== FAZ 2B: BELEDİYE İK ENTEGRASYONU VE PERSONEL İÇE AKTARIM TESTİ ===\n');
 
   // 1. Admin Login
-  const adminPassword = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+  const adminPassword = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
   const adminCookies = await login('admin', adminPassword);
   console.log('1. Admin Oturumu Başarılı ✅');
 
@@ -67,53 +67,28 @@ async function runTests() {
   }
   console.log('2. Excel Şablonu İndirme: 200 OK | Boyut:', tplRes.raw.length, 'bytes ✅');
 
-  // 3. İK Sistemi Senkronizasyonu (Sync HR)
-  const syncRes = await req({
-    hostname: 'localhost', port: 8080, path: '/api/personnel/sync-hr', method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Cookie': formatCookieHeader(adminCookies),
-      'X-XSRF-TOKEN': adminCookies['XSRF-TOKEN'] || ''
-    }
-  });
-  if (syncRes.status !== 200) throw new Error(`HR Sync status: ${syncRes.status} ${syncRes.body}`);
-  const syncData = JSON.parse(syncRes.body);
-  console.log('3. İK Senkronizasyon Yanıtı:', syncData);
-  if (syncData.status !== 'SUCCESS') {
-    throw new Error(`Beklenen status SUCCESS, gelen: ${syncData.status}`);
-  }
-  console.log('  ✅ İK Senkronizasyonu Başarıyla Çalıştı');
-
-  // 4. Senkronize Edilen Personeli Arama
-  const searchPath = `/api/personnel?q=${encodeURIComponent('Kemal Gültekin')}`;
-  const searchRes = await req({
-    hostname: 'localhost', port: 8080, path: searchPath, method: 'GET',
-    headers: { 'Cookie': formatCookieHeader(adminCookies) }
-  });
-  if (searchRes.status !== 200) {
-    throw new Error(`Personel arama status: ${searchRes.status} ${searchRes.body}`);
-  }
-  const searchData = JSON.parse(searchRes.body);
-  if (searchData.total === 0) {
-    throw new Error('Senkronize edilen Kemal Gültekin personeli bulunamadı!');
-  }
-  console.log('4. Eklenen İK Personeli Teyidi:', searchData.items[0]?.fullName, '(Sicil:', searchData.items[0]?.registrationNumber, ') ✅');
-
-  // 5. STAFF Rolü Yetki Kısıtlaması
-  console.log('5. STAFF Yetki İzolasyon Testi:');
+  // 3. STAFF Rolü Yetki Kısıtlaması (export-template 403)
+  console.log('3. STAFF Yetki İzolasyon Testi:');
   const staffCookies = await login('saha_personel', 'GebzeDev2026!');
-  const staffSync = await req({
-    hostname: 'localhost', port: 8080, path: '/api/personnel/sync-hr', method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Cookie': formatCookieHeader(staffCookies),
-      'X-XSRF-TOKEN': staffCookies['XSRF-TOKEN'] || ''
-    }
+  const staffTemplate = await req({
+    hostname: 'localhost', port: 8080, path: '/api/personnel/export-template', method: 'GET',
+    headers: { 'Cookie': formatCookieHeader(staffCookies) }
   });
-  if (staffSync.status !== 403) {
-    throw new Error(`STAFF için sync-hr 403 dönmeliydi, dönen: ${staffSync.status}`);
+  if (staffTemplate.status !== 403) {
+    throw new Error(`STAFF için export-template 403 dönmeliydi, dönen: ${staffTemplate.status}`);
   }
-  console.log('  - STAFF -> /api/personnel/sync-hr: 403 Forbidden ✅');
+  console.log('  - STAFF -> /api/personnel/export-template: 403 Forbidden ✅');
+
+  // 4. DEPT_MANAGER Yetkisi (export-template 200)
+  const dmCookies = await login('fen_isleri_mudur', 'GebzeDev2026!');
+  const dmTemplate = await req({
+    hostname: 'localhost', port: 8080, path: '/api/personnel/export-template', method: 'GET',
+    headers: { 'Cookie': formatCookieHeader(dmCookies) }
+  });
+  if (dmTemplate.status !== 200) {
+    throw new Error(`DEPT_MANAGER için export-template 200 dönmeliydi, dönen: ${dmTemplate.status}`);
+  }
+  console.log('4. DEPT_MANAGER -> /api/personnel/export-template: 200 OK ✅');
 
   console.log('\n=== FAZ 2B TÜM TESTLER BAŞARIYLA GEÇTİ! 🎉 ===');
 }

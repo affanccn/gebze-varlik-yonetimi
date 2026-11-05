@@ -51,7 +51,7 @@ public class AuthService {
                     "STAFF",
                     "Birim Personeli",
                     "Fen İşleri Müdürlüğü",
-                    true,
+                    false,
                     false
             ),
             new DemoAccount(
@@ -126,7 +126,7 @@ public class AuthService {
 
     public UserSession toUserSession(SystemUserDetails userDetails, String sessionId) {
         String role = userDetails.getRole() != null ? userDetails.getRole().toUpperCase() : "VIEWER";
-        boolean canWrite = !"AUDITOR".equals(role) && !"VIEWER".equals(role);
+        boolean canWrite = "ADMIN".equals(role) || "DEPT_MANAGER".equals(role);
         boolean canDelete = "ADMIN".equals(role);
 
         String roleLabel = switch (role) {

@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
 const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 
 test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
@@ -140,15 +140,15 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
     await page.keyboard.press('Escape');
     await expect(modal).not.toBeVisible();
 
-    // Zimmeti olan personeli ara (SCL-3001 Çevre Müh. Derya -> GBZ-AST-144)
-    await page.fill('input[placeholder*="sicil no ara"]', 'SCL-3001');
-    const deryaRow = page.locator('tr:has-text("SCL-3001")').first();
-    await expect(deryaRow).toBeVisible();
-    await deryaRow.locator('button:has-text("Zimmetleri Gör")').click();
+    // Zimmeti olan personeli ara (SCL-0401 Kemal Şahin -> GBZ-AST-108)
+    await page.fill('input[placeholder*="sicil no ara"]', 'SCL-0401');
+    const kemalRow = page.locator('tr:has-text("SCL-0401")').first();
+    await expect(kemalRow).toBeVisible();
+    await kemalRow.locator('button:has-text("Zimmetleri Gör")').click();
 
     await expect(modal).toBeVisible();
     await expect(modal.locator('text=Personele Zimmetli Varlıklar (1)')).toBeVisible();
-    await expect(modal.locator('text=GBZ-AST-144')).toBeVisible();
+    await expect(modal.locator('text=GBZ-AST-108')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(modal).not.toBeVisible();
   });

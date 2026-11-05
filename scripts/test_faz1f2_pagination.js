@@ -45,7 +45,7 @@ async function runTests() {
     console.log('=== FAZ 1F-2 SAYFALAMA, KEYSET VE STREAMING CSV TESTLERİ ===\n');
 
     // 1. Login
-    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
     const loginRes = await request({
         hostname: 'localhost',
         port: 8080,

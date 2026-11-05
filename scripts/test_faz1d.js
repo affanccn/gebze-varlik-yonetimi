@@ -70,7 +70,7 @@ async function sendFile(endpoint, filePath, fields = {}, cookies) {
     return { status: res.status, json, headers: res.headers };
 }
 
-const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
 const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 const DB_PASSWORD = process.env.DB_PASSWORD || 'GebzeVarlik2026';
 

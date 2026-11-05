@@ -65,7 +65,7 @@ const menuViews = [
 
 async function testAllMenus() {
     console.log('Admin ile giriş yapılıyor...');
-    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
     const loginRes = await request({
         hostname: 'localhost',
         port: 8080,

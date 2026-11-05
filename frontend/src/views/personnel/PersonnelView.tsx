@@ -13,11 +13,10 @@ import {
   Trash2,
   AlertTriangle,
   FileSpreadsheet,
-  RefreshCw,
 } from 'lucide-react';
 import { personnelService } from '../../services/personnelService';
 import { hierarchyService } from '../../services/hierarchyService';
-import { assetService } from '../../services/assetService';
+import { assignmentService } from '../../services/assignmentService';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
 import { Card } from '../../components/common/Card';
@@ -48,26 +47,11 @@ export const PersonnelView: React.FC = () => {
   // Modallar
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
   const [personnelToEdit, setPersonnelToEdit] = useState<Personnel | null>(null);
   const [personnelToDelete, setPersonnelToDelete] = useState<Personnel | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const canManage = user?.role === 'ADMIN' || user?.role === 'DEPT_MANAGER';
-
-  const handleSyncHr = async () => {
-    setIsSyncing(true);
-    try {
-      const res = await personnelService.syncHr();
-      showToast(res.message, 'success');
-      queryClient.invalidateQueries({ queryKey: ['personnel'] });
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'İK senkronizasyonu sırasında hata oluştu.';
-      showToast(msg, 'warning');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const updateParams = (updates: Record<string, string | number | undefined | null>) => {
     setSearchParams(
@@ -120,13 +104,13 @@ export const PersonnelView: React.FC = () => {
   const total = pageData?.total || 0;
   const totalPages = pageData?.totalPages || 0;
 
-  // 3. Seçili personelin zimmetli varlıkları (assignedPersonnelId filtresi ile)
-  const { data: assignedAssetsData } = useQuery({
-    queryKey: ['personnel-assets', selectedPersonnel?.id],
-    queryFn: () => assetService.getAll({ assignedPersonnelId: selectedPersonnel!.id, size: 200 }),
+  // 3. Seçili personelin zimmet kayıtları (personnelId filtresi ile)
+  const { data: assignmentsData } = useQuery({
+    queryKey: ['personnel-assignments', selectedPersonnel?.id],
+    queryFn: () => assignmentService.getAll({ personnelId: selectedPersonnel!.id, size: 200 }),
     enabled: selectedPersonnel != null,
   });
-  const assignedAssets = assignedAssetsData?.items || [];
+  const assignedList = assignmentsData?.items || [];
 
   const handleDelete = async () => {
     if (!personnelToDelete) return;
@@ -181,20 +165,6 @@ export const PersonnelView: React.FC = () => {
                 <FileSpreadsheet className="w-4 h-4" />
                 Toplu İçe Aktar (Excel)
               </button>
-
-              {user?.role === 'ADMIN' && (
-                <button
-                  type="button"
-                  id="btn-sync-hr"
-                  onClick={handleSyncHr}
-                  disabled={isSyncing}
-                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold hover:bg-slate-900 shadow-sm transition-colors shrink-0 disabled:opacity-50"
-                  title="Belediye İK Sistemi ile Kadro Listesini Eşitle"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Eşitleniyor...' : 'İK Eşitle'}
-                </button>
-              )}
             </>
           )}
 
@@ -426,35 +396,35 @@ export const PersonnelView: React.FC = () => {
 
             <div>
               <h4 className="text-sm font-bold text-slate-900 mb-2">
-                Personele Zimmetli Varlıklar ({assignedAssets.length})
+                Personele Zimmetli Varlıklar ({assignedList.length})
               </h4>
               <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-lg">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 text-slate-600 font-semibold uppercase sticky top-0 border-b border-slate-200">
                     <tr>
+                      <th className="py-2 px-3">Belge No</th>
                       <th className="py-2 px-3">Varlık Kodu</th>
                       <th className="py-2 px-3">Demirbaş Adı</th>
-                      <th className="py-2 px-3">Kategori</th>
                       <th className="py-2 px-3">Konum</th>
                       <th className="py-2 px-3 text-right">Durum</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {assignedAssets.length === 0 ? (
+                    {assignedList.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="py-8 text-center text-slate-500">
                           Bu personele tahsis edilmiş zimmetli demirbaş bulunmuyor.
                         </td>
                       </tr>
                     ) : (
-                      assignedAssets.map((asset) => (
-                        <tr key={asset.id} className="hover:bg-slate-50">
-                          <td className="py-2 px-3 font-mono font-semibold text-gebze-navy">{asset.code}</td>
-                          <td className="py-2 px-3 font-medium text-slate-900">{asset.name}</td>
-                          <td className="py-2 px-3 text-slate-500">{asset.category || '-'}</td>
-                          <td className="py-2 px-3 text-slate-600">{asset.roomNumber ? `Oda ${asset.roomNumber}` : asset.location || '-'}</td>
+                      assignedList.map((item) => (
+                        <tr key={item.id} className="hover:bg-slate-50">
+                          <td className="py-2 px-3 font-mono text-slate-600">{item.documentNo}</td>
+                          <td className="py-2 px-3 font-mono font-semibold text-gebze-navy">{item.assetCode}</td>
+                          <td className="py-2 px-3 font-medium text-slate-900">{item.assetName}</td>
+                          <td className="py-2 px-3 text-slate-600">{item.location || '-'}</td>
                           <td className="py-2 px-3 text-right">
-                            <StatusBadge status={asset.status} />
+                            <StatusBadge status={item.status} />
                           </td>
                         </tr>
                       ))

@@ -7,8 +7,11 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.common.ApiException;
 import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.common.SortValidator;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
@@ -152,6 +155,7 @@ public class EnterpriseRepository {
             sql.append(" AND t.tx_type = ?");
             params.add(txType.trim());
         }
+        sql.append(" AND ").append(tenantQueryScope.getStockItemFilterClause("s"));
         sql.append(" ORDER BY t.id DESC FETCH FIRST ? ROWS ONLY");
         params.add(fetchCount);
 
@@ -369,6 +373,13 @@ public class EnterpriseRepository {
         .param(3, driver)
         .param(4, id)
         .update();
+    }
+
+    public Optional<Long> getVehicleDepartmentId(Long vehicleId) {
+        return jdbcClient.sql("SELECT department_id FROM fleet_vehicles WHERE id = ?")
+                .param(1, vehicleId)
+                .query(Long.class)
+                .optional();
     }
 
     // ==========================================
@@ -611,7 +622,9 @@ public class EnterpriseRepository {
                         "expected", rs.getInt("total_expected"),
                         "scanned", rs.getInt("total_scanned"),
                         "excess", rs.getInt("total_excess")
-                )).single();
+                ))
+                .optional()
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Sayım kaydı bulunamadı: " + auditId));
 
         int matched = jdbcClient.sql("SELECT COUNT(*) FROM audit_scans WHERE audit_id = ? AND match_status = 'DOGRU_KONUM'")
                 .param(1, auditId).query(Integer.class).single();
@@ -626,11 +639,13 @@ public class EnterpriseRepository {
         double rate = totalExpected > 0 ? Math.min(100.0, Math.round(((double) (matched + different) / totalExpected) * 1000.0) / 10.0) : 0.0;
 
         // Henüz sayılmamış varlıklar (Sayıma dahil olup audit_scans'te olmayanlar)
+        String assetFilter = tenantQueryScope.getAssetFilterClause("a");
         List<Map<String, Object>> missingAssets = jdbcClient.sql("""
             SELECT a.id, a.code, a.name, a.barcode, a.location_info, d.name AS dept_name
             FROM assets a
             LEFT JOIN departments d ON d.id = a.department_id
             WHERE a.is_deleted = 0 AND a.is_active = 1
+              AND """ + assetFilter + """
               AND a.id NOT IN (
                   SELECT s.asset_id FROM audit_scans s WHERE s.audit_id = ? AND s.asset_id IS NOT NULL
               )
@@ -659,6 +674,13 @@ public class EnterpriseRepository {
                 rate,
                 missingAssets
         );
+    }
+
+    public Optional<Long> getAuditDepartmentId(Long auditId) {
+        return jdbcClient.sql("SELECT department_id FROM inventory_audits WHERE id = ?")
+                .param(1, auditId)
+                .query(Long.class)
+                .optional();
     }
 
     // ==========================================
@@ -1088,12 +1110,13 @@ public class EnterpriseRepository {
         }).list();
 
         // 3. Devam eden bakım iş emirleri
+        String assetScope = tenantQueryScope.getAssetFilterClause("a");
         jdbcClient.sql("""
             SELECT m.order_no, a.name AS asset_name, m.priority, m.vendor_or_technician,
                    TO_CHAR(m.started_at, 'YYYY-MM-DD') AS start_date
             FROM asset_maintenances m
             JOIN assets a ON m.asset_id = a.id
-            WHERE m.status = 'DEVAM_EDIYOR'
+            WHERE m.status = 'DEVAM_EDIYOR' AND a.is_deleted = 0 AND """ + assetScope + """
         """).query((rs, rowNum) -> {
             alerts.add(new SystemAlert(
                     "MAINTENANCE_DUE",
@@ -1108,11 +1131,13 @@ public class EnterpriseRepository {
         }).list();
 
         // 4. Garantisi 60 gün içinde bitecek yüksek değerli varlıklar
+        String assetScopeNoAlias = tenantQueryScope.getAssetFilterClause(null);
         jdbcClient.sql("""
             SELECT code, name, category, TO_CHAR(warranty_end_date, 'YYYY-MM-DD') AS war_date,
                    ROUND(warranty_end_date - SYSDATE) AS days_left
             FROM assets
-            WHERE warranty_end_date IS NOT NULL AND warranty_end_date BETWEEN SYSDATE AND SYSDATE + 60
+            WHERE is_deleted = 0 AND warranty_end_date IS NOT NULL AND warranty_end_date BETWEEN SYSDATE AND SYSDATE + 60
+              AND """ + assetScopeNoAlias + """
         """).query((rs, rowNum) -> {
             alerts.add(new SystemAlert(
                     "WARRANTY_EXPIRING",

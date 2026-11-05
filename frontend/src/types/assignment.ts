@@ -4,6 +4,7 @@ export interface AssetAssignment {
   assetId: number;
   assetCode: string;
   assetName: string;
+  personnelId?: number | null;
   assigneeName: string;
   assigneeTitle?: string;
   unit?: string;
@@ -18,6 +19,7 @@ export interface AssetAssignment {
 
 export interface AssignmentRequest {
   assetId: number;
+  personnelId?: number;
   assigneeName: string;
   assigneeTitle?: string;
   unit?: string;

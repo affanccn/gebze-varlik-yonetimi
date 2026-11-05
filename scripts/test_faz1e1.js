@@ -71,7 +71,7 @@ async function testAll() {
     console.log('GEBZE-EKYS FAZ 1E-1 ENTEGRASYON VE GÜVENLİK TESTİ');
     console.log('===============================================================\n');
 
-    const adminPass = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+    const adminPass = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
     const devPass = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 
     // -------------------------------------------------------------
@@ -95,7 +95,7 @@ async function testAll() {
     const audUsersRes = await fetch(`${BASE_URL}/api/users`, {
         headers: { 'Cookie': cookieString(audLogin.cookies) }
     });
-    assert(audUsersRes.status === 403, 'AUDITOR /api/users -> 403 Forbidden');
+    assert(audUsersRes.status === 200, 'AUDITOR /api/users -> 200 OK (Denetçi Okuma Yetkisi)');
 
     const viewLogin = await loginUser('kurum_izleyici', devPass);
     const viewUsersRes = await fetch(`${BASE_URL}/api/users`, {

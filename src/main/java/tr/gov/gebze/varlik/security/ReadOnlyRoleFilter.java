@@ -40,20 +40,20 @@ public class ReadOnlyRoleFilter extends OncePerRequestFilter {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof SystemUserDetails userDetails) {
             String role = userDetails.getRole();
-            if ("AUDITOR".equalsIgnoreCase(role) || "VIEWER".equalsIgnoreCase(role)) {
+            if ("AUDITOR".equalsIgnoreCase(role) || "VIEWER".equalsIgnoreCase(role) || "STAFF".equalsIgnoreCase(role)) {
                 String username = userDetails.getUsername();
                 String clientIp = request.getRemoteAddr();
 
                 securityAuditService.logAccessDenied(
                     username, clientIp, method, uri, 
-                    "Salt okunur rol (" + role + ") veri değiştirme işlemi (" + method + ") yapamaz."
+                    "Yazma yetkisi olmayan rol (" + role + ") veri değiştirme işlemi (" + method + ") yapamaz."
                 );
 
                 response.setStatus(HttpStatus.FORBIDDEN.value());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                 response.setCharacterEncoding("UTF-8");
                 response.getWriter().write(
-                    "{\"error\":\"Salt okunur rol (" + role + ") veri üzerinde ekleme, silme veya güncelleme yapamaz.\",\"status\":403}"
+                    "{\"error\":\"Bu rol (" + role + ") veri üzerinde ekleme, silme veya güncelleme yapamaz.\",\"status\":403}"
                 );
                 return;
             }

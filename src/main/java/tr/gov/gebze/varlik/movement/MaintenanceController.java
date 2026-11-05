@@ -48,14 +48,14 @@ public class MaintenanceController {
     @GetMapping("/{id}")
     public MaintenanceRecord getMaintenance(@PathVariable Long id) {
         MaintenanceRecord rec = maintenanceService.findById(id);
-        tenantQueryScope.validateAssetWriteAccess(rec.assetId(), null);
+        tenantQueryScope.validateAssetReadAccess(rec.assetId());
         return rec;
     }
 
     @GetMapping("/{id}/work-order")
     public MaintenanceWorkOrder getWorkOrder(@PathVariable Long id) {
         MaintenanceRecord rec = maintenanceService.findById(id);
-        tenantQueryScope.validateAssetWriteAccess(rec.assetId(), null);
+        tenantQueryScope.validateAssetReadAccess(rec.assetId());
         return maintenanceService.getWorkOrder(id);
     }
 

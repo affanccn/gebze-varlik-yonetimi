@@ -1,6 +1,7 @@
 package tr.gov.gebze.varlik.enterprise;
 
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.common.CursorResponse;
@@ -110,6 +111,14 @@ public class EnterpriseService {
 
     public List<SystemAuditLog> findRecentAuditLogs(int limit) {
         return repository.findRecentAuditLogs(limit);
+    }
+
+    public Long getVehicleDepartmentId(Long vehicleId) {
+        return repository.getVehicleDepartmentId(vehicleId).orElse(null);
+    }
+
+    public Long getAuditDepartmentId(Long auditId) {
+        return repository.getAuditDepartmentId(auditId).orElse(null);
     }
 
     public List<SystemSetting> findAllSettings() {

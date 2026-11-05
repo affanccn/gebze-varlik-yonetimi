@@ -1,5 +1,6 @@
 package tr.gov.gebze.varlik.enterprise;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -8,6 +9,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.CursorResponse;
 import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.common.UserSession;
+import tr.gov.gebze.varlik.security.SecurityAuditService;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
@@ -29,11 +33,13 @@ public class EnterpriseController {
     private final EnterpriseService enterpriseService;
     private final AuthService authService;
     private final TenantQueryScope tenantQueryScope;
+    private final SecurityAuditService auditService;
 
-    public EnterpriseController(EnterpriseService enterpriseService, AuthService authService, TenantQueryScope tenantQueryScope) {
+    public EnterpriseController(EnterpriseService enterpriseService, AuthService authService, TenantQueryScope tenantQueryScope, SecurityAuditService auditService) {
         this.enterpriseService = enterpriseService;
         this.authService = authService;
         this.tenantQueryScope = tenantQueryScope;
+        this.auditService = auditService;
     }
 
     // 1. DEPO & STOK
@@ -112,6 +118,12 @@ public class EnterpriseController {
     ) {
         tenantQueryScope.enforceStaffModuleRestriction("fleet");
         UserSession session = authService.requireWriteAccess(token);
+        if (tenantQueryScope.isDeptManager()) {
+            Long vehicleDeptId = enterpriseService.getVehicleDepartmentId(id);
+            if (vehicleDeptId != null && !vehicleDeptId.equals(tenantQueryScope.getDepartmentId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kendi müdürlüğünüz dışındaki aracı güncelleyemezsiniz.");
+            }
+        }
         String status = (String) payload.get("status");
         Integer km = payload.get("currentKm") != null ? Integer.valueOf(payload.get("currentKm").toString()) : null;
         String driver = (String) payload.get("assignedDriver");
@@ -148,12 +160,24 @@ public class EnterpriseController {
     @GetMapping("/audits/{id}/scans")
     public List<AuditScan> listAuditScans(@PathVariable Long id) {
         tenantQueryScope.enforceStaffModuleRestriction("audits");
+        if (tenantQueryScope.isDeptManager()) {
+            Long auditDeptId = enterpriseService.getAuditDepartmentId(id);
+            if (auditDeptId != null && !auditDeptId.equals(tenantQueryScope.getDepartmentId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kendi müdürlüğünüz dışındaki sayım detayını göremezsiniz.");
+            }
+        }
         return enterpriseService.findAuditScans(id);
     }
 
     @GetMapping("/audits/{id}/reconciliation")
     public AuditReconciliationSummary getAuditReconciliation(@PathVariable Long id) {
         tenantQueryScope.enforceStaffModuleRestriction("audits");
+        if (tenantQueryScope.isDeptManager()) {
+            Long auditDeptId = enterpriseService.getAuditDepartmentId(id);
+            if (auditDeptId != null && !auditDeptId.equals(tenantQueryScope.getDepartmentId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kendi müdürlüğünüz dışındaki sayım mutabakatını göremezsiniz.");
+            }
+        }
         return enterpriseService.getAuditReconciliation(id);
     }
 
@@ -165,6 +189,12 @@ public class EnterpriseController {
     ) {
         tenantQueryScope.enforceStaffModuleRestriction("audits");
         UserSession session = authService.requireWriteAccess(token);
+        if (tenantQueryScope.isDeptManager()) {
+            Long auditDeptId = enterpriseService.getAuditDepartmentId(id);
+            if (auditDeptId != null && !auditDeptId.equals(tenantQueryScope.getDepartmentId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Kendi müdürlüğünüz dışındaki sayıma okutma yapamazsınız.");
+            }
+        }
         String assetCode = payload.get("assetCode");
         String location = payload.get("scannedLocation");
 
@@ -244,7 +274,9 @@ public class EnterpriseController {
 
     @GetMapping("/reports/export")
     public void exportReport(
+            HttpServletRequest request,
             HttpServletResponse response,
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @RequestParam(defaultValue = "form13") String type,
             @RequestParam(required = false) Long departmentId
     ) throws IOException {
@@ -252,6 +284,13 @@ public class EnterpriseController {
         if (tenantQueryScope.isDeptManager()) {
             departmentId = tenantQueryScope.getDepartmentId();
         }
+
+        UserSession session = authService.requireSession(token);
+        String username = session != null ? session.username() : "ANONYMOUS";
+        String fullName = session != null ? session.fullName() : "Anonim";
+        auditService.logAction("DATA_EXPORT", "REPORT", type, username, fullName,
+                request != null ? request.getRemoteAddr() : "127.0.0.1",
+                String.format("Kullanıcı '%s' tipindeki raporu dışa aktardı (Müdürlük: %s).", type, departmentId != null ? departmentId : "Tümü"));
 
         response.setContentType("text/csv; charset=UTF-8");
         OutputStream out = response.getOutputStream();

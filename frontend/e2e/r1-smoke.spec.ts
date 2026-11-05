@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
 const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 const DB_PASSWORD = process.env.DB_PASSWORD || 'GebzeVarlik2026';
 

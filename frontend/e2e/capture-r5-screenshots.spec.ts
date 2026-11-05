@@ -3,7 +3,7 @@ import * as path from 'path';
 
 test.describe('Faz R5: Üretim Ekran Görüntüleri Yakalama (Port 8080)', () => {
   const artifactDir = 'C:\\Users\\Asus\\.gemini\\antigravity\\brain\\b7d1c8b5-7307-48ce-840e-28602d18dea6';
-  const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+  const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
 
   async function loginAsAdmin(page: Page) {
     await page.goto('/login');

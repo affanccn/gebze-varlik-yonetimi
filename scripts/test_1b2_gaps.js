@@ -104,7 +104,7 @@ async function main() {
     console.log('   FAZ 1B-2 DOĞRULAMA BOŞLUKLARI TESTİ (GAP TESTİ)');
     console.log('================================================================\n');
 
-    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
     const devPassword = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 
     let adminSession;

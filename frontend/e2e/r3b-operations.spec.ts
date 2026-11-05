@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { execSync } from 'child_process';
 
-const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
+const ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || 'GebzeDev2026!';
 const DEV_PASSWORD = process.env.APP_DEV_PASSWORD || 'GebzeDev2026!';
 
 test.describe('Faz R3b: Operasyonel Akışlar E2E Test Paketi', () => {

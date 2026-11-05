@@ -12,6 +12,9 @@ import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
 import tr.gov.gebze.varlik.movement.MovementService;
+import tr.gov.gebze.varlik.personnel.Personnel;
+import tr.gov.gebze.varlik.personnel.PersonnelRepository;
+import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Service
 public class AssignmentService {
@@ -20,21 +23,31 @@ public class AssignmentService {
     private final AssetService assetService;
     private final MovementService movementService;
     private final AssetLifecycleService assetLifecycleService;
+    private final PersonnelRepository personnelRepository;
+    private final TenantQueryScope tenantQueryScope;
 
     public AssignmentService(
             AssignmentRepository assignmentRepository,
             @Lazy AssetService assetService,
             MovementService movementService,
-            AssetLifecycleService assetLifecycleService
+            AssetLifecycleService assetLifecycleService,
+            PersonnelRepository personnelRepository,
+            TenantQueryScope tenantQueryScope
     ) {
         this.assignmentRepository = assignmentRepository;
         this.assetService = assetService;
         this.movementService = movementService;
         this.assetLifecycleService = assetLifecycleService;
+        this.personnelRepository = personnelRepository;
+        this.tenantQueryScope = tenantQueryScope;
+    }
+
+    public PageResponse<AssetAssignment> findPage(Long assetId, Long personnelId, String status, String q, String sort, int page, int size) {
+        return assignmentRepository.findPage(assetId, personnelId, status, q, sort, page, size);
     }
 
     public PageResponse<AssetAssignment> findPage(Long assetId, String status, String q, String sort, int page, int size) {
-        return assignmentRepository.findPage(assetId, status, q, sort, page, size);
+        return assignmentRepository.findPage(assetId, null, status, q, sort, page, size);
     }
 
     public List<AssetAssignment> findAll(Long assetId, String status) {
@@ -51,13 +64,64 @@ public class AssignmentService {
         if (req == null || req.assetId() == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Zimmetlenecek varlık seçilmelidir.");
         }
-        if (req.assigneeName() == null || req.assigneeName().isBlank()) {
+
+        Long resolvedPersonnelId = req.personnelId();
+        String resolvedAssigneeName = req.assigneeName();
+        String resolvedAssigneeTitle = req.assigneeTitle();
+        String resolvedUnit = req.unit();
+        String resolvedLocation = req.location();
+
+        if (resolvedPersonnelId != null) {
+            var personOpt = personnelRepository.findById(resolvedPersonnelId);
+            if (personOpt.isEmpty()) {
+                throw new ApiException(HttpStatus.NOT_FOUND, "Seçilen personel sistemde bulunamadı (ID: " + resolvedPersonnelId + ").");
+            }
+            Personnel person = personOpt.get();
+            if (person.isActive() != null && person.isActive() == 0) {
+                throw new ApiException(HttpStatus.BAD_REQUEST, "Pasif durumdaki personele zimmet atanamaz.");
+            }
+            if (tenantQueryScope.isDeptManager() && person.departmentId() != null) {
+                if (!person.departmentId().equals(tenantQueryScope.getDepartmentId())) {
+                    throw new ApiException(HttpStatus.FORBIDDEN, "Kendi müdürlüğünüz dışındaki bir personele zimmet atayamazsınız.");
+                }
+            }
+            resolvedAssigneeName = person.fullName();
+            if (resolvedAssigneeTitle == null || resolvedAssigneeTitle.isBlank()) {
+                resolvedAssigneeTitle = person.title();
+            }
+            if (resolvedUnit == null || resolvedUnit.isBlank()) {
+                resolvedUnit = person.departmentName();
+            }
+            if ((resolvedLocation == null || resolvedLocation.isBlank()) && person.roomName() != null) {
+                resolvedLocation = person.roomName();
+            }
+        } else if (resolvedAssigneeName != null && !resolvedAssigneeName.isBlank()) {
+            final String nameToMatch = resolvedAssigneeName.trim();
+            var matched = personnelRepository.findAll(null, null, nameToMatch);
+            var exact = matched.stream()
+                    .filter(p -> p.fullName() != null && p.fullName().equalsIgnoreCase(nameToMatch))
+                    .findFirst();
+            if (exact.isPresent()) {
+                Personnel person = exact.get();
+                if (tenantQueryScope.isDeptManager() && person.departmentId() != null) {
+                    if (!person.departmentId().equals(tenantQueryScope.getDepartmentId())) {
+                        throw new ApiException(HttpStatus.FORBIDDEN, "Kendi müdürlüğünüz dışındaki bir personele zimmet atayamazsınız.");
+                    }
+                }
+                resolvedPersonnelId = person.id();
+                if (resolvedUnit == null || resolvedUnit.isBlank()) {
+                    resolvedUnit = person.departmentName();
+                }
+            }
+        }
+
+        if (resolvedAssigneeName == null || resolvedAssigneeName.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Zimmetlenecek sorumlu kişi adı zorunludur.");
         }
-        if (req.unit() == null || req.unit().isBlank()) {
+        if (resolvedUnit == null || resolvedUnit.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Zimmet birimi zorunludur.");
         }
-        if (req.location() == null || req.location().isBlank()) {
+        if (resolvedLocation == null || resolvedLocation.isBlank()) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Zimmet konumu zorunludur.");
         }
 
@@ -68,13 +132,13 @@ public class AssignmentService {
         // Bu varlık üzerinde aktif bir zimmet varsa iade/devir olarak kapat
         List<AssetAssignment> actives = assignmentRepository.findAll(asset.id(), "AKTIF");
         for (AssetAssignment active : actives) {
-            assignmentRepository.returnAssignment(active.id(), "Yeni zimmet ataması (" + req.assigneeName().trim() + ") nedeniyle devredildi.");
+            assignmentRepository.returnAssignment(active.id(), "Yeni zimmet ataması (" + resolvedAssigneeName.trim() + ") nedeniyle devredildi.");
         }
 
         String docNo = String.format("GBZ-ZMT-2026-%04d", System.currentTimeMillis() % 100000);
 
         // Yaşam döngüsü durum geçişi: ZIMMETLENDI
-        assetLifecycleService.transitionState(asset.id(), AssetLifecycleStatus.ZIMMETLENDI, docNo + " fişi ile " + req.assigneeName().trim() + " adına zimmetlendi.", actorName);
+        assetLifecycleService.transitionState(asset.id(), AssetLifecycleStatus.ZIMMETLENDI, docNo + " fişi ile " + resolvedAssigneeName.trim() + " adına zimmetlendi.", actorName);
 
         AssetAssignment created = new AssetAssignment(
                 null,
@@ -82,10 +146,11 @@ public class AssignmentService {
                 asset.id(),
                 asset.code(),
                 asset.name(),
-                req.assigneeName().trim(),
-                (req.assigneeTitle() == null || req.assigneeTitle().isBlank()) ? "Birim Görevlisi" : req.assigneeTitle().trim(),
-                req.unit().trim(),
-                req.location().trim(),
+                resolvedPersonnelId,
+                resolvedAssigneeName.trim(),
+                (resolvedAssigneeTitle == null || resolvedAssigneeTitle.isBlank()) ? "Birim Görevlisi" : resolvedAssigneeTitle.trim(),
+                resolvedUnit.trim(),
+                resolvedLocation.trim(),
                 "AKTIF",
                 actorName,
                 AssetService.nowFormatted(),
@@ -97,9 +162,9 @@ public class AssignmentService {
 
         Asset updatedAsset = assetService.updateOperationalState(
                 asset.id(),
-                req.unit().trim(),
-                req.location().trim(),
-                req.assigneeName().trim()
+                resolvedUnit.trim(),
+                resolvedLocation.trim(),
+                resolvedAssigneeName.trim()
         );
 
         movementService.recordSystemMovement(
@@ -111,7 +176,7 @@ public class AssignmentService {
                 updatedAsset.unit(),
                 updatedAsset.location(),
                 actorName,
-                docNo + " numaralı zimmet fişi ile " + req.assigneeName().trim() + " adına teslim edildi."
+                docNo + " numaralı zimmet fişi ile " + resolvedAssigneeName.trim() + " adına teslim edildi."
         );
 
         return assignmentRepository.findAll(asset.id(), "AKTIF").stream().findFirst().orElse(created);

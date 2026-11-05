@@ -40,17 +40,22 @@ async function verify() {
     const initRes = await req({ hostname: 'localhost', port: 8080, path: '/', method: 'GET' });
     const cookies = parseCookies(initRes.headers);
 
-    const adminPassword = process.env.APP_ADMIN_PASSWORD || 'YeniGucluAdmin2026!';
-    let loginRes = await req({
-        hostname: 'localhost', port: 8080, path: '/api/auth/login', method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Cookie': formatCookieHeader(cookies) }
-    }, { username: 'admin', password: adminPassword });
+    const possiblePasswords = [
+        process.env.APP_ADMIN_PASSWORD,
+        'GebzeDev2026!',
+        'GebzeDev2026!',
+        'GebzeAdmin2026!'
+    ].filter(Boolean);
 
-    if (loginRes.status !== 200) {
+    let loginRes;
+    for (const pwd of possiblePasswords) {
         loginRes = await req({
             hostname: 'localhost', port: 8080, path: '/api/auth/login', method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Cookie': formatCookieHeader(cookies) }
-        }, { username: 'admin', password: 'GebzeAdmin2026!' });
+        }, { username: 'admin', password: pwd });
+        if (loginRes.status === 200) {
+            break;
+        }
     }
     Object.assign(cookies, parseCookies(loginRes.headers));
 

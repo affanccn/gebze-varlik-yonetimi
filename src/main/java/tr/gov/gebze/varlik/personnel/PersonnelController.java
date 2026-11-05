@@ -1,9 +1,14 @@
 package tr.gov.gebze.varlik.personnel;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.PageResponse;
+import tr.gov.gebze.varlik.common.UserSession;
+import tr.gov.gebze.varlik.security.SecurityAuditService;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
@@ -12,10 +17,19 @@ public class PersonnelController {
 
     private final PersonnelService service;
     private final TenantQueryScope tenantQueryScope;
+    private final AuthService authService;
+    private final SecurityAuditService auditService;
 
-    public PersonnelController(PersonnelService service, TenantQueryScope tenantQueryScope) {
+    public PersonnelController(
+            PersonnelService service,
+            TenantQueryScope tenantQueryScope,
+            AuthService authService,
+            SecurityAuditService auditService
+    ) {
         this.service = service;
         this.tenantQueryScope = tenantQueryScope;
+        this.authService = authService;
+        this.auditService = auditService;
     }
 
     @GetMapping
@@ -53,24 +67,91 @@ public class PersonnelController {
 
     @GetMapping("/{id}")
     public Personnel getById(@PathVariable Long id) {
-        return service.findById(id);
+        Personnel p = service.findById(id);
+        if (tenantQueryScope.isDeptManager()) {
+            Long userDeptId = tenantQueryScope.getDepartmentId();
+            if (userDeptId == null || !userDeptId.equals(p.departmentId())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Başka bir müdürlüğün personel kaydına erişilemez.");
+            }
+        } else if (tenantQueryScope.isStaff()) {
+            Long userPersId = tenantQueryScope.getPersonnelId();
+            if (userPersId == null || !userPersId.equals(id)) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Yalnızca kendi personel kaydınıza erişebilirsiniz.");
+            }
+        }
+        return p;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Personnel create(@RequestBody PersonnelRequest request) {
-        return service.create(request);
+    public Personnel create(
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
+            @RequestBody PersonnelRequest request,
+            HttpServletRequest httpServletRequest
+    ) {
+        UserSession session = authService.requireWriteAccess(token);
+        if ("DEPT_MANAGER".equalsIgnoreCase(session.role())) {
+            Long userDeptId = session.departmentId();
+            if (userDeptId == null || !userDeptId.equals(request.departmentId())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Müdürlük yöneticisi yalnızca kendi müdürlüğüne personel ekleyebilir.");
+            }
+        }
+        Personnel created = service.create(request);
+        auditService.logAction(
+                "PERSONNEL_CREATE", "PERSONNEL", String.valueOf(created.id()),
+                session.username(), session.fullName(), httpServletRequest.getRemoteAddr(),
+                "Yeni personel kaydı oluşturuldu: " + created.fullName() + " (" + created.registrationNumber() + ")"
+        );
+        return created;
     }
 
     @PutMapping("/{id}")
-    public Personnel update(@PathVariable Long id, @RequestBody PersonnelRequest request) {
-        return service.update(id, request);
+    public Personnel update(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
+            @RequestBody PersonnelRequest request,
+            HttpServletRequest httpServletRequest
+    ) {
+        UserSession session = authService.requireWriteAccess(token);
+        Personnel existing = service.findById(id);
+        if ("DEPT_MANAGER".equalsIgnoreCase(session.role())) {
+            Long userDeptId = session.departmentId();
+            if (userDeptId == null || !userDeptId.equals(existing.departmentId())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Başka bir müdürlüğün personeli güncellenemez.");
+            }
+            if (request.departmentId() != null && !request.departmentId().equals(userDeptId)) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Personel başka bir müdürlüğe transfer edilemez.");
+            }
+        }
+        Personnel updated = service.update(id, request);
+        auditService.logAction(
+                "PERSONNEL_UPDATE", "PERSONNEL", String.valueOf(id),
+                session.username(), session.fullName(), httpServletRequest.getRemoteAddr(),
+                "Personel bilgileri güncellendi: " + updated.fullName()
+        );
+        return updated;
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public void delete(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
+            HttpServletRequest httpServletRequest
+    ) {
+        UserSession session = authService.requireWriteAccess(token);
+        Personnel existing = service.findById(id);
+        if ("DEPT_MANAGER".equalsIgnoreCase(session.role())) {
+            Long userDeptId = session.departmentId();
+            if (userDeptId == null || !userDeptId.equals(existing.departmentId())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Başka bir müdürlüğün personeli pasife alınamaz.");
+            }
+        }
         service.delete(id);
+        auditService.logAction(
+                "PERSONNEL_DEACTIVATE", "PERSONNEL", String.valueOf(id),
+                session.username(), session.fullName(), httpServletRequest.getRemoteAddr(),
+                "Personel pasife alındı (arşivlendi): " + existing.fullName()
+        );
     }
 }
-

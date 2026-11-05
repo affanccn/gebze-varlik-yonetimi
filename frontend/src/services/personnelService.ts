@@ -81,11 +81,4 @@ export const personnelService = {
       body: formData,
     });
   },
-
-  syncHr: (): Promise<{ status: string; message: string; addedCount: number; updatedCount: number; totalSynced: number }> => {
-    return apiRequest<{ status: string; message: string; addedCount: number; updatedCount: number; totalSynced: number }>(
-      API_ENDPOINTS.PERSONNEL_SYNC_HR,
-      { method: 'POST' }
-    );
-  },
 };

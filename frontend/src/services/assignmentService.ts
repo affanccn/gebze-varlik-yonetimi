@@ -10,6 +10,7 @@ import {
 export const assignmentService = {
   getAll: (params?: PageParams & {
     assetId?: number;
+    personnelId?: number;
     status?: string;
   }): Promise<PageResponse<AssetAssignment>> => {
     const searchParams = new URLSearchParams();
@@ -18,6 +19,7 @@ export const assignmentService = {
     if (params?.sort) searchParams.set('sort', params.sort);
     if (params?.q) searchParams.set('q', params.q);
     if (params?.assetId) searchParams.set('assetId', String(params.assetId));
+    if (params?.personnelId) searchParams.set('personnelId', String(params.personnelId));
     if (params?.status) searchParams.set('status', params.status);
     const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
     return apiRequest<PageResponse<AssetAssignment>>(`${API_ENDPOINTS.ASSIGNMENTS}${query}`);

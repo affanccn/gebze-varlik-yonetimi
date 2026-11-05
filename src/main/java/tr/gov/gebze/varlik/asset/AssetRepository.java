@@ -741,10 +741,10 @@ public class AssetRepository {
                 building_id = :bldId,
                 floor_id = :flrId,
                 room_id = :roomId,
-                department_id = COALESCE(:deptId, department_id),
-                sub_unit_id = COALESCE(:subId, sub_unit_id),
+                department_id = COALESCE(CAST(:deptId AS NUMBER), department_id),
+                sub_unit_id = COALESCE(CAST(:subId AS NUMBER), sub_unit_id),
                 location_info = :locationInfo,
-                unit_name = COALESCE(:unitName, unit_name),
+                unit_name = COALESCE(CAST(:unitName AS VARCHAR2(255)), unit_name),
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = :id AND is_deleted = 0
         """;

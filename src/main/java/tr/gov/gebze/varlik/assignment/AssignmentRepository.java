@@ -22,7 +22,7 @@ public class AssignmentRepository {
         this.tenantQueryScope = tenantQueryScope;
     }
 
-    public PageResponse<AssetAssignment> findPage(Long assetId, String status, String q, String sort, int page, int size) {
+    public PageResponse<AssetAssignment> findPage(Long assetId, Long personnelId, String status, String q, String sort, int page, int size) {
         SortValidator.validatePagination(page, size);
 
         StringBuilder where = new StringBuilder(" WHERE a.is_deleted = 0");
@@ -33,6 +33,12 @@ public class AssignmentRepository {
         if (assetId != null) {
             where.append(" AND aa.asset_id = ?");
             params.add(assetId);
+        }
+
+        if (personnelId != null) {
+            where.append(" AND (aa.personnel_id = ? OR (aa.personnel_id IS NULL AND LOWER(TRIM(aa.assignee_name)) = (SELECT LOWER(TRIM(p.full_name)) FROM personnel p WHERE p.id = ?)))");
+            params.add(personnelId);
+            params.add(personnelId);
         }
 
         if (status != null && !status.isBlank() && !"Tümü".equalsIgnoreCase(status)) {
@@ -60,6 +66,7 @@ public class AssignmentRepository {
 
         String dataSql = """
             SELECT aa.id, aa.document_no, aa.asset_id, a.code AS asset_code, a.name AS asset_name,
+                   aa.personnel_id,
                    aa.assignee_name, aa.assignee_title, aa.unit_name, aa.location_info, aa.status,
                    aa.assigned_by,
                    TO_CHAR(aa.assigned_at, 'YYYY-MM-DD HH24:MI') AS assigned_at_str,
@@ -81,9 +88,14 @@ public class AssignmentRepository {
         return PageResponse.of(items, total, page, size);
     }
 
+    public PageResponse<AssetAssignment> findPage(Long assetId, String status, String q, String sort, int page, int size) {
+        return findPage(assetId, null, status, q, sort, page, size);
+    }
+
     public List<AssetAssignment> findAll(Long assetId, String status) {
         StringBuilder sql = new StringBuilder("""
             SELECT aa.id, aa.document_no, aa.asset_id, a.code AS asset_code, a.name AS asset_name,
+                   aa.personnel_id,
                    aa.assignee_name, aa.assignee_title, aa.unit_name, aa.location_info, aa.status,
                    aa.assigned_by,
                    TO_CHAR(aa.assigned_at, 'YYYY-MM-DD HH24:MI') AS assigned_at_str,
@@ -121,6 +133,7 @@ public class AssignmentRepository {
     public Optional<AssetAssignment> findById(Long id) {
         String sql = """
             SELECT aa.id, aa.document_no, aa.asset_id, a.code AS asset_code, a.name AS asset_name,
+                   aa.personnel_id,
                    aa.assignee_name, aa.assignee_title, aa.unit_name, aa.location_info, aa.status,
                    aa.assigned_by,
                    TO_CHAR(aa.assigned_at, 'YYYY-MM-DD HH24:MI') AS assigned_at_str,
@@ -136,15 +149,16 @@ public class AssignmentRepository {
     public void save(AssetAssignment a) {
         String sql = """
             INSERT INTO asset_assignments (
-                document_no, asset_id, assignee_name, assignee_title, unit_name, location_info,
+                document_no, asset_id, personnel_id, assignee_name, assignee_title, unit_name, location_info,
                 status, assigned_by, assigned_at, note
             ) VALUES (
-                :docNo, :assetId, :name, :title, :unit, :loc, :status, :assignedBy, CURRENT_TIMESTAMP, :note
+                :docNo, :assetId, :personnelId, :name, :title, :unit, :loc, :status, :assignedBy, CURRENT_TIMESTAMP, :note
             )
         """;
         jdbcClient.sql(sql)
                 .param("docNo", a.documentNo())
                 .param("assetId", a.assetId())
+                .param("personnelId", a.personnelId())
                 .param("name", a.assigneeName())
                 .param("title", a.assigneeTitle())
                 .param("unit", a.unit())
@@ -173,6 +187,7 @@ public class AssignmentRepository {
                 rs.getLong("asset_id"),
                 rs.getString("asset_code"),
                 rs.getString("asset_name"),
+                rs.getObject("personnel_id") == null ? null : rs.getLong("personnel_id"),
                 rs.getString("assignee_name"),
                 rs.getString("assignee_title"),
                 rs.getString("unit_name"),

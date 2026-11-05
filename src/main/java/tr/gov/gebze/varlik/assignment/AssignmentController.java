@@ -31,6 +31,7 @@ public class AssignmentController {
     @GetMapping
     public PageResponse<AssetAssignment> listAssignments(
             @RequestParam(required = false) Long assetId,
+            @RequestParam(required = false) Long personnelId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String q,
             @RequestParam(required = false) String query,
@@ -41,7 +42,7 @@ public class AssignmentController {
     ) {
         String searchQuery = (query != null && !query.isBlank()) ? query : q;
         String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
-        return assignmentService.findPage(assetId, status, searchQuery, sortParam, page, size);
+        return assignmentService.findPage(assetId, personnelId, status, searchQuery, sortParam, page, size);
     }
 
     @PostMapping
