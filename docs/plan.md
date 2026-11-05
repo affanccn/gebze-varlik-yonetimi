@@ -1098,3 +1098,292 @@ ORDER BY id;
 -- Depoda -> KAYDEDILDI, Zimmetli -> ZIMMETLENDI, Aktif -> KULLANIMDA, Bakımda -> BAKIMDA
 -- Tüm kayıtlarda is_deleted = 0 olmalıdır.
 ```
+
+---
+
+## BÖLÜM 5: Faz 1F - Sunucu Tarafı Sayfalama, Keyset İmleç Mimarisi, Türkçe Arama ve Yüksek Ölçekli Performans Planı (Revizyon 10)
+
+### 5.1. Ölçek Varsayımı ve Parametrik Hedefler (Varsayım Notu)
+> [!NOTE]
+> Aşağıdaki ölçek değerleri, Gebze Belediyesi'nin önümüzdeki 5-10 yıllık kurumsal büyüme projeksiyonu için hedeflenen **ölçek varsayımlarıdır (doğrulanmamış tasarım hedefi)**. Mimari ve test senaryoları bu parametrelere göre boyutlandırılmış olup parametrik tutulmuştur.
+
+| Varlık / Kaynak Türü | Hedeflenen Kayıt Sayısı | Büyüme Hızı (Tahmini / Yıl) | Sayfalama Stratejisi |
+|---|---|---|---|
+| **Varlıklar (Assets)** | 250.000 | +15.000 | OFFSET / FETCH NEXT |
+| **Zimmet Geçmişi (Assignments)** | 500.000 | +50.000 | Keyset (Cursor) + Opsiyonel Offset |
+| **Varlık Hareketleri (Movements)** | 1.000.000 | +120.000 | Keyset (Cursor: `created_at, id`) |
+| **Stok Hareketleri (Stock Transactions)** | 1.000.000 | +150.000 | Keyset (Cursor: `tx_date, id`) |
+| **Sistem Denetim Günlüğü (Audit Logs)** | 5.000.000 | +800.000 | Keyset (Cursor: `created_at, id`) |
+| **Personel (Personnel)** | 10.000 | +500 | OFFSET / FETCH NEXT |
+| **Bakım & Onarım (Maintenances)** | 200.000 | +30.000 | OFFSET / FETCH NEXT |
+| **Depo & Stok Kalemleri (Stock Items)** | 50.000 | +3.000 | OFFSET / FETCH NEXT |
+| **Araç & Filo (Fleet)** | 5.000 | +200 | OFFSET / FETCH NEXT |
+| **Satın Alma Talepleri (Procurement)** | 50.000 | +5.000 | OFFSET / FETCH NEXT |
+| **Sayımlar (Audits & Scans)** | 100.000 | +10.000 | OFFSET / FETCH NEXT |
+| **Belgeler (Documents)** | 500.000 | +60.000 | OFFSET / FETCH NEXT |
+| **Eşzamanlı Kullanıcı (Concurrent Users)** | **500 Aktif Kullanıcı** | - | Yük & Havuz Boyutlandırması |
+
+---
+
+### 5.2. Sayfalama Uygulanacak Uç Noktalar, Arayüz ve Seçici Envanteri
+
+| Uç Nokta | Controller & Metot | Mevcut Yanıt | Arayüz Tüketicileri (Frontend Bileşenleri) | Seçici / Dropdown Kullanımı | Sayfalama Türü |
+|---|---|---|---|---|---|
+| **`/api/assets`** | `AssetController.listAssets` | `List<Asset>` (74 satır) | `AssetsView.tsx`, `CategoriesView.tsx`, `DepartmentsView.tsx`, `PersonnelView.tsx`, `QRCodesView.tsx`, `TreeView.tsx` | `AssignmentFormModal` (Varlık seçici), `MaintenanceFormModal` (Varlık seçici) | **OFFSET / FETCH** (Dinamik sıralama & filtre) |
+| **`/api/assignments`** | `AssignmentController.listAssignments` | `List<AssetAssignment>` | `AssignmentsView.tsx`, `AssetDetailModal.tsx` | - | **Keyset (Cursor)** + Sayfa No desteği |
+| **`/api/maintenances`** | `MaintenanceController.listMaintenances` | `List<MaintenanceRecord>` | `MaintenancesView.tsx`, `AssetDetailModal.tsx` | - | **OFFSET / FETCH** |
+| **`/api/movements`** | `MovementController.listMovements` | `List<AssetMovement>` | `MovementsView.tsx`, `AssetDetailModal.tsx` | - | **Keyset (Cursor)** |
+| **`/api/personnel`** | `PersonnelController.getAll` | `List<Personnel>` | `PersonnelView.tsx` | `AssetFormModal` (Zimmetli personel), `AssignmentFormModal` (Teslim alan), `UserFormModal` (STAFF eşleştirme) | **OFFSET / FETCH** |
+| **`/api/documents`** | `EnterpriseController.listDocuments` | `List<AssetDocument>` | `DocumentsView.tsx`, `AssetDetailModal.tsx` | - | **OFFSET / FETCH** |
+| **`/api/audit-logs`** | `EnterpriseController.listAuditLogs` | `List<SystemAuditLog>` (sabit 50) | `AuditLogsView.tsx` | - | **Keyset (Cursor)** |
+| **`/api/stock`** | `EnterpriseController.listStock` | `List<StockItem>` | `StockView.tsx` | `StockTransactionModal` (Stok kalemi seçici) | **OFFSET / FETCH** |
+| **`/api/stock/transactions`**| `EnterpriseController.listStockTransactions` | `List<StockTransaction>` | `StockView.tsx` (Alt sekme) | - | **Keyset (Cursor)** |
+| **`/api/fleet`** | `EnterpriseController.listFleet` | `List<FleetVehicle>` | `FleetView.tsx` | `FleetStatusModal` | **OFFSET / FETCH** |
+| **`/api/procurement`** | `EnterpriseController.listProcurement` | `List<ProcurementOrder>` | `ProcurementView.tsx` | - | **OFFSET / FETCH** |
+| **`/api/audits`** | `EnterpriseController.listAudits` | `List<InventoryAudit>` | `CountingView.tsx` | `CountingScanModal` (Seans seçimi) | **OFFSET / FETCH** |
+| **`/api/audits/{id}/scans`** | `EnterpriseController.listAuditScans` | `List<AuditScan>` | `CountingView.tsx`, `CountingScanModal.tsx` | - | **OFFSET / FETCH** |
+| **`/api/users`** | `UserController.listUsers` | `List<UserResponse>` | `UsersView.tsx` | - | **OFFSET / FETCH** |
+
+#### Ertelenen / Sayfalanmayan Küçük Referans Tabloları (Kapsam Dışı):
+- `/api/departments` (30 satır - hiyerarşik ağaç ve navigasyon için tüm liste gereklidir)
+- `/api/sub-units` (57 satır)
+- `/api/buildings` (12 satır)
+- `/api/floors` (27 satır)
+- `/api/rooms` (56 satır)
+- `/api/categories` (16 satır)
+- `/api/settings` (7 satır)
+- `/api/alerts` (Dinamik hesaplanan operasyonel alarmlar)
+- `/api/hierarchy/tree` (Kurumsal ağaç veri yapısı)
+- `/api/dashboard` (Doğrudan SQL `COUNT`/`SUM` aggregations kullanır)
+
+---
+
+### 5.3. API Sözleşmesi (Contract Design) ve Güvenlik
+
+#### 5.3.1. OFFSET / FETCH Sözleşmesi (Standart Tablolar)
+- **İstek Parametreleri:**
+  - `page`: Sayfa indeksi (0-tabanlı; `0`, `1`, `2`...). Varsayılan: `0`.
+  - `size`: Sayfa boyutu (`1` ile `200` arası tam sayı). Varsayılan: `20`.
+  - `sort`: Sıralama ifadesi (`kolon,asc` veya `kolon,desc`).
+  - `q`: Genel metin arama filtresi.
+  - Uç noktaya özel filtreler: `departmentId`, `categoryId`, `status` vb.
+- **Yanıt Yapısı (`PageResponse<T>`):**
+  ```json
+  {
+    "items": [ ... ],
+    "total": 250000,
+    "page": 0,
+    "size": 20,
+    "totalPages": 12500,
+    "hasNext": true,
+    "hasPrevious": false
+  }
+  ```
+- **Oracle 23ai SQL Şablonu:**
+  ```sql
+  SELECT /*+ FIRST_ROWS(20) */ a.*, d.name AS dept_name ...
+  FROM assets a
+  LEFT JOIN departments d ON a.department_id = d.id
+  WHERE a.is_active = 1 AND a.is_deleted = 0
+    AND [TenantQueryScope Filter]
+    AND [Dynamic User Filters]
+  ORDER BY a.[SıralamaAlanı] [ASC|DESC], a.id DESC
+  OFFSET :offset ROWS FETCH NEXT :size ROWS ONLY
+  ```
+
+#### 5.3.2. Keyset (İmleç / Cursor) Sözleşmesi (Append-Only Milyonluk Hareket Tabloları)
+- **Neden Keyset?** `system_audit_logs` (5M kayıt) ve `asset_movements` (1M kayıt) gibi tablolarda `OFFSET 500000` satırları Oracle'da yüzbinlerce blok okumasına ve CPU tıkanmasına neden olur ($O(N)$ maliyet). Keyset imleci ile sorgu `WHERE (created_at, id) < (:lastDate, :lastId)` şeklinde B-Tree indeks yaprağından doğrudan devam eder ($O(1)$ sabit erişim süresi, < 10 ms).
+- **İstek Parametreleri:**
+  - `cursor`: Önceki sayfadan dönen opak imleç belirteci (Base64 kodlu `created_at|id`).
+  - `size`: Sayfa boyutu (varsayılan: `20`, maks: `200`).
+  - `direction`: `next` (varsayılan) veya `prev`.
+- **Yanıt Yapısı (`CursorResponse<T>`):**
+  ```json
+  {
+    "items": [ ... ],
+    "nextCursor": "MjAyNi0xMS0wNVQxMDozMDo0NS4xMjNaLDk5ODgyMQ==",
+    "hasMore": true,
+    "size": 20
+  }
+  ```
+- **Oracle 23ai SQL Şablonu:**
+  ```sql
+  SELECT *
+  FROM system_audit_logs
+  WHERE (created_at < :cursorCreatedAt 
+         OR (created_at = :cursorCreatedAt AND id < :cursorId))
+    AND [TenantQueryScope Filter]
+  ORDER BY created_at DESC, id DESC
+  FETCH FIRST :size ROWS ONLY
+  ```
+
+#### 5.3.3. SQL Injection Önleme ve Güvenlik Kuralları
+1. **Sabit İzin Listesi (Whitelist):**
+   Kullanıcıdan gelen `sort` parametresi **ASLA** doğrudan SQL `ORDER BY` cümlesine birleştirilmez.
+   Her uç nokta için Java katmanında `Map<String, String> ALLOWED_SORT_FIELDS` tanımlanır:
+   ```java
+   private static final Map<String, String> ASSET_SORT_FIELDS = Map.of(
+       "id", "a.id",
+       "code", "a.code",
+       "name", "a.name",
+       "estimatedValue", "a.estimated_value",
+       "acquisitionDate", "a.acquisition_date",
+       "status", "a.status"
+   );
+   ```
+   İzin listesinde olmayan herhangi bir alan geldiğinde veya SQL enjeksiyon denemesinde (`sort=1;DROP TABLE`) sistem `400 Bad Request` ("Geçersiz sıralama alanı") fırlatır.
+2. **Kararlı İkincil Sıralama (Tie-Breaker):**
+   Oracle'da sıralama alanı tekil (unique) değilse sayfalar arasında satır atlama veya mükerrer satır görünme riski oluşur. Bu nedenle her `ORDER BY` ifadesinin sonuna zorunlu olarak tekil birincil anahtar `, a.id DESC` eklenir.
+3. **Parametre Doğrulama (Sanitization):**
+   - `size > 200` ise ➔ `HTTP 400 ("Sayfa boyutu en fazla 200 olabilir.")`
+   - `size <= 0` veya `page < 0` ise ➔ `HTTP 400 ("Geçersiz sayfalama parametresi.")`
+4. **Tenant İzolasyonu Güvencesi:**
+   Hem `COUNT(*)` sayım sorgusu hem de veri sorgusu `TenantQueryScope` tarafından üretilen filtre şartını (`getAssetFilterClause("a")`) birebir kullanır. `DEPT_MANAGER` için dönen `total` yalnızca kendi müdürlüğünün varlık adedini, `STAFF` için yalnızca kendi zimmetli adedini yansıtır.
+
+---
+
+### 5.4. Oracle'da Türkçe Arama ve İ/ı Duyarlılığı Çözümü
+
+#### Problem Tanımı:
+Oracle varsayılan `BINARY` collation altındayken:
+- `LOWER('İSTANBUL')` ➔ `i` yerine karakter seti uyumsuzluğu verebilir.
+- `LOWER('istanbul')` ➔ `i` harfinin büyüğü `İ` iken `I` ile eşleşmez.
+- `ı` (küçük noktasız ı) ve `I` (büyük noktasız I) aramalarında Türkçe harf duyarsızlığı sağlanamaz.
+
+#### Çözüm Mimarisi:
+1. **Uygulama Katmanı Normalizasyonu:**
+   Kullanıcıdan gelen arama terimi Spring Boot katmanında Türkçe yerel ayar ile normalize edilir:
+   ```java
+   String normalizedQuery = query.trim().toUpperCase(Locale.forLanguageTag("tr-TR"));
+   ```
+2. **Oracle Veritabanı Katmanı (Linguistic Index & NLS_SORT):**
+   Oracle 23ai'de Türkçe duyarsız arama için fonksiyonel indeks (Linguistic Function-Based Index) kullanılır:
+   ```sql
+   -- Türkçe büyük-küçük harf ve aksan duyarsız B-Tree indeksi
+   CREATE INDEX idx_assets_name_tr ON assets (NLSSORT(name, 'NLS_SORT=TURKISH_AI'));
+   CREATE INDEX idx_assets_code_tr ON assets (NLSSORT(code, 'NLS_SORT=TURKISH_AI'));
+   ```
+   Sorgularda ise `NLSSORT` veya `UPPER(..., 'NLS_SORT=XTURKISH')` kullanımıyla hem Türkçe İ/ı, Ş/ş, Ğ/ğ harfleri tam uyumlu hale getirilir hem de indeks doğrudan kullanılır.
+
+---
+
+### 5.5. İndeks Planı (Flyway V16 Migration)
+
+Yüksek hacimli tablolarda sayfalama ve arama sorgularının Full Table Scan yapmasını engellemek üzere V16 migrasyonunda oluşturulacak indeksler:
+
+| Tablo | İndeks Adı | Sütunlar | Gerekçe | Yazma Maliyeti Notu |
+|---|---|---|---|---|
+| `assets` | `idx_assets_scope_paging` | `(department_id, is_deleted, is_active, id DESC)` | DEPT_MANAGER ve kurum bazlı sayfalama için Index Range Scan | Düşük. Varlık ekleme/güncellemede 1 indeks güncellenir. |
+| `assets` | `idx_assets_lifecycle` | `(lifecycle_status, is_deleted)` | Yaşam döngüsü durum filtresi için (V9'dan beri indeksi yoktu) | Düşük. Durum geçişlerinde güncellenir. |
+| `assets` | `idx_assets_category_id` | `(category_id, is_deleted)` | Kategori bazlı filtreleme için (V3'te category_id indeksi eksikti) | İhmal edilebilir. |
+| `asset_movements` | `idx_movements_keyset` | `(asset_id, created_at DESC, id DESC)` | Varlık hareketleri keyset sayfalama ve varlık detay geçmişi | Düşük. Her harekette tek INSERT. |
+| `asset_assignments` | `idx_assignments_keyset` | `(personnel_id, status, id DESC)` | Personel zimmet geçmişi ve keyset imleci | Düşük. Zimmet teslim/iade işlemlerinde. |
+| `system_audit_logs` | `idx_syslog_keyset` | `(created_at DESC, id DESC)` | 5M denetim kaydında $O(1)$ keyset sayfalama | Düşük (Kompakt 2 sütunlu B-Tree). |
+| `system_audit_logs` | `idx_syslog_entity` | `(entity_type, entity_id, created_at DESC)` | Varlık ve işlem bazlı denetim geçmişi sorguları | Orta. Denetim logları append-only'dir. |
+| `system_audit_logs` | `idx_syslog_actor` | `(actor_username, created_at DESC)` | Kullanıcı bazlı denetim izleme sorguları | Orta. |
+| `stock_transactions` | `idx_stock_tx_keyset` | `(stock_item_id, tx_date DESC, id DESC)` | Stok hareketleri keyset imleç gezinmesi | Düşük. |
+
+---
+
+### 5.6. Yan Etkilerin Çözümü ve Mimari Tasarımı
+
+1. **(a) Zimmet, Bakım ve Hareket Modallarındaki Varlık ve Personel Seçicileri:**
+   - *Mevcut Durum:* Modallar açıldığında tüm varlıklar (`/api/assets`) ve tüm personeller (`/api/personnel`) çekilip HTML `<select>` içine dolduruluyor. 250.000 varlıkta bu yaklaşım tarayıcıyı dondurur.
+   - *Çözüm:* Asenkron arama yapan seçici bileşeni (`AsyncSearchSelect.tsx`).
+     - Kullanıcı arama kutusuna en az 2 karakter yazdığında 300 ms debounce ile arama yapar.
+     - Varlıklar için: `/api/assets/lookup?term=...` ve `/api/assets?q=...&size=10&status=Depoda`
+     - Personeller için: `/api/personnel?q=...&size=10&departmentId=...`
+     - Modal ilk açıldığında yalnızca ilk 10 popüler/son işlem gören kayıt listelenir; kullanıcı yazdıkça sonuçlar asenkron güncellenir.
+2. **(b) QR Kod ve Etiket Yazdırma Ekranı (`QRCodesView.tsx`):**
+   - *Mevcut Durum:* 74 varlık çekilip tüm etiketler aynı anda render ediliyor.
+   - *Çözüm:* 
+     - Sayfa bazlı yazdırma: Kullanıcı varsayılan olarak o anki sayfadaki etiketleri yazdırır ("Bu Sayfadaki 50 Etiketi Yazdır").
+     - Seçili etiketleri yazdırma: Tablodan seçilen varlıklar için toplu yazdırma desteği.
+3. **(c) CSV ve Excel Dışa Aktarım (Export):**
+   - *Mevcut Durum:* Frontend istemci belleğinde (`assets.map`) CSV metni oluşturup indiriyor. 250.000 kayıtta istemci Out-of-Memory hatası alır.
+   - *Çözüm:* Sunucu tarafı dışa aktarım uç noktası:
+     - `/api/assets/export?format=csv` (aynı TenantQueryScope ve filtreleri uygular, streaming HTTP response ile istemciye aktarır, güvenlik limiti olarak maksimum 5.000 satır sınırı konur).
+4. **(d) Sayım Beklenen Listesi (`CountingView.tsx` ve `CountingScanModal.tsx`):**
+   - Sayım seansına ait beklenen varlıklar lokasyon/oda filtresiyle sınırlı olduğundan sayfalama kapsamından etkilenmez; seans kapsamındaki varlıklar oda bazlı getirilir.
+5. **(e) Dashboard Sayıları ve KPI Kartları:**
+   - Dashboard sayıları (`/api/dashboard`) zaten bağımsız SQL aggregations (`COUNT(*)`, `SUM(estimated_value)`) ile çalışmaktadır. Sayfalama sözleşmesi dashboard sayılarını kesinlikle etkilemez ve bozmaz.
+
+---
+
+### 5.7. Ayrı Veritabanında Performans ve Yük Testi Planı
+
+> [!CAUTION]
+> Performans testleri **KESİNLİKLE ANA VERİTABANINDA ÇALIŞTIRILMAYACAKTIR**. Ana veritabanındaki denetim günlüğü tablosu V15 immutability trigger'ı nedeniyle silinemez durumdadır; test verilerinin temizlenmesi ana veritabanını bozabilir.
+
+#### 5.7.1. Test Ortamı Kurulumu
+1. Ayrı bir Docker volume oluşturulur: `gebze-oracle-perftest-vol`.
+2. Alınan doğrulanmış soğuk yedek (`oracle23ai_volume_pre_pagination_cold.tar.gz`) bu volume'e açılır.
+3. Ayrı bir test konteyneri başlatılır: `gebze-oracle-perftest` (Port 1522).
+4. Test tamamlandıktan sonra konteyner ve volume tamamen silinir.
+
+#### 5.7.2. Test Veri Üretimi (Doğrudan SQL/PL-SQL ile)
+Uygulama servisleri kullanılmadan doğrudan veritabanı içerisinde PL/SQL toplu ekleme (bulk insert / `FORALL`) blokları ile test verisi üretilecektir:
+- **100.000 Varlık (`assets`)**
+- **300.000 Zimmet (`asset_assignments`)**
+- **500.000 Varlık Hareketi (`asset_movements`)**
+- **500.000 Stok Hareketi (`stock_transactions`)**
+- **1.000.000 Denetim Kaydı (`system_audit_logs`)**
+
+#### 5.7.3. Ölçüm Senaryoları ve Hedefler (300 ms Kriteri)
+| Test Senaryosu | Sorgu Türü | Veri Boyutu | Hedef Süre | Ölçüm Yöntemi |
+|---|---|---|---|---|
+| **Varlık İlk Sayfa (Sayfa 0, Size 20)** | OFFSET 0 FETCH 20 | 100.000 varlık | < 50 ms | JDBC execution time + Oracle AUTOTRACE |
+| **Varlık Derin Sayfa (Sayfa 500, Size 20)**| OFFSET 10000 FETCH 20 | 100.000 varlık | < 300 ms | Oracle Explain Plan (Index Skip Scan) |
+| **Varlık Türkçe Metin Arama** | `q="kamyon"`, `q="istanbul"` | 100.000 varlık | < 100 ms | Linguistic Functional Index |
+| **Varlık Fiyata Göre Sıralama** | `sort=estimatedValue,desc` | 100.000 varlık | < 150 ms | B-Tree Index Sort |
+| **Audit Logs İlk Sayfa** | Keyset Cursor FETCH 20 | 1.000.000 audit | < 15 ms | `idx_syslog_keyset` Index Range Scan |
+| **Audit Logs Derin Sayfa (50. sayfa)** | Keyset Cursor NEXT FETCH 20 | 1.000.000 audit | < 15 ms | Sabit $O(1)$ erişim süresi |
+| **Hareketler Keyset İmleci** | Keyset Cursor FETCH 20 | 500.000 hareket | < 15 ms | `idx_movements_keyset` Index Range Scan |
+
+#### 5.7.4. Yük Testi (k6) Senaryosu
+- **Eşzamanlı Kullanıcılar:** 100 ve 300 eşzamanlı sanal kullanıcı (VU).
+- **İşlem Akışı:**
+  1. Login (`POST /api/auth/login`) ➔ 2. Dashboard (`GET /api/dashboard`) ➔ 3. Varlık Listesi Gezinme (`GET /api/assets?page=0..3`) ➔ 4. Arama (`GET /api/assets?q=...`) ➔ 5. Varlık Detay (`GET /api/assets/{id}`).
+- **Hedefler:**
+  - p95 yanıt süresi < 300 ms
+  - Hata oranı (error rate) = %0
+  - HikariCP bağlantı havuzu kullanımı (%80 altında doygunluk)
+- **Tuning Çıktısı:** Test ölçümlerine göre `maximum-pool-size` (10 ➔ 25) ve Tomcat `max-threads` (200 ➔ 300) ayar önerileri raporlanacaktır.
+
+#### 5.7.5. Excel Toplu İçe Aktarım Süresi Ölçümü
+- 2.000 satırlık test Excel dosyası (`test_faz1d` jeneratörü ile üretilen) üzerinden `validate` ve `commit` süreleri ölçülüp raporlanacaktır (2.000 satır sınırı değiştirilmeyecektir).
+
+#### 5.7.6. Oracle 23ai Free Sürüm Sınırları ve Risk Analizi
+- **Doğrulanan Sürüm:** `Oracle AI Database 26ai Free Release 23.26.3.0.0`
+- **Mevcut Bellek Dağılımı:** `SGA_TARGET = 1536 MB`, `PGA_AGGREGATE_TARGET = 512 MB` (Toplam: **2048 MB / 2 GB RAM**).
+- **Oracle Free Donanım Kısıtları:**
+  - En fazla **12 GB** Kullanıcı Verisi (User Data Files).
+  - En fazla **2 GB RAM** (SGA + PGA toplamı).
+  - En fazla **2 CPU Thread / Core**.
+- **Risk Değerlendirmesi:**
+  - 100k varlık + 1M denetim kaydı + 500k hareket test seti veritabanında yaklaşık **2.2 GB - 2.8 GB** disk alanı kaplar. Bu, 12 GB sınırının oldukça altındadır (%23 kullanım) ve güvenlidir.
+  - Ancak 2 GB RAM kısıtı nedeniyle, yüksek eşzamanlılıkta (300+ VU) buffer cache sıkışabilir ve disk I/O beklemesi (`db file sequential read`) artabilir.
+  - Bu risk, **Keyset sayfalama** ve **hedefli indeksler** kullanılarak tam olarak bertaraf edilecektir; çünkü keyset ve indeksli aramalar RAM'deki buffer cache tüketimini minimuma indirir.
+
+---
+
+### 5.8. Uygulama Adımları ve Kabul Kriterleri
+
+1. **Adım 1: Backend Altyapı ve V16 Migrasyonu:**
+   - `PageResponse<T>`, `CursorResponse<T>`, `PageRequest` DTO'larının yazılması.
+   - SQL Injection korumalı `SortValidator` ve `ALLOWED_SORT_FIELDS` izin listelerinin tanımlanması.
+   - V16 indeks migrasyonunun hazırlanması.
+2. **Adım 2: Repository ve Servis Dönüşümleri:**
+   - 12 uç noktanın sayfalama ve keyset mantığına uyarlanması.
+   - `TenantQueryScope` sayım ve sayfa tutarlılığının sağlanması.
+3. **Adım 3: Frontend TanStack Table ve Seçici Entegrasyonu:**
+   - `manualPagination: true`, `manualSorting: true`, `manualFiltering: true` entegrasyonu.
+   - URL parametreleri ile sayfa/filtre senkronizasyonu (`useSearchParams`).
+   - Modallardaki varlık/personel seçicilerinin `AsyncSearchSelect` bileşenine dönüştürülmesi.
+4. **Adım 4: Güvenlik ve Regresyon Testleri:**
+   - DEPT_MANAGER ve STAFF veri izolasyonu ve toplam sayıların (total) doğrulanması.
+   - Zararlı parametre (`size=100000`, `sort=1;DROP`, negatif page) testleri ➔ `400 Bad Request`.
+   - Tüm eski backend ve Playwright testlerinin eksiksiz geçmesi.
+5. **Adım 5: Ayrı Veritabanında Yüksek Ölçekli Performans ve Yük Testi:**
+   - 100k varlık, 1M audit test verisinin yüklenmesi, 300 ms kriterinin doğrulanması, k6 raporu.
+
