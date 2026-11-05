@@ -534,7 +534,7 @@ public class EnterpriseRepository {
         )).list();
     }
 
-    public void recordAuditScan(Long auditId, String assetCode, String scannedLoc, String scannedBy) {
+    public AuditScanResult recordAuditScan(Long auditId, String assetCode, String scannedLoc, String scannedBy) {
         // Varlık bilgilerini çek
         var assetOpt = jdbcClient.sql("""
             SELECT id, code, name, location_info
@@ -547,14 +547,15 @@ public class EnterpriseRepository {
                 "id", rs.getLong("id"),
                 "code", rs.getString("code"),
                 "name", rs.getString("name"),
-                "loc", rs.getString("location_info")
+                "loc", rs.getString("location_info") != null ? rs.getString("location_info") : "Tanımsız Konum"
         )).optional();
 
         if (assetOpt.isPresent()) {
             var a = assetOpt.get();
             String expLoc = (String) a.get("loc");
-            boolean match = (scannedLoc == null || scannedLoc.isBlank() || expLoc.toLowerCase().contains(scannedLoc.toLowerCase()));
+            boolean match = (scannedLoc == null || scannedLoc.isBlank() || expLoc.toLowerCase().contains(scannedLoc.toLowerCase()) || scannedLoc.toLowerCase().contains(expLoc.toLowerCase()));
             String status = match ? "DOGRU_KONUM" : "FARKLI_KONUMDA";
+            String finalScannedLoc = (scannedLoc != null && !scannedLoc.isBlank()) ? scannedLoc : expLoc;
 
             jdbcClient.sql("""
                 INSERT INTO audit_scans (audit_id, asset_id, asset_code, asset_name, expected_location, scanned_location, match_status, scanned_by, notes)
@@ -565,7 +566,7 @@ public class EnterpriseRepository {
             .param(3, a.get("code"))
             .param(4, a.get("name"))
             .param(5, expLoc)
-            .param(6, (scannedLoc != null && !scannedLoc.isBlank()) ? scannedLoc : expLoc)
+            .param(6, finalScannedLoc)
             .param(7, status)
             .param(8, scannedBy)
             .param(9, match ? "Konum doğrulandı." : "Farklı oda/katta tespit edildi.")
@@ -574,7 +575,13 @@ public class EnterpriseRepository {
             jdbcClient.sql("UPDATE inventory_audits SET total_scanned = total_scanned + 1 WHERE id = ?")
             .param(1, auditId)
             .update();
+
+            String msg = match ? "'" + a.get("code") + "' doğru konumunda sayıma işlendi."
+                               : "'" + a.get("code") + "' farklı bir konumda (" + finalScannedLoc + ") tespit edildi.";
+
+            return new AuditScanResult("SUCCESS", status, null, (String) a.get("code"), (String) a.get("name"), expLoc, finalScannedLoc, msg);
         } else {
+            String finalScannedLoc = (scannedLoc != null && !scannedLoc.isBlank()) ? scannedLoc : "Bilinmiyor";
             jdbcClient.sql("""
                 INSERT INTO audit_scans (audit_id, asset_code, asset_name, expected_location, scanned_location, match_status, scanned_by, notes)
                 VALUES (?, ?, ?, 'Bilinmiyor', ?, 'FAZLA_KAYITSIZ', ?, 'Sistemde kayıtlı olmayan demirbaş tespit edildi.')
@@ -582,14 +589,76 @@ public class EnterpriseRepository {
             .param(1, auditId)
             .param(2, assetCode)
             .param(3, "Kayıtsız / Fazla Varlık")
-            .param(4, scannedLoc)
+            .param(4, finalScannedLoc)
             .param(5, scannedBy)
             .update();
 
             jdbcClient.sql("UPDATE inventory_audits SET total_excess = total_excess + 1 WHERE id = ?")
             .param(1, auditId)
             .update();
+
+            return new AuditScanResult("SUCCESS", "FAZLA_KAYITSIZ", null, assetCode, "Kayıtsız / Fazla Varlık", "Bilinmiyor", finalScannedLoc, "'" + assetCode + "' barkodu sistemde bulunamadı (Kayıtsız Varlık).");
         }
+    }
+
+    public AuditReconciliationSummary getAuditReconciliation(Long auditId) {
+        var auditMap = jdbcClient.sql("SELECT id, audit_code, title, total_expected, total_scanned, total_excess FROM inventory_audits WHERE id = ?")
+                .param(1, auditId)
+                .query((rs, rowNum) -> Map.of(
+                        "id", rs.getLong("id"),
+                        "code", rs.getString("audit_code"),
+                        "title", rs.getString("title"),
+                        "expected", rs.getInt("total_expected"),
+                        "scanned", rs.getInt("total_scanned"),
+                        "excess", rs.getInt("total_excess")
+                )).single();
+
+        int matched = jdbcClient.sql("SELECT COUNT(*) FROM audit_scans WHERE audit_id = ? AND match_status = 'DOGRU_KONUM'")
+                .param(1, auditId).query(Integer.class).single();
+
+        int different = jdbcClient.sql("SELECT COUNT(*) FROM audit_scans WHERE audit_id = ? AND match_status = 'FARKLI_KONUMDA'")
+                .param(1, auditId).query(Integer.class).single();
+
+        int totalExpected = (int) auditMap.get("expected");
+        int totalScanned = (int) auditMap.get("scanned");
+        int totalExcess = (int) auditMap.get("excess");
+        int totalMissing = Math.max(0, totalExpected - matched - different);
+        double rate = totalExpected > 0 ? Math.min(100.0, Math.round(((double) (matched + different) / totalExpected) * 1000.0) / 10.0) : 0.0;
+
+        // Henüz sayılmamış varlıklar (Sayıma dahil olup audit_scans'te olmayanlar)
+        List<Map<String, Object>> missingAssets = jdbcClient.sql("""
+            SELECT a.id, a.code, a.name, a.barcode, a.location_info, d.name AS dept_name
+            FROM assets a
+            LEFT JOIN departments d ON d.id = a.department_id
+            WHERE a.is_deleted = 0 AND a.is_active = 1
+              AND a.id NOT IN (
+                  SELECT s.asset_id FROM audit_scans s WHERE s.audit_id = ? AND s.asset_id IS NOT NULL
+              )
+            FETCH FIRST 50 ROWS ONLY
+        """)
+        .param(1, auditId)
+        .query((rs, rowNum) -> Map.of(
+                "id", (Object) rs.getLong("id"),
+                "code", rs.getString("code") != null ? rs.getString("code") : "",
+                "name", rs.getString("name") != null ? rs.getString("name") : "",
+                "barcode", rs.getString("barcode") != null ? rs.getString("barcode") : "",
+                "location", rs.getString("location_info") != null ? rs.getString("location_info") : "-",
+                "department", rs.getString("dept_name") != null ? rs.getString("dept_name") : "-"
+        )).list();
+
+        return new AuditReconciliationSummary(
+                (Long) auditMap.get("id"),
+                (String) auditMap.get("code"),
+                (String) auditMap.get("title"),
+                totalExpected,
+                totalScanned,
+                matched,
+                different,
+                totalExcess,
+                totalMissing,
+                rate,
+                missingAssets
+        );
     }
 
     // ==========================================

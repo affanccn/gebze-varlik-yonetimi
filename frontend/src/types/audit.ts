@@ -30,6 +30,38 @@ export interface AuditScan {
   notes?: string | null;
 }
 
+export interface AuditScanResult {
+  status: string;
+  matchStatus: 'DOGRU_KONUM' | 'FARKLI_KONUMDA' | 'FAZLA_KAYITSIZ' | string;
+  scanId?: number | null;
+  assetCode: string;
+  assetName: string;
+  expectedLocation?: string | null;
+  scannedLocation: string;
+  message: string;
+}
+
+export interface AuditReconciliationSummary {
+  auditId: number;
+  auditCode: string;
+  title: string;
+  totalExpected: number;
+  totalScanned: number;
+  totalMatched: number;
+  totalDifferentLocation: number;
+  totalExcess: number;
+  totalMissing: number;
+  completionRate: number;
+  missingAssets: Array<{
+    id: number;
+    code: string;
+    name: string;
+    barcode?: string;
+    location: string;
+    department: string;
+  }>;
+}
+
 export interface SystemAuditLog {
   id: number;
   actionType: string;

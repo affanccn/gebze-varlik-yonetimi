@@ -18,6 +18,7 @@ export const CountingView: React.FC = () => {
   const [selectedAuditId, setSelectedAuditId] = useState<number | null>(null);
   const [scanFilter, setScanFilter] = useState('');
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'SCANS' | 'RECONCILIATION'>('SCANS');
 
   // Audits Query
   const {
@@ -50,9 +51,21 @@ export const CountingView: React.FC = () => {
     enabled: activeAudit !== null,
   });
 
+  // Reconciliation Summary Query
+  const {
+    data: reconciliation,
+    isLoading: isLoadingRecon,
+    refetch: refetchRecon,
+  } = useQuery({
+    queryKey: ['audit-recon', activeAudit?.id],
+    queryFn: () => (activeAudit ? enterpriseService.getAuditReconciliation(activeAudit.id) : Promise.resolve(null)),
+    enabled: activeAudit !== null,
+  });
+
   const handleRefresh = () => {
     refetchAudits();
     refetchScans();
+    refetchRecon();
   };
 
   // Filtered scans
@@ -204,91 +217,185 @@ export const CountingView: React.FC = () => {
         </div>
       )}
 
-      {/* Scans List Table */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-slate-800">
-            Sayım Tarama Kayıtları ({filteredScans.length})
-          </h2>
+      {/* Sekmeler: Okutulan Kayıtlar vs Mutabakat Özeti */}
+      <div className="flex items-center gap-2 border-b border-slate-200">
+        <button
+          type="button"
+          onClick={() => setActiveTab('SCANS')}
+          className={`pb-2.5 text-xs font-semibold px-2 transition-colors relative flex items-center gap-1.5 ${
+            activeTab === 'SCANS'
+              ? 'text-emerald-700 border-b-2 border-emerald-600'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ScanLine className="w-3.5 h-3.5" />
+          Okutulan Demirbaşlar ({scans.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('RECONCILIATION')}
+          className={`pb-2.5 text-xs font-semibold px-2 transition-colors relative flex items-center gap-1.5 ${
+            activeTab === 'RECONCILIATION'
+              ? 'text-emerald-700 border-b-2 border-emerald-600'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <ClipboardCheck className="w-3.5 h-3.5" />
+          Mutabakat & Eksik Listesi ({reconciliation?.missingAssets?.length || 0})
+        </button>
+      </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              id="audit-scan-search"
-              value={scanFilter}
-              onChange={(e) => setScanFilter(e.target.value)}
-              placeholder="Kod, varlık veya oda ara..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-            />
+      {activeTab === 'SCANS' ? (
+        /* Scans List Table */
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-sm font-bold text-slate-800">
+              Sayım Tarama Kayıtları ({filteredScans.length})
+            </h2>
+
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                id="audit-scan-search"
+                value={scanFilter}
+                onChange={(e) => setScanFilter(e.target.value)}
+                placeholder="Kod, varlık veya oda ara..."
+                className="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+              />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            {isLoadingScans ? (
+              <div className="p-8 text-center text-slate-500">Tarama verileri yükleniyor...</div>
+            ) : filteredScans.length === 0 ? (
+              <div className="p-8 text-center text-slate-500">
+                Bu sayım seansına ait henüz okutulmuş barkod kaydı bulunmuyor.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-600">
+                  <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3">Varlık Kodu</th>
+                      <th className="px-4 py-3">Demirbaş Adı</th>
+                      <th className="px-4 py-3">Kayıtlı Beklenen Oda</th>
+                      <th className="px-4 py-3">Fiziki Taranan Konum</th>
+                      <th className="px-4 py-3">Eşleşme Durumu</th>
+                      <th className="px-4 py-3">Tarayan Denetçi</th>
+                      <th className="px-4 py-3">Zaman</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredScans.map((s) => {
+                      const isEslesti = s.matchStatus === 'ESLESTI' || s.matchStatus === 'DOGRU_KONUM';
+                      const isFarkli = s.matchStatus === 'FARKLI_ODA' || s.matchStatus === 'FARKLI_KONUMDA';
+
+                      return (
+                        <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="px-4 py-3 font-mono font-bold text-slate-900">
+                            {s.assetCode}
+                          </td>
+                          <td className="px-4 py-3 font-medium text-slate-900">
+                            {s.assetName}
+                          </td>
+                          <td className="px-4 py-3 text-slate-500">{s.expectedLocation || '—'}</td>
+                          <td className="px-4 py-3 font-medium text-slate-800">{s.scannedLocation}</td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                isEslesti
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                  : isFarkli
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  : 'bg-rose-50 text-rose-700 border border-rose-200'
+                              }`}
+                            >
+                              {isEslesti ? (
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              ) : isFarkli ? (
+                                <AlertTriangle className="w-3 h-3 text-amber-600" />
+                              ) : (
+                                <XCircle className="w-3 h-3 text-rose-600" />
+                              )}
+                              {s.matchStatus}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600">{s.scannedBy}</td>
+                          <td className="px-4 py-3 font-mono text-slate-400 text-[11px]">{s.scannedAt}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
+      ) : (
+        /* Reconciliation & Missing Assets Panel */
+        <div className="space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-sm font-bold text-slate-800">
+              Henüz Sayılmamış / Eksik Demirbaşlar ({reconciliation?.missingAssets?.length || 0})
+            </h2>
+            <span className="text-xs text-slate-500">
+              Sayıma dahil olup henüz barkodu okutulmayan kayıtlar
+            </span>
+          </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {isLoadingScans ? (
-            <div className="p-8 text-center text-slate-500">Tarama verileri yükleniyor...</div>
-          ) : filteredScans.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">
-              Bu sayım seansına ait henüz okutulmuş barkod kaydı bulunmuyor.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600">
-                <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
-                  <tr>
-                    <th className="px-4 py-3">Varlık Kodu</th>
-                    <th className="px-4 py-3">Demirbaş Adı</th>
-                    <th className="px-4 py-3">Kayıtlı Beklenen Oda</th>
-                    <th className="px-4 py-3">Fiziki Taranan Konum</th>
-                    <th className="px-4 py-3">Eşleşme Durumu</th>
-                    <th className="px-4 py-3">Tarayan Denetçi</th>
-                    <th className="px-4 py-3">Zaman</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredScans.map((s) => {
-                    const isEslesti = s.matchStatus === 'ESLESTI';
-                    const isFarkli = s.matchStatus === 'FARKLI_ODA';
-
-                    return (
-                      <tr key={s.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-4 py-3 font-mono font-bold text-slate-900">
-                          {s.assetCode}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            {isLoadingRecon ? (
+              <div className="p-8 text-center text-slate-500">Mutabakat verileri hesaplanıyor...</div>
+            ) : !reconciliation?.missingAssets || reconciliation.missingAssets.length === 0 ? (
+              <div className="p-8 text-center text-emerald-600 font-semibold flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                Tüm demirbaşlar eksiksiz sayıldı! Eksik varlık bulunmuyor.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-600">
+                  <thead className="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                    <tr>
+                      <th className="px-4 py-3">Varlık Kodu</th>
+                      <th className="px-4 py-3">Barkod No</th>
+                      <th className="px-4 py-3">Demirbaş Adı</th>
+                      <th className="px-4 py-3">Müdürlük</th>
+                      <th className="px-4 py-3">Kayıtlı Konum / Oda</th>
+                      <th className="px-4 py-3 text-right">Eylem</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {reconciliation.missingAssets.map((asset) => (
+                      <tr key={asset.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-4 py-3 font-mono font-bold text-slate-900">{asset.code}</td>
+                        <td className="px-4 py-3 font-mono text-slate-500">{asset.barcode || '-'}</td>
+                        <td className="px-4 py-3 font-medium text-slate-800">{asset.name}</td>
+                        <td className="px-4 py-3 text-slate-600">{asset.department}</td>
+                        <td className="px-4 py-3 text-slate-600">{asset.location}</td>
+                        <td className="px-4 py-3 text-right">
+                          {canWrite && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setIsScanModalOpen(true);
+                              }}
+                              className="px-2.5 py-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded transition-colors"
+                            >
+                              Şimdi Oku
+                            </button>
+                          )}
                         </td>
-                        <td className="px-4 py-3 font-medium text-slate-900">
-                          {s.assetName}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">{s.expectedLocation || '—'}</td>
-                        <td className="px-4 py-3 font-medium text-slate-800">{s.scannedLocation}</td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                              isEslesti
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : isFarkli
-                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                : 'bg-rose-50 text-rose-700 border border-rose-200'
-                            }`}
-                          >
-                            {isEslesti ? (
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            ) : (
-                              <AlertTriangle className="w-3 h-3 text-amber-600" />
-                            )}
-                            {s.matchStatus}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">{s.scannedBy}</td>
-                        <td className="px-4 py-3 font-mono text-slate-400 text-[11px]">{s.scannedAt}</td>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Scan Modal */}
       <CountingScanModal

@@ -3,7 +3,7 @@ import { API_ENDPOINTS } from '../api/endpoints';
 import { PageResponse, CursorResponse, PageParams } from '../types/api';
 import { FleetVehicle, FleetStatusUpdateRequest } from '../types/fleet';
 import { ProcurementOrder } from '../types/procurement';
-import { InventoryAudit, AuditScan, SystemAuditLog } from '../types/audit';
+import { InventoryAudit, AuditScan, AuditScanResult, AuditReconciliationSummary, SystemAuditLog } from '../types/audit';
 import { SystemSetting } from '../types/settings';
 
 export const enterpriseService = {
@@ -57,11 +57,15 @@ export const enterpriseService = {
     return apiRequest<AuditScan[]>(`${API_ENDPOINTS.AUDITS}/${auditId}/scans`);
   },
 
+  getAuditReconciliation: (auditId: number): Promise<AuditReconciliationSummary> => {
+    return apiRequest<AuditReconciliationSummary>(`${API_ENDPOINTS.AUDITS}/${auditId}/reconciliation`);
+  },
+
   recordAuditScan: (
     auditId: number,
     payload: { assetCode: string; scannedLocation: string }
-  ): Promise<{ status: string; message: string }> => {
-    return apiRequest<{ status: string; message: string }>(`${API_ENDPOINTS.AUDITS}/${auditId}/scan`, {
+  ): Promise<AuditScanResult> => {
+    return apiRequest<AuditScanResult>(`${API_ENDPOINTS.AUDITS}/${auditId}/scan`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });

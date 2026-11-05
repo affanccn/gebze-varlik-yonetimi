@@ -151,8 +151,14 @@ public class EnterpriseController {
         return enterpriseService.findAuditScans(id);
     }
 
+    @GetMapping("/audits/{id}/reconciliation")
+    public AuditReconciliationSummary getAuditReconciliation(@PathVariable Long id) {
+        tenantQueryScope.enforceStaffModuleRestriction("audits");
+        return enterpriseService.getAuditReconciliation(id);
+    }
+
     @PostMapping("/audits/{id}/scan")
-    public Map<String, Object> addAuditScan(
+    public AuditScanResult addAuditScan(
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
             @PathVariable Long id,
             @RequestBody Map<String, String> payload
@@ -162,8 +168,7 @@ public class EnterpriseController {
         String assetCode = payload.get("assetCode");
         String location = payload.get("scannedLocation");
 
-        enterpriseService.recordAuditScan(id, assetCode, location, session.fullName());
-        return Map.of("status", "SUCCESS", "message", "Varlık sayıma kaydedildi.");
+        return enterpriseService.recordAuditScan(id, assetCode, location, session.fullName());
     }
 
     // 5. BELGE & EVRAK

@@ -78,10 +78,15 @@ public class EnterpriseService {
     }
 
     @Transactional
-    public void recordAuditScan(Long auditId, String assetCode, String scannedLoc, String scannedBy) {
-        repository.recordAuditScan(auditId, assetCode, scannedLoc, scannedBy);
+    public AuditScanResult recordAuditScan(Long auditId, String assetCode, String scannedLoc, String scannedBy) {
+        AuditScanResult result = repository.recordAuditScan(auditId, assetCode, scannedLoc, scannedBy);
         repository.logAction("SAYIM_TARA", "AUDIT", String.valueOf(auditId), scannedBy, scannedBy, "127.0.0.1",
-                assetCode + " nolu varlık okutuldu. Konum: " + scannedLoc);
+                assetCode + " nolu varlık okutuldu (" + result.matchStatus() + "). Konum: " + scannedLoc);
+        return result;
+    }
+
+    public AuditReconciliationSummary getAuditReconciliation(Long auditId) {
+        return repository.getAuditReconciliation(auditId);
     }
 
     public PageResponse<AssetDocument> findDocumentsPage(Long assetId, String docType, String q, String sort, int page, int size) {
