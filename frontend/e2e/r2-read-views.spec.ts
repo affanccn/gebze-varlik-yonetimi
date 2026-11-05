@@ -140,9 +140,9 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
     await page.keyboard.press('Escape');
     await expect(modal).not.toBeVisible();
 
-    // Zimmeti olan personeli ara (Derya -> GBZ-AST-144)
-    await page.fill('input[placeholder*="sicil no ara"]', 'Derya');
-    const deryaRow = page.locator('tr:has-text("Derya")').first();
+    // Zimmeti olan personeli ara (SCL-3001 Çevre Müh. Derya -> GBZ-AST-144)
+    await page.fill('input[placeholder*="sicil no ara"]', 'SCL-3001');
+    const deryaRow = page.locator('tr:has-text("SCL-3001")').first();
     await expect(deryaRow).toBeVisible();
     await deryaRow.locator('button:has-text("Zimmetleri Gör")').click();
 

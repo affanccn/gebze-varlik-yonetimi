@@ -1,7 +1,11 @@
 import { apiRequest } from '../api/client';
 import { API_ENDPOINTS } from '../api/endpoints';
 import { PageResponse } from '../types/api';
-import { Personnel } from '../types/personnel';
+import {
+  Personnel,
+  PersonnelImportValidationResult,
+  PersonnelImportCommitResult,
+} from '../types/personnel';
 
 export interface PersonnelQueryParams {
   departmentId?: number;
@@ -55,6 +59,33 @@ export const personnelService = {
       method: 'DELETE',
     });
   },
+
+  exportTemplateUrl: (): string => {
+    return API_ENDPOINTS.PERSONNEL_EXPORT_TEMPLATE;
+  },
+
+  validateImport: (file: File): Promise<PersonnelImportValidationResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiRequest<PersonnelImportValidationResult>(API_ENDPOINTS.PERSONNEL_IMPORT_VALIDATE, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  commitImport: (file: File): Promise<PersonnelImportCommitResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiRequest<PersonnelImportCommitResult>(API_ENDPOINTS.PERSONNEL_IMPORT_COMMIT, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  syncHr: (): Promise<{ status: string; message: string; addedCount: number; updatedCount: number; totalSynced: number }> => {
+    return apiRequest<{ status: string; message: string; addedCount: number; updatedCount: number; totalSynced: number }>(
+      API_ENDPOINTS.PERSONNEL_SYNC_HR,
+      { method: 'POST' }
+    );
+  },
 };
-
-

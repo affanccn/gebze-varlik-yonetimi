@@ -12,6 +12,8 @@ import {
   Pencil,
   Trash2,
   AlertTriangle,
+  FileSpreadsheet,
+  RefreshCw,
 } from 'lucide-react';
 import { personnelService } from '../../services/personnelService';
 import { hierarchyService } from '../../services/hierarchyService';
@@ -25,6 +27,7 @@ import { Personnel } from '../../types/personnel';
 import { Department } from '../../types/hierarchy';
 import { PageResponse } from '../../types/api';
 import { PersonnelFormModal } from './PersonnelFormModal';
+import { PersonnelImportModal } from './PersonnelImportModal';
 
 export const PersonnelView: React.FC = () => {
   const { user } = useAuth();
@@ -44,11 +47,27 @@ export const PersonnelView: React.FC = () => {
 
   // Modallar
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [personnelToEdit, setPersonnelToEdit] = useState<Personnel | null>(null);
   const [personnelToDelete, setPersonnelToDelete] = useState<Personnel | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const canManage = user?.role === 'ADMIN' || user?.role === 'DEPT_MANAGER';
+
+  const handleSyncHr = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await personnelService.syncHr();
+      showToast(res.message, 'success');
+      queryClient.invalidateQueries({ queryKey: ['personnel'] });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'İK senkronizasyonu sırasında hata oluştu.';
+      showToast(msg, 'warning');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const updateParams = (updates: Record<string, string | number | undefined | null>) => {
     setSearchParams(
@@ -139,18 +158,44 @@ export const PersonnelView: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           {canManage && (
-            <button
-              type="button"
-              id="btn-open-personnel-form"
-              onClick={() => {
-                setPersonnelToEdit(null);
-                setIsFormOpen(true);
-              }}
-              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 text-white text-xs sm:text-sm font-semibold hover:bg-blue-700 shadow-sm transition-colors shrink-0"
-            >
-              <UserPlus className="w-4 h-4" />
-              Yeni Personel Ekle
-            </button>
+            <>
+              <button
+                type="button"
+                id="btn-open-personnel-form"
+                onClick={() => {
+                  setPersonnelToEdit(null);
+                  setIsFormOpen(true);
+                }}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 shadow-sm transition-colors shrink-0"
+              >
+                <UserPlus className="w-4 h-4" />
+                Yeni Personel Ekle
+              </button>
+
+              <button
+                type="button"
+                id="btn-open-personnel-import"
+                onClick={() => setIsImportOpen(true)}
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 shadow-sm transition-colors shrink-0"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                Toplu İçe Aktar (Excel)
+              </button>
+
+              {user?.role === 'ADMIN' && (
+                <button
+                  type="button"
+                  id="btn-sync-hr"
+                  onClick={handleSyncHr}
+                  disabled={isSyncing}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 text-white text-xs font-semibold hover:bg-slate-900 shadow-sm transition-colors shrink-0 disabled:opacity-50"
+                  title="Belediye İK Sistemi ile Kadro Listesini Eşitle"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                  {isSyncing ? 'Eşitleniyor...' : 'İK Eşitle'}
+                </button>
+              )}
+            </>
           )}
 
           <select
@@ -430,6 +475,15 @@ export const PersonnelView: React.FC = () => {
           setIsFormOpen(false);
           setPersonnelToEdit(null);
         }}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['personnel'] });
+        }}
+      />
+
+      {/* Toplu Personel İçe Aktarma Modalı */}
+      <PersonnelImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['personnel'] });
         }}
