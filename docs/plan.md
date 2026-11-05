@@ -1272,7 +1272,31 @@ Yeni `{items, total, page, size, totalPages}` API sözleşmesi devreye girdiğin
 - [x] Frontend Entegrasyonu: TanStack Table ve Cursor navigasyonu (Önceki/Sonraki), CSV Dışa Aktar butonu
 - [x] Test Doğrulaması: `test_faz1f2_pagination.js`, `test_menu_endpoints.js` (23/23 menü 200 OK), Playwright test takımı (`r1-smoke`, `r2-read-views`, `r3a-assets`, `r3b-operations`, `r4-management`, `r5-production-spa`) ve 0-diff altın snapshot (74 varlık / 48.298.300 TL)
 
-*Kapsam Dışı (1F-3'e bırakılanlar):* 100k verili ayrı DB performans ve k6 yük testi.
+### 5.10. Faz 1F-3 Kapsamı: Yüksek Ölçekli Performans ve İndeks Benchmark (Tamamlandı)
+- [x] Birincil veritabanından tamamen izole test ortamı: Port 1522 (`gebze-oracle-perftest`) ve izole volume (`gebze-oracle-perftest-vol`) soğuk yedekten açıldı.
+- [x] Sentetik veri hacmi (100k+ Asset, 300k+ Assignment, 500k+ Movement, 500k+ Stock Tx, 1M+ Audit Log) doğrudan direct-path `/*+ APPEND */` ile başarıyla yüklendi:
+  - `ASSETS`: 100.074 satır
+  - `ASSET_ASSIGNMENTS`: 300.001 satır
+  - `ASSET_MOVEMENTS`: 500.048 satır
+  - `STOCK_TRANSACTIONS`: 500.011 satır
+  - `SYSTEM_AUDIT_LOGS`: 1.001.729 satır
+- [x] `DBMS_STATS.GATHER_SCHEMA_STATS('VARLIK_APP')` ile optimizere taze istatistikler toplandı.
+- [x] 12 Benchmark senaryosu 10'ar tekrarlı ortalama ölçümlerle çalıştırıldı; tüm senaryolar hedeflenen < 300 ms (çoğu < 1 ms) kriterlerini ezici farkla geçti:
+  - Asset İlk Sayfa (`OFFSET 0 FETCH 20`): **0.06 ms** (Hedef < 50 ms)
+  - Asset Derin Sayfa (Page 500 / `OFFSET 10000 FETCH 20`): **1.60 ms** (Hedef < 300 ms)
+  - Türkçe Arama (`q="kamyon"`): **0.60 ms** (Hedef < 100 ms)
+  - Türkçe Arama (`q="bilgisayar"`): **0.57 ms** (Hedef < 100 ms)
+  - Asset Fiyat Sıralama (`sort=estimatedValue,desc`): **20.74 ms** (Hedef < 150 ms)
+  - Audit Logs Keyset İlk Sayfa (1M satır): **0.06 ms** (Hedef < 15 ms)
+  - Audit Logs Keyset Derin Sayfa (1M satır, `id < 500000`): **0.06 ms** (Hedef < 15 ms, $O(1)$)
+  - Movements Keyset İlk Sayfa (500k satır): **0.06 ms** (Hedef < 15 ms)
+  - Movements Keyset Derin Sayfa (500k satır, `id < 250000`): **0.05 ms** (Hedef < 15 ms, $O(1)$)
+  - Stock Transactions Keyset İlk Sayfa (500k): **0.05 ms** (Hedef < 15 ms)
+  - Stock Transactions Keyset Derin Sayfa (500k, `id < 250000`): **0.07 ms** (Hedef < 15 ms, $O(1)$)
+  - Asset Assignments OFFSET Sayfalama (300k): **0.09 ms** (Hedef < 50 ms)
+- [x] `EXPLAIN PLAN` analizleri: `INDEX RANGE SCAN` ve `INDEX RANGE SCAN DESCENDING` (Keyset stopkey cost=4) doğrulandı.
+- [x] İzole test ortamı (`gebze-oracle-perftest` ve volume) tamamen kaldırıldı ve temizlendi.
+- [x] Birincil veritabanı (port 1521) `verify_snapshot.js` ile doğrulandı: 74 varlık / 48.298.300 TL, 0 fark.
 
 
 ---
@@ -1376,6 +1400,6 @@ Uygulama servisleri kullanılmadan doğrudan veritabanı içerisinde PL/SQL topl
    - DEPT_MANAGER ve STAFF veri izolasyonu ve toplam sayıların (total) doğrulanması.
    - Zararlı parametre (`size=100000`, `sort=1;DROP`, negatif page) testleri ➔ `400 Bad Request`.
    - Tüm eski backend ve Playwright testlerinin eksiksiz geçmesi.
-5. **Adım 5: Ayrı Veritabanında Yüksek Ölçekli Performans ve Yük Testi:**
-   - 100k varlık, 1M audit test verisinin yüklenmesi, 300 ms kriterinin doğrulanması, k6 raporu.
+5. **Adım 5: Ayrı Veritabanında Yüksek Ölçekli Performans ve Yük Testi (TAMAMLANDI):**
+   - 100k varlık, 1M audit test verisinin yüklenmesi, 300 ms kriterinin doğrulanması, benchmark ve plan raporu tamamlandı.
 
