@@ -22,7 +22,6 @@ import {
   UserCog,
   Settings,
   X,
-  Database,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { PATHS } from '../../router/paths';
@@ -67,7 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       label: '🏛️ KURUMSAL YAPI',
       items: [
         { name: 'Binalar & Odalar', path: PATHS.LOCATIONS, icon: <Building2 className="w-4 h-4" /> },
-        { name: '30 Müdürlük', path: PATHS.DEPARTMENTS, icon: <Landmark className="w-4 h-4" /> },
+        { name: 'Müdürlükler', path: PATHS.DEPARTMENTS, icon: <Landmark className="w-4 h-4" /> },
         { name: 'Personel Yönetimi', path: PATHS.PERSONNEL, icon: <Users className="w-4 h-4" /> },
       ],
     },
@@ -75,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       label: '📦 DEMİRBAŞ & VARLIK',
       items: [
         { name: 'Varlıklar', path: PATHS.ASSETS, icon: <Package className="w-4 h-4" /> },
-        { name: '16 Kategori', path: PATHS.CATEGORIES, icon: <Tags className="w-4 h-4" /> },
+        { name: 'Kategoriler', path: PATHS.CATEGORIES, icon: <Tags className="w-4 h-4" /> },
         { name: 'Zimmet', path: PATHS.ASSIGNMENTS, icon: <Handshake className="w-4 h-4" /> },
         {
           name: 'Bakım & Onarım',
@@ -181,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Navigasyon Grupları */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 pb-12 space-y-6 scrollbar-thin">
           {groups.map((group) => {
             const visibleItems = group.items.filter((item) => {
               if (item.allowedRoles && !item.allowedRoles.includes(role)) return false;
@@ -219,17 +218,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             );
           })}
         </nav>
-
-        {/* Alt Bilgi */}
-        <div className="p-3 border-t border-navy-800 bg-navy-950/60">
-          <div className="flex items-center justify-between text-[11px] text-slate-400">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-              <span>Oracle 23ai Bağlı</span>
-            </div>
-            <Database className="w-3.5 h-3.5 text-slate-500" />
-          </div>
-        </div>
       </aside>
     </>
   );

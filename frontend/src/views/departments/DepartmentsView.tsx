@@ -48,7 +48,7 @@ export const DepartmentsView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            30 Kurumsal Müdürlük
+            Kurumsal Müdürlükler
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Gebze Belediyesi kurumsal organizasyon şeması, müdürlükler ve alt şeflikler

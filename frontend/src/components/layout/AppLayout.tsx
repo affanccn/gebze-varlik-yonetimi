@@ -13,10 +13,10 @@ export const AppLayout: React.FC = () => {
     [PATHS.DASHBOARD]: 'Ana Ekran & Dashboard',
     [PATHS.TREE]: 'Kurumsal & Fiziksel Ağaç',
     [PATHS.LOCATIONS]: 'Binalar, Katlar ve Odalar',
-    [PATHS.DEPARTMENTS]: '30 Kurumsal Müdürlük',
+    [PATHS.DEPARTMENTS]: 'Kurumsal Müdürlükler',
     [PATHS.PERSONNEL]: 'Personel Yönetimi',
     [PATHS.ASSETS]: 'Demirbaş ve Varlık Envanteri',
-    [PATHS.CATEGORIES]: '16 Ana Varlık Kategorisi',
+    [PATHS.CATEGORIES]: 'Varlık Kategorileri',
     [PATHS.ASSIGNMENTS]: 'Zimmet İşlemleri ve Fişler',
     [PATHS.MAINTENANCES]: 'Bakım & Onarım İş Emirleri',
     [PATHS.MOVEMENTS]: 'Hareketler ve Konum Transferi',
@@ -50,7 +50,7 @@ export const AppLayout: React.FC = () => {
           {/* Kurumsal Bilgilendirme Banner'ı */}
           <div className="mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <strong className="text-slate-800">Gebze Belediyesi Kurumsal Envanter Altyapısı:</strong> 30 müdürlük, 12 hizmet binası ve şantiye, katlar, odalar ve 16 ana kategori Oracle 23ai veritabanında hiyerarşik olarak yönetilmektedir.
+              <strong className="text-slate-800">Gebze Belediyesi Kurumsal Envanter Altyapısı:</strong> Kurumsal müdürlükler, hizmet binaları, şantiyeler, katlar, odalar ve varlık kategorileri Oracle 23ai veritabanında hiyerarşik olarak yönetilmektedir.
             </div>
             <span className="inline-block px-2.5 py-1 bg-teal-50 border border-teal-200 text-teal-800 font-semibold rounded text-[11px] whitespace-nowrap self-start sm:self-center">
               React 18 + TS

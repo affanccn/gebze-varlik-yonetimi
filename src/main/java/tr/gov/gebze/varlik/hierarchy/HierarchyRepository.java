@@ -26,7 +26,13 @@ public class HierarchyRepository {
     public List<Department> findAllDepartments() {
         String assetFilter = tenantQueryScope.getAssetFilterClause("a");
         String sql = """
-            SELECT d.id, d.code, d.name, d.manager_name, d.phone, d.email, d.display_order, d.is_active,
+            SELECT d.id, d.code, d.name,
+                   COALESCE(
+                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND (LOWER(p.title) LIKE '%müdür%' OR LOWER(p.title) LIKE '%mudur%' OR LOWER(p.title) LIKE '%başkan%' OR LOWER(p.title) LIKE '%müşavir%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
+                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND (LOWER(p.title) LIKE '%amir%' OR LOWER(p.title) LIKE '%şef%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
+                       d.manager_name
+                   ) AS manager_name,
+                   d.phone, d.email, d.display_order, d.is_active,
                    COUNT(a.id) AS asset_count
             FROM departments d
             LEFT JOIN assets a ON a.department_id = d.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
@@ -38,7 +44,13 @@ public class HierarchyRepository {
 
     public Optional<Department> findDepartmentById(Long id) {
         String sql = """
-            SELECT d.id, d.code, d.name, d.manager_name, d.phone, d.email, d.display_order, d.is_active,
+            SELECT d.id, d.code, d.name,
+                   COALESCE(
+                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND (LOWER(p.title) LIKE '%müdür%' OR LOWER(p.title) LIKE '%mudur%' OR LOWER(p.title) LIKE '%başkan%' OR LOWER(p.title) LIKE '%müşavir%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
+                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND (LOWER(p.title) LIKE '%amir%' OR LOWER(p.title) LIKE '%şef%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
+                       d.manager_name
+                   ) AS manager_name,
+                   d.phone, d.email, d.display_order, d.is_active,
                    COUNT(a.id) AS asset_count
             FROM departments d
             LEFT JOIN assets a ON a.department_id = d.id AND a.is_active = 1

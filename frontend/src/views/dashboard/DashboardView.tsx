@@ -275,9 +275,9 @@ export const DashboardView: React.FC = () => {
         </div>
       )}
 
-      {/* 30 Kurumsal Müdürlük Özeti */}
+      {/* Kurumsal Müdürlükler Özeti */}
       <Card
-        title="30 Kurumsal Müdürlük Varlık Dağılımı"
+        title="Kurumsal Müdürlükler Varlık Dağılımı"
         subtitle="Müdürlük bazında toplam, aktif, depodaki ve bakımdaki varlık sayıları"
         action={
           <div className="w-64">

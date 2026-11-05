@@ -96,7 +96,7 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
     await loginAs(page);
     await page.goto('/departments');
 
-    await expect(page.locator('h1:has-text("30 Kurumsal Müdürlük")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Kurumsal Müdürlükler")')).toBeVisible();
 
     // Arama kutusu
     const searchInput = page.locator('input[placeholder*="Müdürlük, kod"]');
@@ -157,7 +157,7 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
     await loginAs(page);
     await page.goto('/categories');
 
-    await expect(page.locator('h1:has-text("16 Ana Varlık Kategorisi")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Varlık Kategorileri")')).toBeVisible();
 
     // Kategori kartı tıklama
     const firstCatCard = page.locator('div.cursor-pointer:has-text("Demirbaş")').first();

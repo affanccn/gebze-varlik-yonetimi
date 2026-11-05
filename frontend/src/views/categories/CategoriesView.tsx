@@ -37,7 +37,7 @@ export const CategoriesView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            16 Ana Varlık Kategorisi
+            Varlık Kategorileri
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Taşınır Mal Yönetmeliği ve belediye standartlarına göre gruplandırılmış ana varlık kategorileri
