@@ -207,3 +207,4 @@ npm --prefix frontend run test:e2e -- r2-read-views
 npm --prefix frontend run test:e2e -- r3a-assets
 npm --prefix frontend run test:e2e -- r4-management
 ```
+
