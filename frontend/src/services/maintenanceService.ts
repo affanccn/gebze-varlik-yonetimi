@@ -5,6 +5,7 @@ import {
   MaintenanceRecord,
   MaintenanceRequest,
   MaintenanceCompleteRequest,
+  MaintenanceWorkOrder,
 } from '../types/maintenance';
 
 export const maintenanceService = {
@@ -23,6 +24,14 @@ export const maintenanceService = {
     if (params?.maintenanceType) searchParams.set('maintenanceType', params.maintenanceType);
     const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
     return apiRequest<PageResponse<MaintenanceRecord>>(`${API_ENDPOINTS.MAINTENANCES}${query}`);
+  },
+
+  getById: (id: number): Promise<MaintenanceRecord> => {
+    return apiRequest<MaintenanceRecord>(`${API_ENDPOINTS.MAINTENANCES}/${id}`);
+  },
+
+  getWorkOrder: (id: number): Promise<MaintenanceWorkOrder> => {
+    return apiRequest<MaintenanceWorkOrder>(`${API_ENDPOINTS.MAINTENANCES}/${id}/work-order`);
   },
 
   create: (request: MaintenanceRequest): Promise<MaintenanceRecord> => {

@@ -34,3 +34,31 @@ export interface MaintenanceCompleteRequest {
   resolutionNote?: string;
 }
 
+export interface MaintenanceWorkOrder {
+  id: number;
+  orderNo: string;
+  assetId: number;
+  assetCode: string;
+  assetName: string;
+  barcode?: string | null;
+  serialNumber?: string | null;
+  categoryName?: string | null;
+  departmentName?: string | null;
+  location?: string | null;
+  roomNumber?: string | null;
+  maintenanceType: string;
+  priority: string;
+  technicianName: string;
+  issueDescription: string;
+  resolutionNote?: string | null;
+  estimatedCost?: number | null;
+  finalCost?: number | null;
+  status: string;
+  startedAt: string;
+  completedAt?: string | null;
+  createdBy: string;
+  municipalHeader: string;
+  workUnit: string;
+  printedAt: string;
+}
+

@@ -45,6 +45,20 @@ public class MaintenanceController {
         return maintenanceService.findPage(assetId, status, maintenanceType, searchQuery, sortParam, page, size);
     }
 
+    @GetMapping("/{id}")
+    public MaintenanceRecord getMaintenance(@PathVariable Long id) {
+        MaintenanceRecord rec = maintenanceService.findById(id);
+        tenantQueryScope.validateAssetWriteAccess(rec.assetId(), null);
+        return rec;
+    }
+
+    @GetMapping("/{id}/work-order")
+    public MaintenanceWorkOrder getWorkOrder(@PathVariable Long id) {
+        MaintenanceRecord rec = maintenanceService.findById(id);
+        tenantQueryScope.validateAssetWriteAccess(rec.assetId(), null);
+        return maintenanceService.getWorkOrder(id);
+    }
+
     @PostMapping
     public MaintenanceRecord createMaintenance(
             @RequestHeader(value = "X-Auth-Token", required = false) String token,

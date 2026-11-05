@@ -389,7 +389,7 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
                 onClick={onClose}
                 className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
               >
-                Kapat
+                Vazgeç
               </button>
               <button
                 type="submit"

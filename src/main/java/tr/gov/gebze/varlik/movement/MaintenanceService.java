@@ -176,4 +176,40 @@ public class MaintenanceService {
 
         return findById(maintenanceId);
     }
+
+    public MaintenanceWorkOrder getWorkOrder(Long id) {
+        MaintenanceRecord rec = findById(id);
+        Asset asset = assetService.findById(rec.assetId());
+
+        String now = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
+
+        return new MaintenanceWorkOrder(
+                rec.id(),
+                rec.orderNo(),
+                asset.id(),
+                asset.code(),
+                asset.name(),
+                asset.barcode(),
+                asset.serialNumber(),
+                asset.categoryName() != null ? asset.categoryName() : asset.category(),
+                asset.departmentName() != null ? asset.departmentName() : asset.unit(),
+                asset.location(),
+                asset.roomNumber(),
+                rec.maintenanceType(),
+                rec.priority(),
+                rec.vendorOrTechnician() != null ? rec.vendorOrTechnician() : "Belediye Teknik Ekibi",
+                rec.issueDescription(),
+                rec.resolutionNote(),
+                rec.cost(),
+                rec.cost(),
+                rec.status(),
+                rec.startedAt(),
+                rec.completedAt(),
+                rec.createdBy(),
+                "T.C. GEBZE BELEDİYE BAŞKANLIĞI",
+                "Destek Hizmetleri Müdürlüğü - Makine İkmal ve Onarım Şefliği",
+                now
+        );
+    }
 }

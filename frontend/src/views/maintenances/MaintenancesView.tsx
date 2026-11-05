@@ -14,6 +14,7 @@ import { maintenanceService } from '../../services/maintenanceService';
 import { MaintenanceRecord } from '../../types/maintenance';
 import { MaintenanceFormModal } from './MaintenanceFormModal';
 import { MaintenanceCompleteModal } from './MaintenanceCompleteModal';
+import { MaintenanceWorkOrderModal } from './MaintenanceWorkOrderModal';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency } from '../../components/common/formatters';
 import {
@@ -26,6 +27,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Printer,
 } from 'lucide-react';
 
 export const MaintenancesView: React.FC = () => {
@@ -38,6 +40,8 @@ export const MaintenancesView: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isCompleteOpen, setIsCompleteOpen] = useState(false);
   const [selectedRecordForComplete, setSelectedRecordForComplete] = useState<MaintenanceRecord | null>(null);
+  const [workOrderId, setWorkOrderId] = useState<number | null>(null);
+  const [isWorkOrderOpen, setIsWorkOrderOpen] = useState(false);
 
   const {
     data: recordsData,
@@ -48,6 +52,17 @@ export const MaintenancesView: React.FC = () => {
     queryKey: ['maintenances'],
     queryFn: () => maintenanceService.getAll({ size: 100 }),
   });
+
+  const { data: workOrderData, isLoading: isLoadingWorkOrder } = useQuery({
+    queryKey: ['work-order', workOrderId],
+    queryFn: () => (workOrderId ? maintenanceService.getWorkOrder(workOrderId) : Promise.resolve(null)),
+    enabled: workOrderId != null,
+  });
+
+  const handleOpenWorkOrder = (id: number) => {
+    setWorkOrderId(id);
+    setIsWorkOrderOpen(true);
+  };
   const records = recordsData?.items || [];
 
   // KPI calculations
@@ -186,6 +201,17 @@ export const MaintenancesView: React.FC = () => {
           const isDone = item.status === 'TAMAMLANDI';
           return (
             <div className="flex items-center justify-end gap-1.5">
+              <button
+                type="button"
+                data-work-order-id={item.id}
+                onClick={() => handleOpenWorkOrder(item.id)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors"
+                title="İş Emri Formu & Yazdır"
+              >
+                <Printer className="w-3.5 h-3.5 text-slate-600" />
+                İş Emri
+              </button>
+
               {canWrite && !isDone ? (
                 <button
                   type="button"
@@ -432,6 +458,16 @@ export const MaintenancesView: React.FC = () => {
           setSelectedRecordForComplete(null);
         }}
         onSuccess={() => refetch()}
+      />
+
+      <MaintenanceWorkOrderModal
+        isOpen={isWorkOrderOpen}
+        onClose={() => {
+          setIsWorkOrderOpen(false);
+          setWorkOrderId(null);
+        }}
+        workOrder={workOrderData || null}
+        isLoading={isLoadingWorkOrder}
       />
     </div>
   );
