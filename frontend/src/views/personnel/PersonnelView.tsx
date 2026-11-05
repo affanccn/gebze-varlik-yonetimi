@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import {
   Search,
   Phone,
   Mail,
   Package,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { personnelService } from '../../services/personnelService';
 import { hierarchyService } from '../../services/hierarchyService';
@@ -14,12 +17,47 @@ import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/Badge';
 import { Personnel } from '../../types/personnel';
 import { Department } from '../../types/hierarchy';
-import { Asset } from '../../types/asset';
+import { PageResponse } from '../../types/api';
 
 export const PersonnelView: React.FC = () => {
-  const [deptFilter, setDeptFilter] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const urlPage = Math.max(0, parseInt(searchParams.get('page') || '0', 10));
+  const urlSize = Math.min(200, Math.max(1, parseInt(searchParams.get('size') || '20', 10)));
+  const urlDept = searchParams.get('dept') || '';
+  const urlQ = searchParams.get('q') || '';
+  const urlSort = searchParams.get('sort') || '';
+
+  const [searchInput, setSearchInput] = useState(urlQ);
+  const [debouncedQ, setDebouncedQ] = useState(urlQ);
   const [selectedPersonnel, setSelectedPersonnel] = useState<Personnel | null>(null);
+
+  const updateParams = (updates: Record<string, string | number | undefined | null>) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        Object.entries(updates).forEach(([k, v]) => {
+          if (v === undefined || v === null || v === '' || (k === 'page' && v === 0)) {
+            next.delete(k);
+          } else {
+            next.set(k, String(v));
+          }
+        });
+        return next;
+      },
+      { replace: true }
+    );
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQ(searchInput);
+      if (searchInput !== urlQ) {
+        updateParams({ q: searchInput || undefined, page: 0 });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   // 1. Müdürlükler listesi (filtre select için)
   const { data: departments = [] } = useQuery<Department[]>({
@@ -28,29 +66,30 @@ export const PersonnelView: React.FC = () => {
   });
 
   // 2. Personel listesi query
-  const { data: personnelList = [], isLoading } = useQuery<Personnel[]>({
-    queryKey: ['personnel', deptFilter],
-    queryFn: () => personnelService.getAll({ departmentId: deptFilter ? Number(deptFilter) : undefined }),
+  const { data: pageData, isLoading } = useQuery<PageResponse<Personnel>>({
+    queryKey: ['personnel', urlDept, urlPage, urlSize, debouncedQ, urlSort],
+    queryFn: () =>
+      personnelService.getAll({
+        departmentId: urlDept ? Number(urlDept) : undefined,
+        query: debouncedQ || undefined,
+        page: urlPage,
+        size: urlSize,
+        sort: urlSort || undefined,
+      }),
+    placeholderData: keepPreviousData,
   });
+
+  const personnelList = pageData?.items || [];
+  const total = pageData?.total || 0;
+  const totalPages = pageData?.totalPages || 0;
 
   // 3. Seçili personelin zimmetli varlıkları
-  const { data: assignedAssets = [] } = useQuery<Asset[]>({
+  const { data: assignedAssetsData } = useQuery({
     queryKey: ['personnel-assets', selectedPersonnel?.id],
-    queryFn: () => assetService.getAll({ assignedPersonnelId: selectedPersonnel!.id }),
+    queryFn: () => assetService.getAll({ assignedPersonnelId: selectedPersonnel!.id, size: 200 }),
     enabled: selectedPersonnel != null,
   });
-
-  const filteredPersonnel = personnelList.filter((p) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      p.fullName.toLowerCase().includes(q) ||
-      p.registrationNumber.toLowerCase().includes(q) ||
-      (p.title && p.title.toLowerCase().includes(q)) ||
-      (p.departmentName && p.departmentName.toLowerCase().includes(q)) ||
-      (p.phone && p.phone.toLowerCase().includes(q)) ||
-      (p.email && p.email.toLowerCase().includes(q))
-    );
-  });
+  const assignedAssets = assignedAssetsData?.items || [];
 
   return (
     <div className="space-y-6">
@@ -66,8 +105,8 @@ export const PersonnelView: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <select
-            value={deptFilter}
-            onChange={(e) => setDeptFilter(e.target.value)}
+            value={urlDept}
+            onChange={(e) => updateParams({ dept: e.target.value || undefined, page: 0 })}
             className="text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-gebze-navy/20"
           >
             <option value="">Tüm Müdürlükler ({departments.length})</option>
@@ -83,8 +122,8 @@ export const PersonnelView: React.FC = () => {
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Ad, unvan, sicil no ara..."
                 className="w-full pl-9 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gebze-navy/20"
               />
@@ -95,7 +134,7 @@ export const PersonnelView: React.FC = () => {
 
       {/* Personel Tablosu */}
       <Card
-        title={`Belediye Personeli (${filteredPersonnel.length})`}
+        title={`Belediye Personeli (${total})`}
         subtitle="Zimmetli demirbaşları listelemek veya incelemek için personeli seçin"
       >
         <div className="overflow-x-auto">
@@ -112,7 +151,7 @@ export const PersonnelView: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
-              {isLoading ? (
+              {isLoading && personnelList.length === 0 ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td colSpan={7} className="py-3 px-4">
@@ -120,14 +159,14 @@ export const PersonnelView: React.FC = () => {
                     </td>
                   </tr>
                 ))
-              ) : filteredPersonnel.length === 0 ? (
+              ) : personnelList.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-slate-500">
                     Arama kriterlerinize uygun personel bulunamadı.
                   </td>
                 </tr>
               ) : (
-                filteredPersonnel.map((p) => (
+                personnelList.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-3 px-4 font-mono font-bold text-gebze-navy">
                       <span className="bg-slate-100 px-2 py-0.5 rounded">{p.registrationNumber}</span>
@@ -186,6 +225,56 @@ export const PersonnelView: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Bar */}
+        {total > 0 && (
+          <div className="p-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 bg-slate-50/50 rounded-b-xl mt-2">
+            <div className="flex items-center gap-2">
+              <span>Sayfa başına:</span>
+              <select
+                value={urlSize}
+                onChange={(e) => updateParams({ size: Number(e.target.value), page: 0 })}
+                className="px-2 py-1 rounded-lg border border-slate-300 bg-white text-xs font-medium focus:outline-none focus:ring-1 focus:ring-gebze-navy"
+              >
+                {[10, 20, 50, 100].map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+              <span className="text-slate-400">|</span>
+              <span>
+                Toplam <strong>{total}</strong> personelden{' '}
+                <strong>{urlPage * urlSize + 1}</strong>-
+                <strong>{Math.min((urlPage + 1) * urlSize, total)}</strong> arası gösteriliyor
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="font-medium">
+                Sayfa {urlPage + 1} / {Math.max(1, totalPages)}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => updateParams({ page: Math.max(0, urlPage - 1) })}
+                  disabled={urlPage <= 0 || isLoading}
+                  className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateParams({ page: urlPage + 1 })}
+                  disabled={urlPage + 1 >= totalPages || isLoading}
+                  className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* Personele Zimmetli Varlıklar Modalı */}

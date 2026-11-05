@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.common.PageResponse;
+import tr.gov.gebze.varlik.common.SortValidator;
 
 @Repository
 public class PersonnelRepository {
@@ -15,6 +17,84 @@ public class PersonnelRepository {
 
     public PersonnelRepository(JdbcClient jdbcClient) {
         this.jdbcClient = jdbcClient;
+    }
+
+    public PageResponse<Personnel> findPage(
+            Long departmentId,
+            Long roomId,
+            String query,
+            Boolean isActive,
+            String sortBy,
+            int page,
+            int size
+    ) {
+        SortValidator.validatePagination(page, size);
+
+        StringBuilder whereClause = new StringBuilder(" WHERE p.is_deleted = 0");
+        List<Object> params = new ArrayList<>();
+
+        if (isActive != null) {
+            whereClause.append(" AND p.is_active = ?");
+            params.add(isActive ? 1 : 0);
+        } else {
+            whereClause.append(" AND p.is_active = 1");
+        }
+
+        if (departmentId != null) {
+            whereClause.append(" AND p.department_id = ?");
+            params.add(departmentId);
+        }
+
+        if (roomId != null) {
+            whereClause.append(" AND p.room_id = ?");
+            params.add(roomId);
+        }
+
+        if (query != null && !query.isBlank()) {
+            String q = "%" + query.trim() + "%";
+            whereClause.append(" AND (p.full_name LIKE ? OR p.registration_number LIKE ? OR p.title LIKE ?)");
+            params.add(q);
+            params.add(q);
+            params.add(q);
+        }
+
+        String fromClause = """
+            FROM personnel p
+            LEFT JOIN departments d ON p.department_id = d.id
+            LEFT JOIN sub_units s ON p.sub_unit_id = s.id
+            LEFT JOIN rooms r ON p.room_id = r.id
+        """;
+
+        // Total count query (capped at 10001)
+        String countSql = "SELECT COUNT(*) FROM (SELECT 1 " + fromClause + whereClause.toString() + " FETCH FIRST 10001 ROWS ONLY)";
+        var countSpec = jdbcClient.sql(countSql);
+        for (int i = 0; i < params.size(); i++) {
+            countSpec = countSpec.param(i + 1, params.get(i));
+        }
+        Long totalCount = countSpec.query(Long.class).single();
+        long total = totalCount != null ? totalCount : 0L;
+
+        // Data query
+        String orderBy = SortValidator.buildOrderBy(sortBy, SortValidator.PERSONNEL_SORT_FIELDS, "p.department_id ASC, p.full_name ASC", "p.id DESC");
+        String dataSql = """
+            SELECT p.id, p.registration_number, p.first_name, p.last_name, p.full_name, p.title,
+                   p.department_id, d.name AS dept_name,
+                   p.sub_unit_id, s.name AS sub_name,
+                   p.room_id, r.room_number, r.name AS room_name,
+                   p.phone, p.email, p.is_active
+        """ + fromClause + whereClause.toString() + " ORDER BY " + orderBy + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        List<Object> dataParams = new ArrayList<>(params);
+        dataParams.add((long) page * size);
+        dataParams.add(size);
+
+        var dataSpec = jdbcClient.sql(dataSql);
+        for (int i = 0; i < dataParams.size(); i++) {
+            dataSpec = dataSpec.param(i + 1, dataParams.get(i));
+        }
+        List<Personnel> items = dataSpec.query(this::mapPersonnel).list();
+
+        return PageResponse.of(items, total, page, size);
     }
 
     public List<Personnel> findAll(Long departmentId, Long roomId, String query) {

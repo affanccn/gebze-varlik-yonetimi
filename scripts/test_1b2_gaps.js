@@ -237,9 +237,12 @@ async function main() {
     const deptPers = await apiCall(deptManager, 'GET', '/api/personnel');
     const staffPers = await apiCall(staff, 'GET', '/api/personnel');
     console.log(`- /api/personnel sayıları:`);
-    console.log(`    Admin: ${Array.isArray(adminPers.json) ? adminPers.json.length : 'HATA (' + adminPers.status + ')'}`);
-    console.log(`    Fen İşleri Müdürü: ${Array.isArray(deptPers.json) ? deptPers.json.length : 'HATA (' + deptPers.status + ')'}`);
-    console.log(`    Saha Personeli (STAFF): ${Array.isArray(staffPers.json) ? staffPers.json.length : 'HATA (' + staffPers.status + ')'}`);
+    const adminPersCount = adminPers.json?.total ?? (Array.isArray(adminPers.json) ? adminPers.json.length : 'HATA (' + adminPers.status + ')');
+    const deptPersCount = deptPers.json?.total ?? (Array.isArray(deptPers.json) ? deptPers.json.length : 'HATA (' + deptPers.status + ')');
+    const staffPersCount = staffPers.json?.total ?? (Array.isArray(staffPers.json) ? staffPers.json.length : 'HATA (' + staffPers.status + ')');
+    console.log(`    Admin: ${adminPersCount}`);
+    console.log(`    Fen İşleri Müdürü: ${deptPersCount}`);
+    console.log(`    Saha Personeli (STAFF): ${staffPersCount}`);
 
     // 2.6 Arama & /lookup
     console.log('\n--- 2.6 ARAMA VE LOOKUP UÇ NOKTALARI ---');
@@ -258,12 +261,17 @@ async function main() {
     // Search /api/assets?query=
     const adminSearch = await apiCall(adminSession, 'GET', '/api/assets?query=Kamyon');
     const deptSearch = await apiCall(deptManager, 'GET', '/api/assets?query=Kamyon');
+    const adminSearchCount = adminSearch.json?.total ?? (Array.isArray(adminSearch.json) ? adminSearch.json.length : 'HATA');
+    const deptSearchCount = deptSearch.json?.total ?? (Array.isArray(deptSearch.json) ? deptSearch.json.length : 'HATA');
     console.log(`- /api/assets?query=Kamyon arama sonuçları:`);
-    console.log(`    Admin: ${Array.isArray(adminSearch.json) ? adminSearch.json.length : 'HATA'}`);
-    console.log(`    Fen İşleri Müdürü: ${Array.isArray(deptSearch.json) ? deptSearch.json.length : 'HATA'}`);
-    if (Array.isArray(deptSearch.json)) {
-        const diffDepts = deptSearch.json.filter(a => a.departmentId !== 11);
+    console.log(`    Admin: ${adminSearchCount}`);
+    console.log(`    Fen İşleri Müdürü: ${deptSearchCount}`);
+    const deptSearchItems = deptSearch.json?.items || (Array.isArray(deptSearch.json) ? deptSearch.json : []);
+    if (deptSearchItems.length > 0) {
+        const diffDepts = deptSearchItems.filter(a => a.departmentId !== 11);
         record('DEPT_MANAGER arama sonucunda sadece kendi müdürlüğü (departmentId=11)', diffDepts.length, 0, diffDepts.length, `Farklı müdürlük sayısı: ${diffDepts.length}`);
+    } else if (deptSearch.status === 200) {
+        record('DEPT_MANAGER arama sonucunda sadece kendi müdürlüğü (departmentId=11)', 0, 0, 0, 'Hiç kamyon bulunamadı veya kendi kapsamında 0');
     }
 
     // -------------------------------------------------------------
@@ -306,12 +314,11 @@ async function main() {
         }
     }
 
+    const staffPersItems = staffPers.json?.items || (Array.isArray(staffPers.json) ? staffPers.json : []);
     console.log(`- STAFF /api/personnel durumu: ${staffPers.status}`);
-    if (Array.isArray(staffPers.json)) {
-        console.log(`    Kayıt sayısı: ${staffPers.json.length}`);
-        if (staffPers.json.length > 0) {
-            console.log(`    Görüntülenen personel: ${staffPers.json.map(p => p.firstName + ' ' + p.lastName + ' (ID:' + p.id + ')').join(', ')}`);
-        }
+    console.log(`    Kayıt sayısı: ${staffPersItems.length}`);
+    if (staffPersItems.length > 0) {
+        console.log(`    Görüntülenen personel: ${staffPersItems.map(p => p.firstName + ' ' + p.lastName + ' (ID:' + p.id + ')').join(', ')}`);
     }
 
     // -------------------------------------------------------------

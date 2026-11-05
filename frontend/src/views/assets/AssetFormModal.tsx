@@ -7,6 +7,7 @@ import { Modal } from '../../components/common/Modal';
 import { assetService } from '../../services/assetService';
 import { hierarchyService } from '../../services/hierarchyService';
 import { personnelService } from '../../services/personnelService';
+import { AsyncSearchSelect, AsyncSearchSelectItem } from '../../components/common/AsyncSearchSelect';
 import { Asset, AssetRequest } from '../../types/asset';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../context/ToastContext';
@@ -83,11 +84,15 @@ export const AssetFormModal: React.FC<AssetFormModalProps> = ({
     enabled: isOpen,
   });
 
-  const { data: personnel = [] } = useQuery({
-    queryKey: ['personnel'],
-    queryFn: () => personnelService.getAll(),
-    enabled: isOpen,
-  });
+  const loadPersonnelOptions = async (query: string): Promise<AsyncSearchSelectItem[]> => {
+    const res = await personnelService.getAll({ q: query || undefined, size: 10 });
+    return res.items.map((p) => ({
+      id: p.fullName,
+      label: p.fullName,
+      subLabel: `${p.title || 'Personel'} • ${p.departmentName || ''}`,
+      badge: p.registrationNumber,
+    }));
+  };
 
   const {
     register,
@@ -445,17 +450,13 @@ export const AssetFormModal: React.FC<AssetFormModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Zimmetli Personel</label>
-            <select
-              {...register('assignee')}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600"
-            >
-              <option value="">Atanmamış (Depoda)</option>
-              {personnel.map((p) => (
-                <option key={p.id} value={p.fullName}>
-                  {p.fullName} ({p.departmentName || '-'})
-                </option>
-              ))}
-            </select>
+            <AsyncSearchSelect
+              placeholder="Atanmamış (Depoda)"
+              searchPlaceholder="Personel adı veya sicil no..."
+              value={watch('assignee')}
+              loadOptions={loadPersonnelOptions}
+              onChange={(val) => setValue('assignee', val ? String(val) : '', { shouldValidate: true })}
+            />
           </div>
 
           <div>

@@ -21,6 +21,7 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 2
       connection-timeout: 30000
+      connection-init-sql: "ALTER SESSION SET NLS_COMP=LINGUISTIC NLS_SORT=TURKISH_AI"
       # Yerel veritabanı henüz açık değilken uygulamanın arayüz modunda başlayabilmesi için:
       initialization-fail-timeout: -1
       data-source-properties:

@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.common.PageResponse;
 
 @Service
 public class PersonnelService {
@@ -13,6 +14,10 @@ public class PersonnelService {
 
     public PersonnelService(PersonnelRepository repository) {
         this.repository = repository;
+    }
+
+    public PageResponse<Personnel> findPage(Long departmentId, Long roomId, String query, Boolean isActive, String sortBy, int page, int size) {
+        return repository.findPage(departmentId, roomId, query, isActive, sortBy, page, size);
     }
 
     public List<Personnel> findAll(Long departmentId, Long roomId, String query) {

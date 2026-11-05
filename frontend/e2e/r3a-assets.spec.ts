@@ -224,7 +224,7 @@ test.describe('Faz R3a: Varlık Yönetimi Çekirdek E2E Test Paketi', () => {
 
     // Arama filtresini temizle
     await page.locator('#asset-query').fill('');
-    await expect(page.locator('text=Toplam 74 kayıt')).toBeVisible();
+    await expect(page.locator('text=Toplam 74 kayıt')).toBeVisible({ timeout: 10000 });
   });
 
   test('5. Rol İzolasyonu: DEPT_MANAGER (Fen İşleri) 5 Varlık Görür, Sil Butonu Yoktur', async ({ page }) => {

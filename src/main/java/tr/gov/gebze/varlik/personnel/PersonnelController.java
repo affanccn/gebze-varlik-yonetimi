@@ -3,6 +3,7 @@ package tr.gov.gebze.varlik.personnel;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
@@ -18,22 +19,36 @@ public class PersonnelController {
     }
 
     @GetMapping
-    public List<Personnel> getAll(
+    public PageResponse<Personnel> getAll(
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) Long roomId,
-            @RequestParam(required = false) String query
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+
         if (tenantQueryScope.isDeptManager()) {
             departmentId = tenantQueryScope.getDepartmentId();
         } else if (tenantQueryScope.isStaff()) {
             Long persId = tenantQueryScope.getPersonnelId();
             if (persId != null) {
-                return List.of(service.findById(persId));
+                try {
+                    Personnel pers = service.findById(persId);
+                    return PageResponse.of(List.of(pers), 1, 0, size);
+                } catch (Exception e) {
+                    return PageResponse.of(List.of(), 0, 0, size);
+                }
             } else {
-                return List.of();
+                return PageResponse.of(List.of(), 0, 0, size);
             }
         }
-        return service.findAll(departmentId, roomId, query);
+        return service.findPage(departmentId, roomId, searchQuery, isActive, sortParam, page, size);
     }
 
     @GetMapping("/{id}")

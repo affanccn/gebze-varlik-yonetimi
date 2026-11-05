@@ -6,7 +6,6 @@ import { assetService } from '../../services/assetService';
 import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/Badge';
 import { AssetCategory } from '../../types/hierarchy';
-import { Asset } from '../../types/asset';
 
 export const CategoriesView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,11 +18,12 @@ export const CategoriesView: React.FC = () => {
   });
 
   // 2. Seçili kategorinin varlıkları query
-  const { data: categoryAssets = [] } = useQuery<Asset[]>({
+  const { data: categoryAssetsData } = useQuery({
     queryKey: ['category-assets', selectedCat?.id],
-    queryFn: () => assetService.getAll({ categoryId: selectedCat!.id }),
+    queryFn: () => assetService.getAll({ categoryId: selectedCat!.id, size: 200 }),
     enabled: selectedCat != null,
   });
+  const categoryAssets = categoryAssetsData?.items || [];
 
   const filteredCategories = categories.filter(
     (c) =>

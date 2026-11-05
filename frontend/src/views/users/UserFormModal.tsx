@@ -5,6 +5,7 @@ import { useToast } from '../../context/ToastContext';
 import { userService } from '../../services/userService';
 import { hierarchyService } from '../../services/hierarchyService';
 import { personnelService } from '../../services/personnelService';
+import { AsyncSearchSelect, AsyncSearchSelectItem } from '../../components/common/AsyncSearchSelect';
 import { UserResponse } from '../../types/user';
 import { UserPlus, UserCheck, Check, Copy } from 'lucide-react';
 
@@ -43,11 +44,15 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     enabled: isOpen,
   });
 
-  const { data: personnelList = [] } = useQuery({
-    queryKey: ['personnel-for-user'],
-    queryFn: () => personnelService.getAll(),
-    enabled: isOpen,
-  });
+  const loadPersonnelOptions = async (query: string): Promise<AsyncSearchSelectItem[]> => {
+    const res = await personnelService.getAll({ q: query || undefined, size: 10 });
+    return res.items.map((p) => ({
+      id: p.id,
+      label: p.fullName,
+      subLabel: `${p.title || 'Personel'} • ${p.departmentName || 'Birim Yok'}`,
+      badge: p.registrationNumber,
+    }));
+  };
 
   useEffect(() => {
     setCreatedTempPassword(null);
@@ -274,19 +279,14 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               İlişkili Personel (Rehber)
             </label>
-            <select
+            <AsyncSearchSelect
               id="user-person-select"
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="Personel Bağlantısı Yok"
+              searchPlaceholder="Personel adı veya sicil no..."
               value={personnelId}
-              onChange={(e) => setPersonnelId(Number(e.target.value) || '')}
-            >
-              <option value="">Personel Bağlantısı Yok</option>
-              {personnelList.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.fullName} ({p.departmentName || 'Birim Yok'})
-                </option>
-              ))}
-            </select>
+              loadOptions={loadPersonnelOptions}
+              onChange={(val) => setPersonnelId(val ? Number(val) : '')}
+            />
           </div>
         </div>
 

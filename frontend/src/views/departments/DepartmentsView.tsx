@@ -11,7 +11,6 @@ import { assetService } from '../../services/assetService';
 import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/Badge';
 import { Department, SubUnit } from '../../types/hierarchy';
-import { Asset } from '../../types/asset';
 
 export const DepartmentsView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,11 +29,12 @@ export const DepartmentsView: React.FC = () => {
   });
 
   // 3. Seçili müdürlüğün varlıkları
-  const { data: deptAssets = [] } = useQuery<Asset[]>({
+  const { data: deptAssetsData } = useQuery({
     queryKey: ['dept-assets', selectedDept?.id],
-    queryFn: () => assetService.getAll({ departmentId: selectedDept!.id }),
+    queryFn: () => assetService.getAll({ departmentId: selectedDept!.id, size: 200 }),
     enabled: selectedDept != null,
   });
+  const deptAssets = deptAssetsData?.items || [];
 
   const filteredDepartments = departments.filter(
     (d) =>

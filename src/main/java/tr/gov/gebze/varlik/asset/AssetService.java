@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.hierarchy.Building;
 import tr.gov.gebze.varlik.hierarchy.Department;
 import tr.gov.gebze.varlik.hierarchy.Floor;
@@ -38,6 +39,32 @@ public class AssetService {
         this.assetRepository = assetRepository;
         this.hierarchyRepository = hierarchyRepository;
         this.movementRepository = movementRepository;
+    }
+
+    public PageResponse<Asset> findPage(
+            String query,
+            String category,
+            String unit,
+            String status,
+            String condition,
+            String warrantyFilter,
+            String sortBy,
+            Long departmentId,
+            Long subUnitId,
+            Long buildingId,
+            Long floorId,
+            Long roomId,
+            Long categoryId,
+            String lifecycleStatus,
+            Boolean isActive,
+            int page,
+            int size
+    ) {
+        return assetRepository.findPage(
+                query, category, unit, status, condition, warrantyFilter, sortBy,
+                departmentId, subUnitId, buildingId, floorId, roomId, categoryId,
+                lifecycleStatus, isActive, page, size
+        );
     }
 
     public List<Asset> findAll(

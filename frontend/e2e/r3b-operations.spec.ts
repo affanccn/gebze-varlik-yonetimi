@@ -82,20 +82,24 @@ test.describe('Faz R3b: Operasyonel Akışlar E2E Test Paketi', () => {
     await expect(formModal).toBeVisible();
     await expect(formModal.locator('h3:has-text("Yeni Zimmet Fişi Düzenle")')).toBeVisible();
 
-    // Varlık seç
-    const assetOpt = formModal.locator(`#assign-asset-select option:has-text("${testCode}")`);
-    await expect(assetOpt).toBeAttached();
-    const assetVal = await assetOpt.getAttribute('value');
-    await formModal.locator('#assign-asset-select').selectOption(assetVal!);
+    // Varlık seç (AsyncSearchSelect)
+    await formModal.locator('#assign-asset-select').click();
+    await formModal.locator('input[placeholder*="ile ara"]').fill(testCode);
+    const assetOption = formModal.locator(`div[role="option"]:has-text("${testCode}")`);
+    await expect(assetOption).toBeVisible({ timeout: 10000 });
+    await assetOption.click();
 
-    // Personel seç
-    await formModal.locator('#assign-person-select').selectOption({ index: 1 });
+    // Personel seç (AsyncSearchSelect)
+    await formModal.locator('#assign-person-select').click();
+    const personOption = formModal.locator('div[role="option"]').first();
+    await expect(personOption).toBeVisible({ timeout: 10000 });
+    await personOption.click();
     // Kullanım mahalli ve not
     await formModal.locator('input[placeholder*="204"]').fill('Bilgi İşlem Sistem Odası');
     await formModal.locator('textarea').fill('E2E test zimmet tahsisi yapıldı.');
 
     // Gönder
-    await formModal.locator('button:has-text("Zimmet Fişini Kes")').click();
+    await formModal.locator('button:has-text("Zimmet Fişini Oluştur")').click();
     await expect(formModal).not.toBeVisible({ timeout: 10000 });
 
     // 4. Listede yeni zimmet fişini doğrula
@@ -149,11 +153,12 @@ test.describe('Faz R3b: Operasyonel Akışlar E2E Test Paketi', () => {
     const formModal = page.locator('div[role="dialog"]');
     await expect(formModal).toBeVisible();
 
-    // Varlık seç
-    const assetOpt = formModal.locator(`#maint-asset-select option:has-text("${testCode}")`);
-    await expect(assetOpt).toBeAttached();
-    const assetVal = await assetOpt.getAttribute('value');
-    await formModal.locator('#maint-asset-select').selectOption(assetVal!);
+    // Varlık seç (AsyncSearchSelect)
+    await formModal.locator('#maint-asset-select').click();
+    await formModal.locator('input[placeholder*="ile ara"]').fill(testCode);
+    const assetOption = formModal.locator(`div[role="option"]:has-text("${testCode}")`);
+    await expect(assetOption).toBeVisible({ timeout: 10000 });
+    await assetOption.click();
 
     await formModal.locator('#maint-priority-select').selectOption('ACIL');
     await formModal.locator('#maint-vendor-input').fill('Gebze Bilgi İşlem Teknik Servis');

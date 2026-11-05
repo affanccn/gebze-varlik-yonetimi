@@ -128,7 +128,7 @@ async function runTests() {
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(adminSession.cookies) }
         });
-        const adminCount = adminAssets.json ? adminAssets.json.length : 0;
+        const adminCount = adminAssets.json ? (adminAssets.json.total ?? (Array.isArray(adminAssets.json) ? adminAssets.json.length : 0)) : 0;
         const p1_1 = adminCount === 74;
         console.log(`[TEST 1.1] ADMIN GET /api/assets: ${adminCount} kayıt (Beklenen: 74) -> ${p1_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p1_1) allPassed = false;
@@ -155,8 +155,9 @@ async function runTests() {
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(fenSession.cookies) }
         });
-        const fenCount = fenAssets.json ? fenAssets.json.length : 0;
-        const fenSum = fenAssets.json ? fenAssets.json.reduce((acc, a) => acc + (a.estimatedValue || 0), 0) : 0;
+        const fenItems = fenAssets.json?.items || (Array.isArray(fenAssets.json) ? fenAssets.json : []);
+        const fenCount = fenAssets.json ? (fenAssets.json.total ?? fenItems.length) : 0;
+        const fenSum = fenItems.reduce((acc, a) => acc + (a.estimatedValue || 0), 0);
         const p2_1 = fenCount === 5 && Math.abs(fenSum - 13140000) < 1;
         console.log(`[TEST 2.1] Fen İşleri GET /api/assets: ${fenCount} varlık, ${fenSum} TL (Beklenen: 5, 13.140.000 TL) -> ${p2_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p2_1) allPassed = false;
@@ -218,9 +219,10 @@ async function runTests() {
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(staffSession.cookies) }
         });
-        const staffCount = staffAssets.json ? staffAssets.json.length : 0;
-        const p3_1 = staffCount === 1 && staffAssets.json[0]?.id === 37;
-        console.log(`[TEST 3.1] Saha Personeli GET /api/assets: ${staffCount} varlık (ID: ${staffAssets.json?.[0]?.id}, Beklenen: 1 [ID 37]) -> ${p3_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
+        const staffItems = staffAssets.json?.items || (Array.isArray(staffAssets.json) ? staffAssets.json : []);
+        const staffCount = staffAssets.json ? (staffAssets.json.total ?? staffItems.length) : 0;
+        const p3_1 = staffCount === 1 && staffItems[0]?.id === 37;
+        console.log(`[TEST 3.1] Saha Personeli GET /api/assets: ${staffCount} varlık (ID: ${staffItems[0]?.id}, Beklenen: 1 [ID 37]) -> ${p3_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p3_1) allPassed = false;
 
         // 3.2 Başkasının varlığına doğrudan GET /api/assets/1 -> 403
@@ -262,8 +264,9 @@ async function runTests() {
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(auditorSession.cookies) }
         });
-        const p4_1 = audAssets.json?.length === 74;
-        console.log(`[TEST 4.1] AUDITOR tüm belediyeyi okuma: ${audAssets.json?.length} varlık (Beklenen: 74) -> ${p4_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
+        const audCount = audAssets.json?.total ?? (Array.isArray(audAssets.json) ? audAssets.json.length : 0);
+        const p4_1 = audCount === 74;
+        console.log(`[TEST 4.1] AUDITOR tüm belediyeyi okuma: ${audCount} varlık (Beklenen: 74) -> ${p4_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p4_1) allPassed = false;
 
         const viewerSession = await loginUser('kurum_izleyici', DEV_PASSWORD);
@@ -271,8 +274,9 @@ async function runTests() {
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(viewerSession.cookies) }
         });
-        const p4_2 = viewAssets.json?.length === 74;
-        console.log(`[TEST 4.2] VIEWER (dept=null) tüm belediyeyi okuma: ${viewAssets.json?.length} varlık (Beklenen: 74) -> ${p4_2 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
+        const viewCount = viewAssets.json?.total ?? (Array.isArray(viewAssets.json) ? viewAssets.json.length : 0);
+        const p4_2 = viewCount === 74;
+        console.log(`[TEST 4.2] VIEWER (dept=null) tüm belediyeyi okuma: ${viewCount} varlık (Beklenen: 74) -> ${p4_2 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p4_2) allPassed = false;
 
         // =========================================================================
@@ -297,8 +301,9 @@ async function runTests() {
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(noDeptSession.cookies) }
         });
-        const p5_1 = noDeptAssets.json && noDeptAssets.json.length === 0;
-        console.log(`[TEST 5.1] DEPT_MANAGER (department_id=NULL) Deny-by-Default: ${noDeptAssets.json?.length} varlık (Beklenen: 0) -> ${p5_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
+        const noDeptCount = noDeptAssets.json ? (noDeptAssets.json.total ?? (Array.isArray(noDeptAssets.json) ? noDeptAssets.json.length : 0)) : 0;
+        const p5_1 = noDeptCount === 0;
+        console.log(`[TEST 5.1] DEPT_MANAGER (department_id=NULL) Deny-by-Default: ${noDeptCount} varlık (Beklenen: 0) -> ${p5_1 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p5_1) allPassed = false;
 
         const noPersSession = await loginUser('test_staff_nopers', DEV_PASSWORD);
@@ -306,8 +311,9 @@ async function runTests() {
             hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
             headers: { 'Cookie': formatCookieHeader(noPersSession.cookies) }
         });
-        const p5_2 = noPersAssets.json && noPersAssets.json.length === 0;
-        console.log(`[TEST 5.2] STAFF (personnel_id=NULL) Deny-by-Default: ${noPersAssets.json?.length} varlık (Beklenen: 0) -> ${p5_2 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
+        const noPersCount = noPersAssets.json ? (noPersAssets.json.total ?? (Array.isArray(noPersAssets.json) ? noPersAssets.json.length : 0)) : 0;
+        const p5_2 = noPersCount === 0;
+        console.log(`[TEST 5.2] STAFF (personnel_id=NULL) Deny-by-Default: ${noPersCount} varlık (Beklenen: 0) -> ${p5_2 ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!p5_2) allPassed = false;
 
         // Geçici kullanıcıları temizle

@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 import { assetService } from '../../services/assetService';
 import { personnelService } from '../../services/personnelService';
 import { assignmentService } from '../../services/assignmentService';
-import { FileSignature } from 'lucide-react';
+import { AsyncSearchSelect, AsyncSearchSelectItem } from '../../components/common/AsyncSearchSelect';
 
 interface AssignmentFormModalProps {
   isOpen: boolean;
@@ -28,33 +27,42 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
   const [note, setNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Varlıklar listesi
-  const { data: assets = [] } = useQuery({
-    queryKey: ['assets-for-assign'],
-    queryFn: () => assetService.getAll(),
-    enabled: isOpen,
-  });
-
-  // Personel listesi
-  const { data: personnelList = [] } = useQuery({
-    queryKey: ['personnel-for-assign'],
-    queryFn: () => personnelService.getAll(),
-    enabled: isOpen,
-  });
-
   if (!isOpen) return null;
 
-  const handlePersonChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const pId = Number(e.target.value);
-    setSelectedPersonId(pId || '');
-    if (pId) {
-      const person = personnelList.find((p) => p.id === pId);
-      if (person) {
+  const loadAssetOptions = async (query: string): Promise<AsyncSearchSelectItem[]> => {
+    const res = await assetService.getAll({ q: query || undefined, size: 10 });
+    return res.items.map((a) => ({
+      id: a.id,
+      label: `${a.code} — ${a.name}`,
+      subLabel: `${a.departmentName || a.unit || ''} ${a.roomNumber ? '• Oda ' + a.roomNumber : ''}`,
+      badge: a.lifecycleStatus || a.status,
+    }));
+  };
+
+  const loadPersonnelOptions = async (query: string): Promise<AsyncSearchSelectItem[]> => {
+    const res = await personnelService.getAll({ q: query || undefined, size: 10 });
+    return res.items.map((p) => ({
+      id: p.id,
+      label: p.fullName,
+      subLabel: `${p.title || 'Personel'} • ${p.departmentName || ''}`,
+      badge: p.registrationNumber,
+    }));
+  };
+
+  const handlePersonSelect = async (val: number | string | null) => {
+    if (val) {
+      const pId = Number(val);
+      setSelectedPersonId(pId);
+      try {
+        const person = await personnelService.getById(pId);
         setAssigneeName(person.fullName);
         setAssigneeTitle(person.title || '');
         setUnit(person.departmentName || '');
+      } catch (e) {
+        console.error('Failed to load selected person details', e);
       }
     } else {
+      setSelectedPersonId('');
       setAssigneeName('');
       setAssigneeTitle('');
       setUnit('');
@@ -98,6 +106,7 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Yeni Zimmet Fişi Düzenle"
+      subtitle="Taşınır demirbaşı belediye personeline resmi olarak zimmetleyin"
       maxWidth="xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -106,20 +115,15 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Zimmetlenecek Demirbaş / Varlık *
           </label>
-          <select
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={selectedAssetId}
-            onChange={(e) => setSelectedAssetId(Number(e.target.value) || '')}
-            required
+          <AsyncSearchSelect
             id="assign-asset-select"
-          >
-            <option value="">Varlık Seçin...</option>
-            {assets.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.code} — {a.name} ({a.status})
-              </option>
-            ))}
-          </select>
+            placeholder="Varlık Ara veya Seçin..."
+            searchPlaceholder="Varlık kodu veya adı ile ara..."
+            value={selectedAssetId}
+            loadOptions={loadAssetOptions}
+            onChange={(val) => setSelectedAssetId(val ? Number(val) : '')}
+            required
+          />
         </div>
 
         {/* Personel Seçimi */}
@@ -128,19 +132,14 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Personel Rehberinden Seç *
             </label>
-            <select
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              value={selectedPersonId}
-              onChange={handlePersonChange}
+            <AsyncSearchSelect
               id="assign-person-select"
-            >
-              <option value="">Rehberden Personel Seçin...</option>
-              {personnelList.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.fullName} ({p.departmentName || 'Birim Yok'})
-                </option>
-              ))}
-            </select>
+              placeholder="Rehberden Personel Seçin..."
+              searchPlaceholder="Personel adı veya sicil no ile ara..."
+              value={selectedPersonId}
+              loadOptions={loadPersonnelOptions}
+              onChange={handlePersonSelect}
+            />
           </div>
 
           <div>
@@ -201,36 +200,34 @@ export const AssignmentFormModal: React.FC<AssignmentFormModalProps> = ({
 
         <div>
           <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Zimmet Notu ve Teslim Koşulları
+            Açıklama / Teslim Notu
           </label>
           <textarea
-            rows={3}
             className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            rows={2}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Kullanıcıya eksiksiz ve çalışır vaziyette teslim edilmiştir..."
+            placeholder="Kullanıcıya teslim edilme amacı, aparatları vb."
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+        <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg"
+            className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
           >
-            Vazgeç
+            İptal
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors disabled:opacity-50"
           >
-            <FileSignature className="w-3.5 h-3.5" />
-            {isSubmitting ? 'Oluşturuluyor...' : 'Zimmet Fişini Kes'}
+            {isSubmitting ? 'Oluşturuluyor...' : 'Zimmet Fişini Oluştur'}
           </button>
         </div>
       </form>
     </Modal>
   );
 };
-

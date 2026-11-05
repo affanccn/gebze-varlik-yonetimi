@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tr.gov.gebze.varlik.assignment.AssignmentService;
 import tr.gov.gebze.varlik.common.ApiException;
 import tr.gov.gebze.varlik.common.AuthService;
+import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.common.UserSession;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
@@ -55,24 +56,34 @@ public class AssetController {
     }
 
     @GetMapping
-    public List<Asset> listAssets(
+    public PageResponse<Asset> listAssets(
             @RequestParam(required = false) String query,
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String unit,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String condition,
             @RequestParam(required = false) String warrantyFilter,
             @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sort,
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) Long subUnitId,
             @RequestParam(required = false) Long buildingId,
             @RequestParam(required = false) Long floorId,
             @RequestParam(required = false) Long roomId,
-            @RequestParam(required = false) Long categoryId
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String lifecycleStatus,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
-        return assetService.findAllDetailed(
-                query, category, unit, status, condition, warrantyFilter, sortBy,
-                departmentId, subUnitId, buildingId, floorId, roomId, categoryId
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+
+        return assetService.findPage(
+                searchQuery, category, unit, status, condition, warrantyFilter, sortParam,
+                departmentId, subUnitId, buildingId, floorId, roomId, categoryId,
+                lifecycleStatus, isActive, page, size
         );
     }
 

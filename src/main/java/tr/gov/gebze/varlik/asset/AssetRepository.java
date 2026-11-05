@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.common.PageResponse;
+import tr.gov.gebze.varlik.common.SortValidator;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Repository
@@ -18,6 +20,182 @@ public class AssetRepository {
     public AssetRepository(JdbcClient jdbcClient, TenantQueryScope tenantQueryScope) {
         this.jdbcClient = jdbcClient;
         this.tenantQueryScope = tenantQueryScope;
+    }
+
+    public PageResponse<Asset> findPage(
+            String query,
+            String category,
+            String unit,
+            String status,
+            String condition,
+            String warrantyFilter,
+            String sortBy,
+            Long departmentId,
+            Long subUnitId,
+            Long buildingId,
+            Long floorId,
+            Long roomId,
+            Long categoryId,
+            String lifecycleStatus,
+            Boolean isActive,
+            int page,
+            int size
+    ) {
+        SortValidator.validatePagination(page, size);
+
+        StringBuilder whereClause = new StringBuilder(" WHERE a.is_deleted = 0");
+        List<Object> params = new ArrayList<>();
+
+        whereClause.append(" AND ").append(tenantQueryScope.getAssetFilterClause("a"));
+
+        if (isActive != null) {
+            whereClause.append(" AND a.is_active = ?");
+            params.add(isActive ? 1 : 0);
+        }
+
+        if (query != null && !query.isBlank()) {
+            String q = "%" + query.trim() + "%";
+            whereClause.append("""
+                 AND (a.code LIKE ?
+                   OR a.name LIKE ?
+                   OR a.barcode LIKE ?
+                   OR a.brand_model LIKE ?
+                   OR a.serial_number LIKE ?
+                   OR a.tif_code LIKE ?
+                   OR d.name LIKE ?
+                   OR b.name LIKE ?
+                   OR r.name LIKE ?
+                   OR r.room_number LIKE ?
+                   OR c.name LIKE ?)
+            """);
+            for (int i = 0; i < 11; i++) {
+                params.add(q);
+            }
+        }
+
+        if (category != null && !category.isBlank() && !"Tümü".equalsIgnoreCase(category)) {
+            String cat = category.trim();
+            try {
+                long catId = Long.parseLong(cat);
+                whereClause.append(" AND (a.category_id = ? OR a.category = ?)");
+                params.add(catId);
+                params.add(cat);
+            } catch (NumberFormatException e) {
+                whereClause.append(" AND (c.name LIKE ? OR a.category LIKE ?)");
+                params.add("%" + cat + "%");
+                params.add("%" + cat + "%");
+            }
+        }
+
+        if (unit != null && !unit.isBlank() && !"Tümü".equalsIgnoreCase(unit)) {
+            whereClause.append(" AND (a.unit_name LIKE ? OR d.name LIKE ? OR s.name LIKE ?)");
+            String u = "%" + unit.trim() + "%";
+            params.add(u);
+            params.add(u);
+            params.add(u);
+        }
+
+        if (status != null && !status.isBlank() && !"Tümü".equalsIgnoreCase(status)) {
+            whereClause.append(" AND a.status = ?");
+            params.add(status.trim());
+        }
+
+        if (condition != null && !condition.isBlank() && !"Tümü".equalsIgnoreCase(condition)) {
+            whereClause.append(" AND a.condition_status = ?");
+            params.add(condition.trim());
+        }
+
+        if (warrantyFilter != null && !warrantyFilter.isBlank() && !"ALL".equalsIgnoreCase(warrantyFilter)) {
+            if ("EXPIRED_OR_SOON".equalsIgnoreCase(warrantyFilter)) {
+                whereClause.append(" AND (a.warranty_end_date IS NOT NULL AND a.warranty_end_date <= TRUNC(SYSDATE) + 90)");
+            } else if ("ACTIVE".equalsIgnoreCase(warrantyFilter)) {
+                whereClause.append(" AND (a.warranty_end_date IS NOT NULL AND a.warranty_end_date > TRUNC(SYSDATE))");
+            }
+        }
+
+        if (departmentId != null) {
+            whereClause.append(" AND a.department_id = ?");
+            params.add(departmentId);
+        }
+
+        if (subUnitId != null) {
+            whereClause.append(" AND a.sub_unit_id = ?");
+            params.add(subUnitId);
+        }
+
+        if (buildingId != null) {
+            whereClause.append(" AND a.building_id = ?");
+            params.add(buildingId);
+        }
+
+        if (floorId != null) {
+            whereClause.append(" AND a.floor_id = ?");
+            params.add(floorId);
+        }
+
+        if (roomId != null) {
+            whereClause.append(" AND a.room_id = ?");
+            params.add(roomId);
+        }
+
+        if (categoryId != null) {
+            whereClause.append(" AND a.category_id = ?");
+            params.add(categoryId);
+        }
+
+        if (lifecycleStatus != null && !lifecycleStatus.isBlank() && !"Tümü".equalsIgnoreCase(lifecycleStatus)) {
+            whereClause.append(" AND a.lifecycle_status = ?");
+            params.add(lifecycleStatus.trim());
+        }
+
+        String fromClause = """
+            FROM assets a
+            LEFT JOIN departments d ON a.department_id = d.id
+            LEFT JOIN sub_units s ON a.sub_unit_id = s.id
+            LEFT JOIN buildings b ON a.building_id = b.id
+            LEFT JOIN floors f ON a.floor_id = f.id
+            LEFT JOIN rooms r ON a.room_id = r.id
+            LEFT JOIN asset_categories c ON a.category_id = c.id
+        """;
+
+        // Total count query (capped at 10001)
+        String countSql = "SELECT COUNT(*) FROM (SELECT 1 " + fromClause + whereClause.toString() + " FETCH FIRST 10001 ROWS ONLY)";
+        var countSpec = jdbcClient.sql(countSql);
+        for (int i = 0; i < params.size(); i++) {
+            countSpec = countSpec.param(i + 1, params.get(i));
+        }
+        Long totalCount = countSpec.query(Long.class).single();
+        long total = totalCount != null ? totalCount : 0L;
+
+        // Data query
+        String orderBy = SortValidator.buildOrderBy(sortBy, SortValidator.ASSET_SORT_FIELDS, "a.id DESC", "a.id DESC");
+        String dataSql = """
+            SELECT a.id, a.code, a.tif_code, a.barcode, a.name, a.category, a.brand_model, a.serial_number,
+                   a.unit_name, a.location_info, a.assignee_name, a.status, a.condition_status,
+                   TO_CHAR(a.acquisition_date, 'YYYY-MM-DD') AS acq_date,
+                   TO_CHAR(a.warranty_end_date, 'YYYY-MM-DD') AS war_date,
+                   a.estimated_value, a.supplier, a.notes,
+                   TO_CHAR(a.updated_at, 'YYYY-MM-DD HH24:MI') AS upd_at,
+                   a.department_id, d.name AS dept_name,
+                   a.sub_unit_id, s.name AS sub_name,
+                   a.building_id, b.name AS bld_name,
+                   a.floor_id, f.floor_name,
+                   a.room_id, r.room_number, r.name AS room_name, r.qr_code AS room_qr,
+                   a.category_id, c.name AS cat_name,
+                   a.lifecycle_status
+        """ + fromClause + whereClause.toString() + " ORDER BY " + orderBy + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        List<Object> dataParams = new ArrayList<>(params);
+        dataParams.add((long) page * size);
+        dataParams.add(size);
+
+        var dataSpec = jdbcClient.sql(dataSql);
+        for (int i = 0; i < dataParams.size(); i++) {
+            dataSpec = dataSpec.param(i + 1, dataParams.get(i));
+        }
+        List<Asset> items = dataSpec.query(this::mapAsset).list();
+
+        return PageResponse.of(items, total, page, size);
     }
 
     public List<Asset> findAll(
@@ -53,7 +231,7 @@ public class AssetRepository {
             LEFT JOIN floors f ON a.floor_id = f.id
             LEFT JOIN rooms r ON a.room_id = r.id
             LEFT JOIN asset_categories c ON a.category_id = c.id
-            WHERE a.is_active = 1 AND a.is_deleted = 0
+            WHERE a.is_deleted = 0
         """);
 
         sql.append(" AND ").append(tenantQueryScope.getAssetFilterClause("a"));
@@ -63,17 +241,17 @@ public class AssetRepository {
         if (query != null && !query.isBlank()) {
             String q = "%" + query.trim() + "%";
             sql.append("""
-                 AND (LOWER(a.code) LIKE LOWER(?)
-                   OR LOWER(a.name) LIKE LOWER(?)
-                   OR LOWER(a.barcode) LIKE LOWER(?)
-                   OR LOWER(a.brand_model) LIKE LOWER(?)
-                   OR LOWER(a.serial_number) LIKE LOWER(?)
-                   OR LOWER(a.tif_code) LIKE LOWER(?)
-                   OR LOWER(d.name) LIKE LOWER(?)
-                   OR LOWER(b.name) LIKE LOWER(?)
-                   OR LOWER(r.name) LIKE LOWER(?)
-                   OR LOWER(r.room_number) LIKE LOWER(?)
-                   OR LOWER(c.name) LIKE LOWER(?))
+                 AND (a.code LIKE ?
+                   OR a.name LIKE ?
+                   OR a.barcode LIKE ?
+                   OR a.brand_model LIKE ?
+                   OR a.serial_number LIKE ?
+                   OR a.tif_code LIKE ?
+                   OR d.name LIKE ?
+                   OR b.name LIKE ?
+                   OR r.name LIKE ?
+                   OR r.room_number LIKE ?
+                   OR c.name LIKE ?)
             """);
             for (int i = 0; i < 11; i++) {
                 params.add(q);
@@ -88,32 +266,30 @@ public class AssetRepository {
                 params.add(catId);
                 params.add(cat);
             } catch (NumberFormatException e) {
-                String base = cat.replaceAll("(?i)(lar|ler|sı|si|ı|i)$", "");
                 sql.append("""
                      AND (c.name = ?
                        OR a.category = ?
-                       OR LOWER(c.name) LIKE LOWER(?)
-                       OR LOWER(a.category) LIKE LOWER(?))
+                       OR c.name LIKE ?
+                       OR a.category LIKE ?)
                 """);
                 params.add(cat);
                 params.add(cat);
-                params.add("%" + base + "%");
-                params.add("%" + base + "%");
+                params.add("%" + cat + "%");
+                params.add("%" + cat + "%");
             }
         }
 
         if (unit != null && !unit.isBlank() && !"Tümü".equalsIgnoreCase(unit)) {
-            sql.append(" AND (a.unit_name LIKE ? OR LOWER(d.name) LIKE LOWER(?) OR LOWER(s.name) LIKE LOWER(?))");
+            sql.append(" AND (a.unit_name LIKE ? OR d.name LIKE ? OR s.name LIKE ?)");
             String u = "%" + unit.trim() + "%";
-            params.add("%" + unit.trim() + "%");
+            params.add(u);
             params.add(u);
             params.add(u);
         }
 
         if (status != null && !status.isBlank() && !"Tümü".equalsIgnoreCase(status)) {
             String st = status.trim();
-            sql.append(" AND (a.status = ? OR LOWER(a.status) = LOWER(?) OR LOWER(a.status) LIKE LOWER(?))");
-            params.add(st);
+            sql.append(" AND (a.status = ? OR a.status LIKE ?)");
             params.add(st);
             params.add("%" + st + "%");
         }
@@ -150,10 +326,11 @@ public class AssetRepository {
 
         sql.append(" ORDER BY a.id DESC");
 
-        return jdbcClient.sql(sql.toString())
-                .params(params)
-                .query(this::mapAsset)
-                .list();
+        var spec = jdbcClient.sql(sql.toString());
+        for (int i = 0; i < params.size(); i++) {
+            spec = spec.param(i + 1, params.get(i));
+        }
+        return spec.query(this::mapAsset).list();
     }
 
     public Optional<Asset> findById(Long id) {

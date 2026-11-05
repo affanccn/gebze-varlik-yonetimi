@@ -11,24 +11,26 @@ import { Card } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
 import { QRCodeSvg } from '../../components/common/QRCodeSvg';
 import { formatCurrency } from '../../components/common/formatters';
-import { Asset, AssetDetailResponse } from '../../types/asset';
+import { AssetDetailResponse } from '../../types/asset';
 
 export const QRCodesView: React.FC = () => {
   const [lookupCode, setLookupCode] = useState('');
   const [submittedQuery, setSubmittedQuery] = useState('');
 
   // 1. Etiket için varlıklar listesi (ilk 18 varlık)
-  const { data: assets = [], isLoading: isLoadingAssets } = useQuery<Asset[]>({
+  const { data: assetsData, isLoading: isLoadingAssets } = useQuery({
     queryKey: ['assets-qr'],
-    queryFn: () => assetService.getAll(),
+    queryFn: () => assetService.getAll({ size: 18 }),
   });
+  const assets = assetsData?.items || [];
 
   // 2. Anlık sorgulanan varlık
-  const { data: lookupResults = [], isFetching: isSearching } = useQuery<Asset[]>({
+  const { data: lookupData, isFetching: isSearching } = useQuery({
     queryKey: ['asset-lookup', submittedQuery],
-    queryFn: () => assetService.getAll({ query: submittedQuery }),
+    queryFn: () => assetService.getAll({ query: submittedQuery, size: 10 }),
     enabled: !!submittedQuery,
   });
+  const lookupResults = lookupData?.items || [];
 
   // 3. Bulunan ilk varlığın detayını çek
   const firstFoundAsset = lookupResults.length > 0 ? lookupResults[0] : null;

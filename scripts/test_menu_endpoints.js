@@ -95,6 +95,7 @@ async function testAllMenus() {
         const ok = res.status === 200;
         let countInfo = '';
         if (Array.isArray(res.json)) countInfo = ` (${res.json.length} kayıt)`;
+        else if (res.json && res.json.items) countInfo = ` (${res.json.items.length}/${res.json.total} kayıt - sayfalı)`;
         else if (res.json && typeof res.json === 'object') countInfo = ` (${Object.keys(res.json).length} anahtar)`;
 
         console.log(`[MENÜ] ${item.name.padEnd(40)} => HTTP ${res.status} ${ok ? 'OK ✅' : 'FAIL ❌'}${countInfo}`);

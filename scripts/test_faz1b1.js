@@ -140,8 +140,8 @@ async function runTests() {
             method: 'GET',
             headers: { 'Cookie': formatCookieHeader(auditorCookies) }
         });
-        const getPassed = getRes.status === 200 && Array.isArray(getRes.json);
-        console.log(`[TEST 4.2] AUDITOR GET /api/assets: HTTP ${getRes.status} (Adet: ${getRes.json?.length}) -> ${getPassed ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
+        const getPassed = getRes.status === 200 && (Array.isArray(getRes.json) || (getRes.json?.items && getRes.json?.total === 74));
+        console.log(`[TEST 4.2] AUDITOR GET /api/assets: HTTP ${getRes.status} (Adet: ${getRes.json?.total ?? getRes.json?.length}) -> ${getPassed ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
         if (!getPassed) allPassed = false;
 
         // AUDITOR POST /api/assets -> 403 Forbidden (Merkezi Salt Okunur Filtresi)
@@ -287,8 +287,8 @@ async function runTests() {
                 method: 'GET',
                 headers: { 'Cookie': formatCookieHeader(adminCookies) }
             });
-            const unblockPassed = unblockedRes.status === 200 && Array.isArray(unblockedRes.json);
-            console.log(`[TEST 6.4] Şifre değiştikten sonra GET /api/assets: HTTP ${unblockedRes.status} (Adet: ${unblockedRes.json?.length}) -> ${unblockPassed ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
+            const unblockPassed = unblockedRes.status === 200 && (Array.isArray(unblockedRes.json) || unblockedRes.json?.items);
+            console.log(`[TEST 6.4] Şifre değiştikten sonra GET /api/assets: HTTP ${unblockedRes.status} (Adet: ${unblockedRes.json?.total ?? unblockedRes.json?.length}) -> ${unblockPassed ? 'BAŞARILI ✅' : 'BAŞARISIZ ❌'}`);
             if (!unblockPassed) allPassed = false;
 
         } else {

@@ -60,11 +60,12 @@ export const TreeView: React.FC = () => {
   });
 
   // Assets in dept query
-  const { data: deptAssets = [] } = useQuery<Asset[]>({
+  const { data: deptAssetsData } = useQuery({
     queryKey: ['dept-assets', deptId],
-    queryFn: () => assetService.getAll({ departmentId: deptId! }),
+    queryFn: () => assetService.getAll({ departmentId: deptId!, size: 200 }),
     enabled: deptId != null,
   });
+  const deptAssets = deptAssetsData?.items || [];
 
   const toggleNode = (nodeId: string) => {
     setExpandedNodes((prev) => ({

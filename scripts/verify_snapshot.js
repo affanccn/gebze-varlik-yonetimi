@@ -56,16 +56,19 @@ async function verify() {
 
     // 2. Fetch Assets
     const assetsRes = await req({
-        hostname: 'localhost', port: 8080, path: '/api/assets', method: 'GET',
+        hostname: 'localhost', port: 8080, path: '/api/assets?size=200', method: 'GET',
         headers: { 'Cookie': formatCookieHeader(cookies) }
     });
 
-    const afterAssets = JSON.parse(assetsRes.raw);
-    console.log(`Before asset count: ${beforeAssets.length}`);
-    console.log(`After asset count: ${afterAssets.length}`);
+    const body = JSON.parse(assetsRes.raw);
+    const afterAssets = Array.isArray(body) ? body : (body.items || []);
+    const totalCount = body.total !== undefined ? body.total : afterAssets.length;
 
-    if (beforeAssets.length !== afterAssets.length) {
-        console.error(`COUNT MISMATCH! Expected ${beforeAssets.length}, got ${afterAssets.length}`);
+    console.log(`Before asset count: ${beforeAssets.length}`);
+    console.log(`After asset count: ${afterAssets.length} (total: ${totalCount})`);
+
+    if (beforeAssets.length !== afterAssets.length || beforeAssets.length !== totalCount) {
+        console.error(`COUNT MISMATCH! Expected ${beforeAssets.length}, got items: ${afterAssets.length}, total: ${totalCount}`);
         process.exit(1);
     }
 

@@ -1,15 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   useReactTable,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   ColumnDef,
   flexRender,
   SortingState,
 } from '@tanstack/react-table';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { assetService } from '../../services/assetService';
 import { hierarchyService } from '../../services/hierarchyService';
 import { Asset } from '../../types/asset';
@@ -42,14 +40,57 @@ import {
 
 export const AssetsView: React.FC = () => {
   const { canWrite, canDelete, user } = useAuth();
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Search & Filter state
-  const [globalFilter, setGlobalFilter] = useState('');
-  const [filterDept, setFilterDept] = useState<string>('');
-  const [filterCat, setFilterCat] = useState<string>('');
-  const [filterStatus, setFilterStatus] = useState<string>('');
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 15 });
+  // URL state
+  const urlPage = Math.max(0, parseInt(searchParams.get('page') || '0', 10));
+  const urlSize = Math.min(200, Math.max(1, parseInt(searchParams.get('size') || '15', 10)));
+  const urlQ = searchParams.get('q') || '';
+  const urlDept = searchParams.get('dept') || '';
+  const urlCat = searchParams.get('cat') || '';
+  const urlStatus = searchParams.get('status') || '';
+  const urlSort = searchParams.get('sort') || '';
+
+  // Local search input for debouncing
+  const [searchInput, setSearchInput] = useState(urlQ);
+  const [debouncedQ, setDebouncedQ] = useState(urlQ);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQ(searchInput);
+      if (searchInput !== urlQ) {
+        updateParams({ q: searchInput || undefined, page: 0 });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Sync sorting state from URL
+  const initialSorting: SortingState = useMemo(() => {
+    if (!urlSort) return [];
+    const [id, dir] = urlSort.split(',');
+    return [{ id, desc: dir?.toUpperCase() === 'DESC' }];
+  }, [urlSort]);
+
+  const [sorting, setSorting] = useState<SortingState>(initialSorting);
+
+  const updateParams = (updates: Record<string, string | number | undefined | null>) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        Object.entries(updates).forEach(([k, v]) => {
+          if (v === undefined || v === null || v === '' || (k === 'page' && v === 0)) {
+            next.delete(k);
+          } else {
+            next.set(k, String(v));
+          }
+        });
+        return next;
+      },
+      { replace: true }
+    );
+  };
 
   // Modals state
   const [selectedAssetIdForDetail, setSelectedAssetIdForDetail] = useState<number | null>(null);
@@ -83,25 +124,40 @@ export const AssetsView: React.FC = () => {
 
   // Assets Query
   const {
-    data: assets = [],
+    data: pageData,
     isLoading,
-    refetch,
   } = useQuery({
-    queryKey: ['assets', filterDept, filterCat, filterStatus],
+    queryKey: ['assets', urlPage, urlSize, debouncedQ, urlDept, urlCat, urlStatus, urlSort],
     queryFn: () =>
       assetService.getAll({
-        departmentId: filterDept ? Number(filterDept) : undefined,
-        categoryId: filterCat ? Number(filterCat) : undefined,
-        status: filterStatus || undefined,
+        page: urlPage,
+        size: urlSize,
+        q: debouncedQ || undefined,
+        departmentId: urlDept ? Number(urlDept) : undefined,
+        categoryId: urlCat ? Number(urlCat) : undefined,
+        status: urlStatus || undefined,
+        sort: urlSort || undefined,
       }),
+    placeholderData: keepPreviousData,
   });
+
+  const assets = pageData?.items || [];
+  const total = pageData?.total || 0;
+  const totalPages = pageData?.totalPages || 0;
 
   // Reset filters
   const handleResetFilters = () => {
-    setGlobalFilter('');
-    setFilterDept('');
-    setFilterCat('');
-    setFilterStatus('');
+    setSearchInput('');
+    setDebouncedQ('');
+    updateParams({
+      q: undefined,
+      dept: undefined,
+      cat: undefined,
+      status: undefined,
+      sort: undefined,
+      page: 0,
+    });
+    setSorting([]);
   };
 
   // TanStack Table Columns
@@ -349,33 +405,33 @@ export const AssetsView: React.FC = () => {
   const table = useReactTable({
     data: assets,
     columns,
+    pageCount: totalPages,
+    manualPagination: true,
+    manualSorting: true,
     state: {
-      globalFilter,
       sorting,
-      pagination,
+      pagination: {
+        pageIndex: urlPage,
+        pageSize: urlSize,
+      },
     },
-    onGlobalFilterChange: setGlobalFilter,
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
+    onSortingChange: (updater) => {
+      const nextSorting = typeof updater === 'function' ? updater(sorting) : updater;
+      setSorting(nextSorting);
+      const sortStr = nextSorting.length
+        ? `${nextSorting[0].id},${nextSorting[0].desc ? 'DESC' : 'ASC'}`
+        : undefined;
+      updateParams({ sort: sortStr, page: 0 });
+    },
+    onPaginationChange: (updater) => {
+      const current = { pageIndex: urlPage, pageSize: urlSize };
+      const next = typeof updater === 'function' ? updater(current) : updater;
+      updateParams({
+        page: next.pageIndex,
+        size: next.pageSize !== urlSize ? next.pageSize : undefined,
+      });
+    },
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    globalFilterFn: (row, _columnId, filterValue) => {
-      const q = String(filterValue).toLowerCase().trim();
-      if (!q) return true;
-      const asset = row.original;
-      return Boolean(
-        asset.code?.toLowerCase().includes(q) ||
-          asset.name?.toLowerCase().includes(q) ||
-          asset.barcode?.toLowerCase().includes(q) ||
-          asset.serialNumber?.toLowerCase().includes(q) ||
-          asset.brandModel?.toLowerCase().includes(q) ||
-          asset.departmentName?.toLowerCase().includes(q) ||
-          asset.assignee?.toLowerCase().includes(q) ||
-          asset.roomNumber?.toLowerCase().includes(q)
-      );
-    },
   });
 
   return (
@@ -431,8 +487,8 @@ export const AssetsView: React.FC = () => {
             <input
               type="text"
               id="asset-query"
-              value={globalFilter}
-              onChange={(e) => setGlobalFilter(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Varlık kodu, adı, seri no veya barkod..."
               className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 transition-all"
             />
@@ -442,9 +498,9 @@ export const AssetsView: React.FC = () => {
           <div>
             <select
               id="asset-filter-dept"
-              value={filterDept}
+              value={urlDept}
               disabled={user?.role === 'DEPT_MANAGER'}
-              onChange={(e) => setFilterDept(e.target.value)}
+              onChange={(e) => updateParams({ dept: e.target.value || undefined, page: 0 })}
               className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 transition-all disabled:bg-slate-100 disabled:text-slate-500"
             >
               <option value="">Tüm Müdürlükler ({departments.length})</option>
@@ -460,8 +516,8 @@ export const AssetsView: React.FC = () => {
           <div>
             <select
               id="asset-filter-cat"
-              value={filterCat}
-              onChange={(e) => setFilterCat(e.target.value)}
+              value={urlCat}
+              onChange={(e) => updateParams({ cat: e.target.value || undefined, page: 0 })}
               className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 transition-all"
             >
               <option value="">Tüm Kategoriler ({categories.length})</option>
@@ -477,8 +533,8 @@ export const AssetsView: React.FC = () => {
           <div className="flex items-center gap-2">
             <select
               id="asset-filter-status"
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              value={urlStatus}
+              onChange={(e) => updateParams({ status: e.target.value || undefined, page: 0 })}
               className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-600 transition-all"
             >
               <option value="">Tüm Durumlar</option>
@@ -491,7 +547,7 @@ export const AssetsView: React.FC = () => {
               <option value="ZAYIAT_CALINMA">Zayiat / Çalınma</option>
             </select>
 
-            {(globalFilter || filterDept || filterCat || filterStatus) && (
+            {(searchInput || urlDept || urlCat || urlStatus || urlSort) && (
               <button
                 type="button"
                 onClick={handleResetFilters}
@@ -507,8 +563,8 @@ export const AssetsView: React.FC = () => {
         {/* Results Info */}
         <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
           <div>
-            Toplam <strong>{assets.length}</strong> kayıt &bull; Filtrelenen:{' '}
-            <strong>{table.getFilteredRowModel().rows.length}</strong> varlık
+            Toplam <strong>{total > 10000 ? '10.000+' : total}</strong> kayıt &bull; Bu sayfada:{' '}
+            <strong>{assets.length}</strong> varlık
           </div>
           {isLoading && (
             <div className="flex items-center text-blue-600">
@@ -526,7 +582,7 @@ export const AssetsView: React.FC = () => {
             <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-3 text-blue-600" />
             <p className="text-sm font-medium">Demirbaş kayıtları yükleniyor...</p>
           </div>
-        ) : table.getRowModel().rows.length === 0 ? (
+        ) : assets.length === 0 ? (
           <div className="p-12 text-center">
             <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <h3 className="text-base font-bold text-slate-800">Varlık Kaydı Bulunamadı</h3>
@@ -534,7 +590,7 @@ export const AssetsView: React.FC = () => {
               Arama kriterlerine uygun demirbaş kaydı bulunamadı. Filtreleri temizleyebilir veya yeni
               varlık kaydı ekleyebilirsiniz.
             </p>
-            {(globalFilter || filterDept || filterCat || filterStatus) && (
+            {(searchInput || urlDept || urlCat || urlStatus || urlSort) && (
               <button
                 type="button"
                 onClick={handleResetFilters}
@@ -580,16 +636,16 @@ export const AssetsView: React.FC = () => {
         )}
 
         {/* Pagination Bar */}
-        {table.getPageCount() > 1 && (
+        {total > 0 && (
           <div className="p-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600 bg-slate-50/50">
             <div className="flex items-center gap-2">
               <span>Sayfa başına:</span>
               <select
-                value={table.getState().pagination.pageSize}
-                onChange={(e) => table.setPageSize(Number(e.target.value))}
+                value={urlSize}
+                onChange={(e) => updateParams({ size: Number(e.target.value), page: 0 })}
                 className="px-2 py-1 rounded-lg border border-slate-300 bg-white text-xs font-medium focus:outline-none focus:ring-1 focus:ring-blue-500"
               >
-                {[10, 15, 25, 50, 100].map((size) => (
+                {[10, 15, 25, 50, 100, 200].map((size) => (
                   <option key={size} value={size}>
                     {size}
                   </option>
@@ -597,40 +653,32 @@ export const AssetsView: React.FC = () => {
               </select>
               <span className="text-slate-400">|</span>
               <span>
-                Toplam <strong>{table.getFilteredRowModel().rows.length}</strong> varlıktan{' '}
-                <strong>
-                  {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
-                </strong>
-                -
-                <strong>
-                  {Math.min(
-                    (table.getState().pagination.pageIndex + 1) *
-                      table.getState().pagination.pageSize,
-                    table.getFilteredRowModel().rows.length
-                  )}
-                </strong>{' '}
-                arası gösteriliyor
+                Toplam <strong>{total > 10000 ? '10.000+' : total}</strong> varlıktan{' '}
+                <strong>{urlPage * urlSize + 1}</strong>-
+                <strong>{Math.min((urlPage + 1) * urlSize, total)}</strong> arası gösteriliyor
               </span>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="font-medium">
-                Sayfa {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
+                Sayfa {urlPage + 1} / {Math.max(1, totalPages)}
               </span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => updateParams({ page: Math.max(0, urlPage - 1) })}
+                  disabled={urlPage <= 0 || isLoading}
                   className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Önceki Sayfa"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
+                  onClick={() => updateParams({ page: urlPage + 1 })}
+                  disabled={urlPage + 1 >= totalPages || isLoading}
                   className="p-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="Sonraki Sayfa"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -672,7 +720,7 @@ export const AssetsView: React.FC = () => {
         }}
         assetToEdit={assetToEdit}
         onSuccess={() => {
-          refetch();
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
         }}
       />
 
@@ -685,7 +733,7 @@ export const AssetsView: React.FC = () => {
         }}
         asset={assetToTransfer}
         onSuccess={() => {
-          refetch();
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
         }}
       />
 
@@ -700,7 +748,7 @@ export const AssetsView: React.FC = () => {
         asset={assetForLifecycle}
         preselectedTarget={lifecyclePreselectedTarget}
         onSuccess={() => {
-          refetch();
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
         }}
       />
 
@@ -713,7 +761,7 @@ export const AssetsView: React.FC = () => {
         }}
         asset={assetToDelete}
         onSuccess={() => {
-          refetch();
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
         }}
       />
 
@@ -722,7 +770,7 @@ export const AssetsView: React.FC = () => {
         isOpen={isBulkImportOpen}
         onClose={() => setIsBulkImportOpen(false)}
         onSuccess={() => {
-          refetch();
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
         }}
       />
     </div>
