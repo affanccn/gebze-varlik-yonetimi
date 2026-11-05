@@ -20,17 +20,17 @@ public class PersonnelController {
 
     @GetMapping
     public PageResponse<Personnel> getAll(
-            @RequestParam(required = false) Long departmentId,
-            @RequestParam(required = false) Long roomId,
-            @RequestParam(required = false) String query,
-            @RequestParam(required = false) String q,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sort,
-            @RequestParam(required = false) Boolean isActive,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(name = "departmentId", required = false) Long departmentId,
+            @RequestParam(name = "roomId", required = false) Long roomId,
+            @RequestParam(name = "query", required = false) String searchQueryParam,
+            @RequestParam(name = "q", required = false) String q,
+            @RequestParam(name = "sortBy", required = false) String sortBy,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "isActive", required = false) Boolean isActive,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size
     ) {
-        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String searchQuery = (searchQueryParam != null && !searchQueryParam.isBlank()) ? searchQueryParam : q;
         String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
 
         if (tenantQueryScope.isDeptManager()) {
