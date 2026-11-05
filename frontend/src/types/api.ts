@@ -16,6 +16,13 @@ export interface PageResponse<T> {
   hasPrevious: boolean;
 }
 
+export interface CursorResponse<T> {
+  items: T[];
+  nextCursor?: string | null;
+  hasMore: boolean;
+  size: number;
+}
+
 export interface PageParams {
   page?: number;
   size?: number;

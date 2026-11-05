@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tr.gov.gebze.varlik.common.AuthService;
+import tr.gov.gebze.varlik.common.CursorResponse;
+import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.common.UserSession;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
@@ -30,19 +32,32 @@ public class EnterpriseController {
 
     // 1. DEPO & STOK
     @GetMapping("/stock")
-    public List<StockItem> listStock(
+    public PageResponse<StockItem> listStock(
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) String warehouse,
-            @RequestParam(required = false) String status
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         tenantQueryScope.enforceStaffModuleRestriction("stock");
-        return enterpriseService.findAllStockItems(departmentId, warehouse, status);
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+        return enterpriseService.findStockItemsPage(departmentId, warehouse, status, searchQuery, sortParam, page, size);
     }
 
     @GetMapping("/stock/transactions")
-    public List<StockTransaction> listStockTransactions(@RequestParam(required = false) Long stockItemId) {
+    public CursorResponse<StockTransaction> listStockTransactions(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) Long stockItemId,
+            @RequestParam(required = false) String txType
+    ) {
         tenantQueryScope.enforceStaffModuleRestriction("stock");
-        return enterpriseService.findStockTransactions(stockItemId);
+        return enterpriseService.findStockTransactionsKeyset(cursor, size, stockItemId, txType);
     }
 
     @PostMapping("/stock/transactions")
@@ -66,13 +81,21 @@ public class EnterpriseController {
 
     // 2. ARAÇ & FİLO
     @GetMapping("/fleet")
-    public List<FleetVehicle> listFleet(
+    public PageResponse<FleetVehicle> listFleet(
             @RequestParam(required = false) Long departmentId,
             @RequestParam(required = false) String vehicleType,
-            @RequestParam(required = false) String status
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         tenantQueryScope.enforceStaffModuleRestriction("fleet");
-        return enterpriseService.findAllVehicles(departmentId, vehicleType, status);
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+        return enterpriseService.findVehiclesPage(departmentId, vehicleType, status, searchQuery, sortParam, page, size);
     }
 
     @PostMapping("/fleet/{id}/status")
@@ -93,12 +116,20 @@ public class EnterpriseController {
 
     // 3. SATIN ALMA & TEDARİK
     @GetMapping("/procurement")
-    public List<ProcurementOrder> listProcurement(
+    public PageResponse<ProcurementOrder> listProcurement(
             @RequestParam(required = false) Long departmentId,
-            @RequestParam(required = false) String status
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
         tenantQueryScope.enforceStaffModuleRestriction("procurement");
-        return enterpriseService.findAllProcurementOrders(departmentId, status);
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+        return enterpriseService.findProcurementOrdersPage(departmentId, status, searchQuery, sortParam, page, size);
     }
 
     // 4. SAYIM & ENVANTER
@@ -131,18 +162,33 @@ public class EnterpriseController {
 
     // 5. BELGE & EVRAK
     @GetMapping("/documents")
-    public List<AssetDocument> listDocuments(
+    public PageResponse<AssetDocument> listDocuments(
             @RequestParam(required = false) Long assetId,
-            @RequestParam(required = false) String documentType
+            @RequestParam(required = false) String documentType,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
-        return enterpriseService.findAllDocuments(assetId, documentType);
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+        return enterpriseService.findDocumentsPage(assetId, documentType, searchQuery, sortParam, page, size);
     }
 
     // 6. DENETİM LOGLARI
     @GetMapping("/audit-logs")
-    public List<SystemAuditLog> listAuditLogs(@RequestParam(defaultValue = "50") int limit) {
+    public CursorResponse<SystemAuditLog> listAuditLogs(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String actionType,
+            @RequestParam(required = false) String actor,
+            @RequestParam(required = false) String dateFrom,
+            @RequestParam(required = false) String dateTo
+    ) {
         tenantQueryScope.enforceStaffModuleRestriction("audit-logs");
-        return enterpriseService.findRecentAuditLogs(limit);
+        return enterpriseService.findAuditLogsKeyset(cursor, size, actionType, actor, dateFrom, dateTo);
     }
 
     // 7. SİSTEM AYARLARI

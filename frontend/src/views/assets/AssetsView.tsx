@@ -7,7 +7,7 @@ import {
   flexRender,
   SortingState,
 } from '@tanstack/react-table';
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { assetService } from '../../services/assetService';
 import { hierarchyService } from '../../services/hierarchyService';
 import { Asset } from '../../types/asset';
@@ -26,6 +26,7 @@ import {
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
+  Download,
   Eye,
   FileSpreadsheet,
   FilterX,
@@ -39,6 +40,7 @@ import {
 } from 'lucide-react';
 
 export const AssetsView: React.FC = () => {
+  const queryClient = useQueryClient();
   const { canWrite, canDelete, user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -434,6 +436,17 @@ export const AssetsView: React.FC = () => {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const handleExportCsv = () => {
+    const exportUrl = assetService.getExportUrl({
+      q: urlQ || undefined,
+      departmentId: urlDept ? Number(urlDept) : undefined,
+      categoryId: urlCat ? Number(urlCat) : undefined,
+      status: urlStatus || undefined,
+      sort: urlSort || undefined,
+    });
+    window.open(exportUrl, '_blank');
+  };
+
   return (
     <div className="space-y-5">
       {/* Page Header */}
@@ -448,6 +461,18 @@ export const AssetsView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            id="btn-export-assets-csv"
+            data-action="export-assets-csv"
+            onClick={handleExportCsv}
+            className="inline-flex items-center px-3.5 py-2 rounded-xl bg-white text-slate-700 border border-slate-300 text-sm font-semibold hover:bg-slate-50 shadow-xs transition-colors shrink-0"
+            title="Filtrelenmiş varlıkları CSV (Excel) formatında indir"
+          >
+            <Download className="w-4 h-4 mr-2 text-blue-600" />
+            CSV Dışa Aktar
+          </button>
+
           {(user?.role === 'ADMIN' || user?.role === 'DEPT_MANAGER') && (
             <button
               type="button"
@@ -720,6 +745,7 @@ export const AssetsView: React.FC = () => {
         }}
         assetToEdit={assetToEdit}
         onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
           refetch();
         }}
       />
@@ -733,6 +759,7 @@ export const AssetsView: React.FC = () => {
         }}
         asset={assetToTransfer}
         onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
           refetch();
         }}
       />
@@ -748,6 +775,7 @@ export const AssetsView: React.FC = () => {
         asset={assetForLifecycle}
         preselectedTarget={lifecyclePreselectedTarget}
         onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
           refetch();
         }}
       />
@@ -761,6 +789,7 @@ export const AssetsView: React.FC = () => {
         }}
         asset={assetToDelete}
         onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
           refetch();
         }}
       />
@@ -770,6 +799,7 @@ export const AssetsView: React.FC = () => {
         isOpen={isBulkImportOpen}
         onClose={() => setIsBulkImportOpen(false)}
         onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['assets'] });
           refetch();
         }}
       />

@@ -3,6 +3,9 @@ package tr.gov.gebze.varlik.enterprise;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tr.gov.gebze.varlik.common.CursorResponse;
+import tr.gov.gebze.varlik.common.PageResponse;
+import tr.gov.gebze.varlik.common.SortValidator;
 
 @Service
 public class EnterpriseService {
@@ -13,8 +16,23 @@ public class EnterpriseService {
         this.repository = repository;
     }
 
+    public PageResponse<StockItem> findStockItemsPage(Long departmentId, String warehouse, String status, String q, String sort, int page, int size) {
+        return repository.findStockItemsPage(departmentId, warehouse, status, q, sort, page, size);
+    }
+
     public List<StockItem> findAllStockItems(Long departmentId, String warehouse, String status) {
         return repository.findAllStockItems(departmentId, warehouse, status);
+    }
+
+    public CursorResponse<StockTransaction> findStockTransactionsKeyset(String cursor, int size, Long stockItemId, String txType) {
+        Long cursorVal = SortValidator.validateCursor(cursor);
+        SortValidator.validateCursorPagination(size);
+        int fetchCount = size + 1;
+        List<StockTransaction> list = repository.findStockTransactionsKeyset(cursorVal, fetchCount, stockItemId, txType);
+        boolean hasMore = list.size() > size;
+        List<StockTransaction> items = hasMore ? list.subList(0, size) : list;
+        String nextCursor = hasMore && !items.isEmpty() ? String.valueOf(items.get(items.size() - 1).id()) : null;
+        return CursorResponse.of(items, nextCursor, hasMore, size);
     }
 
     public List<StockTransaction> findStockTransactions(Long stockItemId) {
@@ -28,6 +46,10 @@ public class EnterpriseService {
                 txType + " işlemi: " + quantity + " birim aktarıldı. Not: " + (notes != null ? notes : "-"));
     }
 
+    public PageResponse<FleetVehicle> findVehiclesPage(Long departmentId, String vehicleType, String status, String q, String sort, int page, int size) {
+        return repository.findVehiclesPage(departmentId, vehicleType, status, q, sort, page, size);
+    }
+
     public List<FleetVehicle> findAllVehicles(Long departmentId, String vehicleType, String status) {
         return repository.findAllVehicles(departmentId, vehicleType, status);
     }
@@ -37,6 +59,10 @@ public class EnterpriseService {
         repository.updateVehicleStatus(id, status, km, driver);
         repository.logAction("ARAC_GUNCELLEME", "FLEET", String.valueOf(id), actor, actor, "127.0.0.1",
                 "Araç durumu: " + status + ", KM: " + km + ", Sürücü: " + driver);
+    }
+
+    public PageResponse<ProcurementOrder> findProcurementOrdersPage(Long departmentId, String status, String q, String sort, int page, int size) {
+        return repository.findProcurementOrdersPage(departmentId, status, q, sort, page, size);
     }
 
     public List<ProcurementOrder> findAllProcurementOrders(Long departmentId, String status) {
@@ -58,8 +84,23 @@ public class EnterpriseService {
                 assetCode + " nolu varlık okutuldu. Konum: " + scannedLoc);
     }
 
+    public PageResponse<AssetDocument> findDocumentsPage(Long assetId, String docType, String q, String sort, int page, int size) {
+        return repository.findDocumentsPage(assetId, docType, q, sort, page, size);
+    }
+
     public List<AssetDocument> findAllDocuments(Long assetId, String docType) {
         return repository.findAllDocuments(assetId, docType);
+    }
+
+    public CursorResponse<SystemAuditLog> findAuditLogsKeyset(String cursor, int size, String actionType, String actor, String dateFrom, String dateTo) {
+        Long cursorVal = SortValidator.validateCursor(cursor);
+        SortValidator.validateCursorPagination(size);
+        int fetchCount = size + 1;
+        List<SystemAuditLog> list = repository.findAuditLogsKeyset(cursorVal, fetchCount, actionType, actor, dateFrom, dateTo);
+        boolean hasMore = list.size() > size;
+        List<SystemAuditLog> items = hasMore ? list.subList(0, size) : list;
+        String nextCursor = hasMore && !items.isEmpty() ? String.valueOf(items.get(items.size() - 1).id()) : null;
+        return CursorResponse.of(items, nextCursor, hasMore, size);
     }
 
     public List<SystemAuditLog> findRecentAuditLogs(int limit) {

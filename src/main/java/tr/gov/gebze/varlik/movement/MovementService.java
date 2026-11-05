@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.asset.Asset;
 import tr.gov.gebze.varlik.asset.AssetService;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.common.CursorResponse;
+import tr.gov.gebze.varlik.common.SortValidator;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
 
@@ -26,6 +28,17 @@ public class MovementService {
         this.movementRepository = movementRepository;
         this.assetService = assetService;
         this.assetLifecycleService = assetLifecycleService;
+    }
+
+    public CursorResponse<AssetMovement> findMovementsKeyset(String cursor, int size, Long assetId, String type, String q) {
+        Long cursorVal = SortValidator.validateCursor(cursor);
+        SortValidator.validateCursorPagination(size);
+        int fetchCount = size + 1;
+        List<AssetMovement> list = movementRepository.findMovementsKeyset(cursorVal, fetchCount, assetId, type, q);
+        boolean hasMore = list.size() > size;
+        List<AssetMovement> items = hasMore ? list.subList(0, size) : list;
+        String nextCursor = hasMore && !items.isEmpty() ? String.valueOf(items.get(items.size() - 1).id()) : null;
+        return CursorResponse.of(items, nextCursor, hasMore, size);
     }
 
     public List<AssetMovement> findAll(Long assetId, String type) {

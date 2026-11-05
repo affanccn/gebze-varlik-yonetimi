@@ -15,14 +15,15 @@ export const ProcurementView: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
   const {
-    data: orders = [],
+    data: ordersData,
     isLoading,
     refetch,
     isRefetching,
   } = useQuery({
     queryKey: ['procurement'],
-    queryFn: () => enterpriseService.getProcurement(),
+    queryFn: () => enterpriseService.getProcurement({ size: 100 }),
   });
+  const orders = ordersData?.items || [];
 
   // KPIs
   const kpis = useMemo(() => {

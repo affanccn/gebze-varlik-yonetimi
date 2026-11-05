@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.asset.Asset;
 import tr.gov.gebze.varlik.asset.AssetService;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
 import tr.gov.gebze.varlik.movement.MovementService;
@@ -30,6 +31,10 @@ public class AssignmentService {
         this.assetService = assetService;
         this.movementService = movementService;
         this.assetLifecycleService = assetLifecycleService;
+    }
+
+    public PageResponse<AssetAssignment> findPage(Long assetId, String status, String q, String sort, int page, int size) {
+        return assignmentRepository.findPage(assetId, status, q, sort, page, size);
     }
 
     public List<AssetAssignment> findAll(Long assetId, String status) {

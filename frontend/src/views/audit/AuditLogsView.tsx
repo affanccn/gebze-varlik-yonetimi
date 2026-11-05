@@ -6,22 +6,55 @@ import {
   Search,
   RefreshCw,
   Activity,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 export const AuditLogsView: React.FC = () => {
   const [globalFilter, setGlobalFilter] = useState('');
   const [actionFilter, setActionFilter] = useState('');
-  const [limit, setLimit] = useState(100);
+  const [limit, setLimit] = useState(50);
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [cursorHistory, setCursorHistory] = useState<(string | undefined)[]>([]);
 
   const {
-    data: logs = [],
+    data: logsData,
     isLoading,
     refetch,
     isRefetching,
   } = useQuery({
-    queryKey: ['audit-logs', limit],
-    queryFn: () => enterpriseService.getAuditLogs(limit),
+    queryKey: ['audit-logs', limit, cursor, actionFilter],
+    queryFn: () => enterpriseService.getAuditLogs({
+      cursor,
+      size: limit,
+      actionType: actionFilter || undefined,
+    }),
   });
+
+  const logs = logsData?.items || [];
+  const hasMore = logsData?.hasMore ?? false;
+  const nextCursor = logsData?.nextCursor;
+
+  const handleNextPage = () => {
+    if (nextCursor && hasMore) {
+      setCursorHistory((prev) => [...prev, cursor]);
+      setCursor(nextCursor);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (cursorHistory.length > 0) {
+      const prev = [...cursorHistory];
+      const lastCursor = prev.pop();
+      setCursorHistory(prev);
+      setCursor(lastCursor);
+    }
+  };
+
+  const handleResetFilters = () => {
+    setCursor(undefined);
+    setCursorHistory([]);
+  };
 
   // Unique actions
   const uniqueActions = useMemo(() => {
@@ -129,7 +162,10 @@ export const AuditLogsView: React.FC = () => {
           <select
             id="audit-action-filter"
             value={actionFilter}
-            onChange={(e) => setActionFilter(e.target.value)}
+            onChange={(e) => {
+              setActionFilter(e.target.value);
+              handleResetFilters();
+            }}
             className="w-full px-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 font-medium"
           >
             <option value="">Tüm Eylem Türleri</option>
@@ -221,6 +257,35 @@ export const AuditLogsView: React.FC = () => {
             </table>
           </div>
         )}
+
+        {/* Keyset Cursor Pagination Footer */}
+        <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+          <div>
+            Gösterilen: <strong className="text-slate-900">{logs.length}</strong> kayıt (İmleç: {cursor ? `#${cursor}` : 'Başlangıç'})
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              id="btn-audit-prev"
+              onClick={handlePrevPage}
+              disabled={cursorHistory.length === 0 || isLoading}
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-xs"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+              Önceki
+            </button>
+            <button
+              type="button"
+              id="btn-audit-next"
+              onClick={handleNextPage}
+              disabled={!hasMore || isLoading}
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-xs"
+            >
+              Sonraki
+              <ChevronRight className="w-3.5 h-3.5 ml-1" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

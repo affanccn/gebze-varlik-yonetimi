@@ -94,4 +94,24 @@ export const assetService = {
       { method: 'DELETE' }
     );
   },
+
+  getExportUrl: (params?: AssetQueryParams, format = 'csv'): string => {
+    const searchParams = new URLSearchParams();
+    searchParams.set('format', format);
+    if (params?.query) searchParams.set('query', params.query);
+    if (params?.q) searchParams.set('q', params.q);
+    if (params?.departmentId) searchParams.set('departmentId', String(params.departmentId));
+    if (params?.categoryId) searchParams.set('categoryId', String(params.categoryId));
+    if (params?.status) searchParams.set('status', params.status);
+    if (params?.condition) searchParams.set('condition', params.condition);
+    if (params?.buildingId) searchParams.set('buildingId', String(params.buildingId));
+    if (params?.floorId) searchParams.set('floorId', String(params.floorId));
+    if (params?.roomId) searchParams.set('roomId', String(params.roomId));
+    if (params?.assignedPersonnelId) searchParams.set('assignedPersonnelId', String(params.assignedPersonnelId));
+    if (params?.lifecycleStatus) searchParams.set('lifecycleStatus', params.lifecycleStatus);
+    if (params?.isActive !== undefined) searchParams.set('isActive', String(params.isActive));
+    if (params?.sort) searchParams.set('sort', params.sort);
+    if (params?.sortBy) searchParams.set('sortBy', params.sortBy);
+    return `${API_ENDPOINTS.ASSETS}/export?${searchParams.toString()}`;
+  },
 };

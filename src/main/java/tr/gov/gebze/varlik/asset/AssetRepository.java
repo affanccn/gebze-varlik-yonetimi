@@ -215,6 +215,179 @@ public class AssetRepository {
         return PageResponse.of(items, total, page, size);
     }
 
+    public List<Asset> findAssetsForExport(
+            String query,
+            String category,
+            String unit,
+            String status,
+            String condition,
+            String warrantyFilter,
+            String sortBy,
+            Long departmentId,
+            Long subUnitId,
+            Long buildingId,
+            Long floorId,
+            Long roomId,
+            Long categoryId,
+            Long assignedPersonnelId,
+            String lifecycleStatus,
+            Boolean isActive
+    ) {
+        StringBuilder whereClause = new StringBuilder(" WHERE a.is_deleted = 0");
+        List<Object> params = new ArrayList<>();
+
+        whereClause.append(" AND ").append(tenantQueryScope.getAssetFilterClause("a"));
+
+        if (isActive != null) {
+            whereClause.append(" AND a.is_active = ?");
+            params.add(isActive ? 1 : 0);
+        }
+
+        if (query != null && !query.isBlank()) {
+            String q = "%" + query.trim() + "%";
+            whereClause.append("""
+                 AND (a.code LIKE ?
+                   OR a.name LIKE ?
+                   OR a.barcode LIKE ?
+                   OR a.brand_model LIKE ?
+                   OR a.serial_number LIKE ?
+                   OR a.tif_code LIKE ?
+                   OR d.name LIKE ?
+                   OR b.name LIKE ?
+                   OR r.name LIKE ?
+                   OR r.room_number LIKE ?
+                   OR c.name LIKE ?)
+            """);
+            for (int i = 0; i < 11; i++) {
+                params.add(q);
+            }
+        }
+
+        if (category != null && !category.isBlank() && !"Tümü".equalsIgnoreCase(category)) {
+            String cat = category.trim();
+            try {
+                long catId = Long.parseLong(cat);
+                whereClause.append(" AND (a.category_id = ? OR a.category = ?)");
+                params.add(catId);
+                params.add(cat);
+            } catch (NumberFormatException e) {
+                whereClause.append(" AND (c.name LIKE ? OR a.category LIKE ?)");
+                params.add("%" + cat + "%");
+                params.add("%" + cat + "%");
+            }
+        }
+
+        if (unit != null && !unit.isBlank() && !"Tümü".equalsIgnoreCase(unit)) {
+            whereClause.append(" AND (a.unit_name LIKE ? OR d.name LIKE ? OR s.name LIKE ?)");
+            String u = "%" + unit.trim() + "%";
+            params.add(u);
+            params.add(u);
+            params.add(u);
+        }
+
+        if (status != null && !status.isBlank() && !"Tümü".equalsIgnoreCase(status)) {
+            whereClause.append(" AND a.status = ?");
+            params.add(status.trim());
+        }
+
+        if (condition != null && !condition.isBlank() && !"Tümü".equalsIgnoreCase(condition)) {
+            whereClause.append(" AND a.condition_status = ?");
+            params.add(condition.trim());
+        }
+
+        if (warrantyFilter != null && !warrantyFilter.isBlank() && !"ALL".equalsIgnoreCase(warrantyFilter)) {
+            if ("EXPIRED_OR_SOON".equalsIgnoreCase(warrantyFilter)) {
+                whereClause.append(" AND (a.warranty_end_date IS NOT NULL AND a.warranty_end_date <= TRUNC(SYSDATE) + 90)");
+            } else if ("ACTIVE".equalsIgnoreCase(warrantyFilter)) {
+                whereClause.append(" AND (a.warranty_end_date IS NOT NULL AND a.warranty_end_date > TRUNC(SYSDATE))");
+            }
+        }
+
+        if (departmentId != null) {
+            whereClause.append(" AND a.department_id = ?");
+            params.add(departmentId);
+        }
+
+        if (subUnitId != null) {
+            whereClause.append(" AND a.sub_unit_id = ?");
+            params.add(subUnitId);
+        }
+
+        if (buildingId != null) {
+            whereClause.append(" AND a.building_id = ?");
+            params.add(buildingId);
+        }
+
+        if (floorId != null) {
+            whereClause.append(" AND a.floor_id = ?");
+            params.add(floorId);
+        }
+
+        if (roomId != null) {
+            whereClause.append(" AND a.room_id = ?");
+            params.add(roomId);
+        }
+
+        if (categoryId != null) {
+            whereClause.append(" AND a.category_id = ?");
+            params.add(categoryId);
+        }
+
+        if (assignedPersonnelId != null) {
+            whereClause.append("""
+                 AND (
+                     a.assignee_name = (SELECT p.full_name FROM personnel p WHERE p.id = ?)
+                     OR EXISTS (
+                         SELECT 1 FROM asset_assignments aa
+                         WHERE aa.asset_id = a.id
+                           AND aa.personnel_id = ?
+                           AND aa.status = 'AKTIF'
+                     )
+                 )
+            """);
+            params.add(assignedPersonnelId);
+            params.add(assignedPersonnelId);
+        }
+
+        if (lifecycleStatus != null && !lifecycleStatus.isBlank() && !"Tümü".equalsIgnoreCase(lifecycleStatus)) {
+            whereClause.append(" AND a.lifecycle_status = ?");
+            params.add(lifecycleStatus.trim());
+        }
+
+        String fromClause = """
+            FROM assets a
+            LEFT JOIN departments d ON a.department_id = d.id
+            LEFT JOIN sub_units s ON a.sub_unit_id = s.id
+            LEFT JOIN buildings b ON a.building_id = b.id
+            LEFT JOIN floors f ON a.floor_id = f.id
+            LEFT JOIN rooms r ON a.room_id = r.id
+            LEFT JOIN asset_categories c ON a.category_id = c.id
+        """;
+
+        String orderBy = SortValidator.buildOrderBy(sortBy, SortValidator.ASSET_SORT_FIELDS, "a.id DESC", "a.id DESC");
+        String dataSql = """
+            SELECT a.id, a.code, a.tif_code, a.barcode, a.name, a.category, a.brand_model, a.serial_number,
+                   a.unit_name, a.location_info, a.assignee_name, a.status, a.condition_status,
+                   TO_CHAR(a.acquisition_date, 'YYYY-MM-DD') AS acq_date,
+                   TO_CHAR(a.warranty_end_date, 'YYYY-MM-DD') AS war_date,
+                   a.estimated_value, a.supplier, a.notes,
+                   TO_CHAR(a.updated_at, 'YYYY-MM-DD HH24:MI') AS upd_at,
+                   a.department_id, d.name AS dept_name,
+                   a.sub_unit_id, s.name AS sub_name,
+                   a.building_id, b.name AS bld_name,
+                   a.floor_id, f.floor_name,
+                   a.room_id, r.room_number, r.name AS room_name, r.qr_code AS room_qr,
+                   a.category_id, c.name AS cat_name,
+                   a.lifecycle_status
+        """ + fromClause + whereClause.toString() + " ORDER BY " + orderBy + " FETCH FIRST 5000 ROWS ONLY";
+
+        var dataSpec = jdbcClient.sql(dataSql);
+        for (int i = 0; i < params.size(); i++) {
+            dataSpec = dataSpec.param(i + 1, params.get(i));
+        }
+        return dataSpec.query(this::mapAsset).list();
+    }
+
     public List<Asset> findAll(
             String query,
             String category,

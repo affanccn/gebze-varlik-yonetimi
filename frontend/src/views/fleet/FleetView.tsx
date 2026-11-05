@@ -25,14 +25,15 @@ export const FleetView: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<FleetVehicle | null>(null);
 
   const {
-    data: vehicles = [],
+    data: vehiclesData,
     isLoading,
     refetch,
     isRefetching,
   } = useQuery({
     queryKey: ['fleet'],
-    queryFn: () => enterpriseService.getFleet(),
+    queryFn: () => enterpriseService.getFleet({ size: 100 }),
   });
+  const vehicles = vehiclesData?.items || [];
 
   // KPIs
   const kpis = useMemo(() => {

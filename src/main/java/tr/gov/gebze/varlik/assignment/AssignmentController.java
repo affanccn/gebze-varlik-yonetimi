@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tr.gov.gebze.varlik.common.AuthService;
+import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.common.UserSession;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
@@ -28,11 +29,19 @@ public class AssignmentController {
     }
 
     @GetMapping
-    public List<AssetAssignment> listAssignments(
+    public PageResponse<AssetAssignment> listAssignments(
             @RequestParam(required = false) Long assetId,
-            @RequestParam(required = false) String status
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
     ) {
-        return assignmentService.findAll(assetId, status);
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+        return assignmentService.findPage(assetId, status, searchQuery, sortParam, page, size);
     }
 
     @PostMapping

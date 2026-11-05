@@ -1,5 +1,6 @@
 import { apiRequest } from '../api/client';
 import { API_ENDPOINTS } from '../api/endpoints';
+import { PageResponse, CursorResponse, PageParams } from '../types/api';
 import { FleetVehicle, FleetStatusUpdateRequest } from '../types/fleet';
 import { ProcurementOrder } from '../types/procurement';
 import { InventoryAudit, AuditScan, SystemAuditLog } from '../types/audit';
@@ -7,17 +8,21 @@ import { SystemSetting } from '../types/settings';
 
 export const enterpriseService = {
   // Fleet
-  getFleet: (params?: {
+  getFleet: (params?: PageParams & {
     departmentId?: number;
     vehicleType?: string;
     status?: string;
-  }): Promise<FleetVehicle[]> => {
+  }): Promise<PageResponse<FleetVehicle>> => {
     const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.set('page', String(params.page));
+    if (params?.size !== undefined) searchParams.set('size', String(params.size));
+    if (params?.sort) searchParams.set('sort', params.sort);
+    if (params?.q) searchParams.set('q', params.q);
     if (params?.departmentId) searchParams.set('departmentId', String(params.departmentId));
     if (params?.vehicleType) searchParams.set('vehicleType', params.vehicleType);
     if (params?.status) searchParams.set('status', params.status);
     const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-    return apiRequest<FleetVehicle[]>(`${API_ENDPOINTS.FLEET}${query}`);
+    return apiRequest<PageResponse<FleetVehicle>>(`${API_ENDPOINTS.FLEET}${query}`);
   },
 
   updateFleetStatus: (id: number, payload: FleetStatusUpdateRequest): Promise<{ status: string; message: string }> => {
@@ -28,15 +33,19 @@ export const enterpriseService = {
   },
 
   // Procurement
-  getProcurement: (params?: {
+  getProcurement: (params?: PageParams & {
     departmentId?: number;
     status?: string;
-  }): Promise<ProcurementOrder[]> => {
+  }): Promise<PageResponse<ProcurementOrder>> => {
     const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.set('page', String(params.page));
+    if (params?.size !== undefined) searchParams.set('size', String(params.size));
+    if (params?.sort) searchParams.set('sort', params.sort);
+    if (params?.q) searchParams.set('q', params.q);
     if (params?.departmentId) searchParams.set('departmentId', String(params.departmentId));
     if (params?.status) searchParams.set('status', params.status);
     const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
-    return apiRequest<ProcurementOrder[]>(`${API_ENDPOINTS.PROCUREMENT}${query}`);
+    return apiRequest<PageResponse<ProcurementOrder>>(`${API_ENDPOINTS.PROCUREMENT}${query}`);
   },
 
   // Audits & Physical Counting
@@ -58,9 +67,24 @@ export const enterpriseService = {
     });
   },
 
-  // System Audit Logs
-  getAuditLogs: (limit = 100): Promise<SystemAuditLog[]> => {
-    return apiRequest<SystemAuditLog[]>(`${API_ENDPOINTS.AUDIT_LOGS}?limit=${limit}`);
+  // System Audit Logs (Keyset)
+  getAuditLogs: (params?: {
+    cursor?: string;
+    size?: number;
+    actionType?: string;
+    actor?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  }): Promise<CursorResponse<SystemAuditLog>> => {
+    const searchParams = new URLSearchParams();
+    if (params?.cursor) searchParams.set('cursor', params.cursor);
+    if (params?.size) searchParams.set('size', String(params.size));
+    if (params?.actionType) searchParams.set('actionType', params.actionType);
+    if (params?.actor) searchParams.set('actor', params.actor);
+    if (params?.dateFrom) searchParams.set('dateFrom', params.dateFrom);
+    if (params?.dateTo) searchParams.set('dateTo', params.dateTo);
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return apiRequest<CursorResponse<SystemAuditLog>>(`${API_ENDPOINTS.AUDIT_LOGS}${query}`);
   },
 
   // System Settings

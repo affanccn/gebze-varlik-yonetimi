@@ -19,6 +19,54 @@ public class MovementRepository {
         this.tenantQueryScope = tenantQueryScope;
     }
 
+    public List<AssetMovement> findMovementsKeyset(Long cursor, int fetchCount, Long assetId, String movementType, String q) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT m.id, m.asset_id, m.asset_code, m.asset_name, m.movement_type, m.type_label,
+                   m.from_unit, m.from_location, m.to_unit, m.to_location, m.performed_by, m.note,
+                   TO_CHAR(m.created_at, 'YYYY-MM-DD HH24:MI') AS ts
+            FROM asset_movements m
+            JOIN assets a ON m.asset_id = a.id
+            WHERE a.is_deleted = 0
+        """);
+
+        sql.append(" AND ").append(tenantQueryScope.getAssetFilterClause("a"));
+
+        List<Object> params = new ArrayList<>();
+
+        if (cursor != null) {
+            sql.append(" AND m.id < ?");
+            params.add(cursor);
+        }
+
+        if (assetId != null) {
+            sql.append(" AND m.asset_id = ?");
+            params.add(assetId);
+        }
+
+        if (movementType != null && !movementType.isBlank() && !"Tümü".equalsIgnoreCase(movementType)) {
+            sql.append(" AND m.movement_type = ?");
+            params.add(movementType.trim());
+        }
+
+        if (q != null && !q.isBlank()) {
+            sql.append(" AND (LOWER(m.asset_code) LIKE LOWER(?) OR LOWER(m.asset_name) LIKE LOWER(?) OR LOWER(m.performed_by) LIKE LOWER(?))");
+            String term = "%" + q.trim() + "%";
+            params.add(term);
+            params.add(term);
+            params.add(term);
+        }
+
+        sql.append(" ORDER BY m.id DESC FETCH FIRST ? ROWS ONLY");
+        params.add(fetchCount);
+
+        var spec = jdbcClient.sql(sql.toString());
+        for (int i = 0; i < params.size(); i++) {
+            spec = spec.param(params.get(i));
+        }
+
+        return spec.query(this::mapMovement).list();
+    }
+
     public List<AssetMovement> findAll(Long assetId, String movementType) {
         StringBuilder sql = new StringBuilder("""
             SELECT m.id, m.asset_id, m.asset_code, m.asset_name, m.movement_type, m.type_label,

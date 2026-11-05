@@ -1,5 +1,6 @@
 import { apiRequest } from '../api/client';
 import { API_ENDPOINTS } from '../api/endpoints';
+import { PageResponse, PageParams } from '../types/api';
 import {
   AssetAssignment,
   AssignmentRequest,
@@ -7,12 +8,19 @@ import {
 } from '../types/assignment';
 
 export const assignmentService = {
-  getAll: (assetId?: number, status?: string): Promise<AssetAssignment[]> => {
-    const params = new URLSearchParams();
-    if (assetId) params.set('assetId', String(assetId));
-    if (status) params.set('status', status);
-    const query = params.toString() ? `?${params.toString()}` : '';
-    return apiRequest<AssetAssignment[]>(`${API_ENDPOINTS.ASSIGNMENTS}${query}`);
+  getAll: (params?: PageParams & {
+    assetId?: number;
+    status?: string;
+  }): Promise<PageResponse<AssetAssignment>> => {
+    const searchParams = new URLSearchParams();
+    if (params?.page !== undefined) searchParams.set('page', String(params.page));
+    if (params?.size !== undefined) searchParams.set('size', String(params.size));
+    if (params?.sort) searchParams.set('sort', params.sort);
+    if (params?.q) searchParams.set('q', params.q);
+    if (params?.assetId) searchParams.set('assetId', String(params.assetId));
+    if (params?.status) searchParams.set('status', params.status);
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : '';
+    return apiRequest<PageResponse<AssetAssignment>>(`${API_ENDPOINTS.ASSIGNMENTS}${query}`);
   },
 
   create: (request: AssignmentRequest): Promise<AssetAssignment> => {

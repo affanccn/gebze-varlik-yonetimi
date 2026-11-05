@@ -2,34 +2,59 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { movementService } from '../../services/movementService';
 import { Card } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
 import { formatDateTime } from '../../components/common/formatters';
+import { CursorResponse } from '../../types/api';
 import { AssetMovement } from '../../types/movement';
 
 export const MovementsView: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [cursor, setCursor] = useState<string | undefined>(undefined);
+  const [cursorHistory, setCursorHistory] = useState<(string | undefined)[]>([]);
 
-  const { data: movements = [], isLoading } = useQuery<AssetMovement[]>({
-    queryKey: ['movements', typeFilter],
-    queryFn: () => movementService.getAll({ type: typeFilter || undefined }),
+  const { data: movementData, isLoading } = useQuery<CursorResponse<AssetMovement>>({
+    queryKey: ['movements', typeFilter, cursor, searchQuery],
+    queryFn: () => movementService.getAll({
+      type: typeFilter || undefined,
+      cursor,
+      q: searchQuery || undefined,
+      size: 20,
+    }),
   });
 
-  const filteredMovements = movements.filter((m) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      m.assetCode.toLowerCase().includes(q) ||
-      m.assetName.toLowerCase().includes(q) ||
-      (m.typeLabel && m.typeLabel.toLowerCase().includes(q)) ||
-      (m.toLocation && m.toLocation.toLowerCase().includes(q)) ||
-      (m.fromLocation && m.fromLocation.toLowerCase().includes(q)) ||
-      (m.performedBy && m.performedBy.toLowerCase().includes(q)) ||
-      (m.note && m.note.toLowerCase().includes(q))
-    );
-  });
+  const movements = movementData?.items || [];
+  const hasMore = movementData?.hasMore ?? false;
+  const nextCursor = movementData?.nextCursor;
+
+  const handleNextPage = () => {
+    if (nextCursor && hasMore) {
+      setCursorHistory((prev) => [...prev, cursor]);
+      setCursor(nextCursor);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (cursorHistory.length > 0) {
+      const prev = [...cursorHistory];
+      const lastCursor = prev.pop();
+      setCursorHistory(prev);
+      setCursor(lastCursor);
+    }
+  };
+
+  const handleTypeChange = (val: string) => {
+    setTypeFilter(val);
+    setCursor(undefined);
+    setCursorHistory([]);
+  };
+
+  const filteredMovements = movements;
 
   return (
     <div className="space-y-6">
@@ -46,7 +71,7 @@ export const MovementsView: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <select
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            onChange={(e) => handleTypeChange(e.target.value)}
             className="text-xs bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-gebze-navy/20"
           >
             <option value="">Tüm Hareket Türleri</option>
@@ -136,6 +161,35 @@ export const MovementsView: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Keyset Cursor Pagination Footer */}
+        <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+          <div>
+            Gösterilen: <strong className="text-slate-900">{movements.length}</strong> kayıt (İmleç: {cursor ? `#${cursor}` : 'Başlangıç'})
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              id="btn-movements-prev"
+              onClick={handlePrevPage}
+              disabled={cursorHistory.length === 0 || isLoading}
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-xs"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+              Önceki
+            </button>
+            <button
+              type="button"
+              id="btn-movements-next"
+              onClick={handleNextPage}
+              disabled={!hasMore || isLoading}
+              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-xs"
+            >
+              Sonraki
+              <ChevronRight className="w-3.5 h-3.5 ml-1" />
+            </button>
+          </div>
         </div>
       </Card>
     </div>

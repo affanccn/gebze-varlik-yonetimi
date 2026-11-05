@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tr.gov.gebze.varlik.common.AuthService;
+import tr.gov.gebze.varlik.common.CursorResponse;
 import tr.gov.gebze.varlik.common.UserSession;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
@@ -27,11 +28,16 @@ public class MovementController {
     }
 
     @GetMapping
-    public List<AssetMovement> listMovements(
+    public CursorResponse<AssetMovement> listMovements(
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) Long assetId,
-            @RequestParam(required = false) String type
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String query
     ) {
-        return movementService.findAll(assetId, type);
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        return movementService.findMovementsKeyset(cursor, size, assetId, type, searchQuery);
     }
 
     @PostMapping

@@ -1,5 +1,7 @@
 package tr.gov.gebze.varlik.asset;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,6 +87,42 @@ public class AssetController {
                 searchQuery, category, unit, status, condition, warrantyFilter, sortParam,
                 departmentId, subUnitId, buildingId, floorId, roomId, categoryId, assignedPersonnelId,
                 lifecycleStatus, isActive, page, size
+        );
+    }
+
+    @GetMapping("/export")
+    public void exportAssets(
+            HttpServletResponse response,
+            @RequestParam(defaultValue = "csv") String format,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String unit,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String condition,
+            @RequestParam(required = false) String warrantyFilter,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(required = false) Long subUnitId,
+            @RequestParam(required = false) Long buildingId,
+            @RequestParam(required = false) Long floorId,
+            @RequestParam(required = false) Long roomId,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long assignedPersonnelId,
+            @RequestParam(required = false) String lifecycleStatus,
+            @RequestParam(required = false) Boolean isActive
+    ) throws IOException {
+        if (!"csv".equalsIgnoreCase(format)) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Desteklenmeyen dışa aktarım formatı: " + format);
+        }
+        String searchQuery = (query != null && !query.isBlank()) ? query : q;
+        String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+
+        assetService.exportAssetsCsv(
+                response, searchQuery, category, unit, status, condition, warrantyFilter, sortParam,
+                departmentId, subUnitId, buildingId, floorId, roomId, categoryId, assignedPersonnelId,
+                lifecycleStatus, isActive
         );
     }
 

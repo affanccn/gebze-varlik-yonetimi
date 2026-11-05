@@ -15,10 +15,11 @@ export const DocumentsView: React.FC = () => {
   const [docTypeFilter, setDocTypeFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: documents = [], isLoading } = useQuery<AssetDocument[]>({
+  const { data: documentsData, isLoading } = useQuery({
     queryKey: ['documents', docTypeFilter],
-    queryFn: () => documentService.getAll({ documentType: docTypeFilter || undefined }),
+    queryFn: () => documentService.getAll({ documentType: docTypeFilter || undefined, size: 100 }),
   });
+  const documents = documentsData?.items || [];
 
   const filteredDocuments = documents.filter((d) => {
     const q = searchQuery.toLowerCase();

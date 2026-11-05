@@ -40,14 +40,15 @@ export const MaintenancesView: React.FC = () => {
   const [selectedRecordForComplete, setSelectedRecordForComplete] = useState<MaintenanceRecord | null>(null);
 
   const {
-    data: records = [],
+    data: recordsData,
     isLoading,
     refetch,
     isRefetching,
   } = useQuery({
     queryKey: ['maintenances'],
-    queryFn: () => maintenanceService.getAll(),
+    queryFn: () => maintenanceService.getAll({ size: 100 }),
   });
+  const records = recordsData?.items || [];
 
   // KPI calculations
   const kpis = useMemo(() => {

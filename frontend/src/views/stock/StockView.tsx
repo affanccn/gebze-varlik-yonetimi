@@ -33,23 +33,25 @@ export const StockView: React.FC = () => {
 
   // Queries
   const {
-    data: stockItems = [],
+    data: stockData,
     isLoading: isLoadingItems,
     refetch: refetchItems,
     isRefetching: isRefetchingItems,
   } = useQuery({
     queryKey: ['stock-items'],
-    queryFn: () => stockService.getAll(),
+    queryFn: () => stockService.getAll({ size: 100 }),
   });
+  const stockItems = stockData?.items || [];
 
   const {
-    data: transactions = [],
+    data: txData,
     isLoading: isLoadingTx,
     refetch: refetchTx,
   } = useQuery({
     queryKey: ['stock-transactions'],
-    queryFn: () => stockService.getTransactions(),
+    queryFn: () => stockService.getTransactions({ size: 100 }),
   });
+  const transactions = txData?.items || [];
 
   const handleRefresh = () => {
     refetchItems();

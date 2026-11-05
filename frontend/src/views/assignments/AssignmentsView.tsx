@@ -41,14 +41,15 @@ export const AssignmentsView: React.FC = () => {
   const [selectedAssignmentForReturn, setSelectedAssignmentForReturn] = useState<AssetAssignment | null>(null);
 
   const {
-    data: assignments = [],
+    data: assignmentsData,
     isLoading,
     refetch,
     isRefetching,
   } = useQuery({
     queryKey: ['assignments'],
-    queryFn: () => assignmentService.getAll(),
+    queryFn: () => assignmentService.getAll({ size: 100 }),
   });
+  const assignments = assignmentsData?.items || [];
 
   // KPI Calculations
   const kpis = useMemo(() => {

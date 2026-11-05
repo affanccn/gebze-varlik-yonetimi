@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
+import tr.gov.gebze.varlik.common.PageResponse;
+import tr.gov.gebze.varlik.common.SortValidator;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Repository
@@ -25,6 +27,60 @@ public class EnterpriseRepository {
     // ==========================================
     // 1. DEPO & STOK
     // ==========================================
+    public PageResponse<StockItem> findStockItemsPage(Long departmentId, String warehouse, String status, String q, String sort, int page, int size) {
+        SortValidator.validatePagination(page, size);
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        where.append(" AND ").append(tenantQueryScope.getStockItemFilterClause(null));
+        List<Object> params = new ArrayList<>();
+
+        if (departmentId != null) {
+            where.append(" AND department_id = ?");
+            params.add(departmentId);
+        }
+        if (warehouse != null && !warehouse.isBlank()) {
+            where.append(" AND LOWER(warehouse_name) LIKE LOWER(?)");
+            params.add("%" + warehouse.trim() + "%");
+        }
+        if (status != null && !status.isBlank() && !"Tümü".equalsIgnoreCase(status)) {
+            where.append(" AND status = ?");
+            params.add(status.trim());
+        }
+        if (q != null && !q.isBlank()) {
+            where.append(" AND (LOWER(item_code) LIKE LOWER(?) OR LOWER(item_name) LIKE LOWER(?))");
+            String term = "%" + q.trim() + "%";
+            params.add(term);
+            params.add(term);
+        }
+
+        String countSql = "SELECT COUNT(*) FROM (SELECT id FROM stock_items " + where + " FETCH FIRST 10001 ROWS ONLY)";
+        var countSpec = jdbcClient.sql(countSql);
+        for (int i = 0; i < params.size(); i++) {
+            countSpec = countSpec.param(i + 1, params.get(i));
+        }
+        long total = countSpec.query(Long.class).single();
+
+        String orderBy = SortValidator.buildOrderBy(sort, SortValidator.STOCK_SORT_FIELDS, "status DESC, current_quantity ASC, item_name ASC", "id ASC");
+
+        String dataSql = """
+            SELECT id, item_code, item_name, category, warehouse_name, building_id, department_id,
+                   current_quantity, min_threshold, unit, unit_price, status,
+                   TO_CHAR(last_restocked_at, 'YYYY-MM-DD HH24:MI') AS last_restocked_at
+            FROM stock_items
+        """ + where + " ORDER BY " + orderBy + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        var dataSpec = jdbcClient.sql(dataSql);
+        int idx = 1;
+        for (Object p : params) {
+            dataSpec = dataSpec.param(idx++, p);
+        }
+        dataSpec = dataSpec.param(idx++, (long) page * size);
+        dataSpec = dataSpec.param(idx, size);
+
+        List<StockItem> items = dataSpec.query(this::mapStockItem).list();
+        return PageResponse.of(items, total, page, size);
+    }
+
     public List<StockItem> findAllStockItems(Long departmentId, String warehouse, String status) {
         StringBuilder sql = new StringBuilder("""
             SELECT id, item_code, item_name, category, warehouse_name, building_id, department_id,
@@ -74,6 +130,38 @@ public class EnterpriseRepository {
         );
     }
 
+    public List<StockTransaction> findStockTransactionsKeyset(Long cursor, int fetchCount, Long stockItemId, String txType) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT t.id, t.transaction_code, t.stock_item_id, s.item_name, t.tx_type, t.quantity, s.unit,
+                   t.department_id, t.department_name, t.recipient_name, t.performed_by, t.notes,
+                   TO_CHAR(t.tx_date, 'YYYY-MM-DD HH24:MI') AS tx_date
+            FROM stock_transactions t
+            JOIN stock_items s ON t.stock_item_id = s.id
+            WHERE 1=1
+        """);
+        List<Object> params = new ArrayList<>();
+        if (cursor != null) {
+            sql.append(" AND t.id < ?");
+            params.add(cursor);
+        }
+        if (stockItemId != null) {
+            sql.append(" AND t.stock_item_id = ?");
+            params.add(stockItemId);
+        }
+        if (txType != null && !txType.isBlank() && !"Tümü".equalsIgnoreCase(txType)) {
+            sql.append(" AND t.tx_type = ?");
+            params.add(txType.trim());
+        }
+        sql.append(" ORDER BY t.id DESC FETCH FIRST ? ROWS ONLY");
+        params.add(fetchCount);
+
+        var spec = jdbcClient.sql(sql.toString());
+        for (int i = 0; i < params.size(); i++) {
+            spec = spec.param(i + 1, params.get(i));
+        }
+        return spec.query(this::mapStockTransaction).list();
+    }
+
     public List<StockTransaction> findStockTransactions(Long stockItemId) {
         StringBuilder sql = new StringBuilder("""
             SELECT t.id, t.transaction_code, t.stock_item_id, s.item_name, t.tx_type, t.quantity, s.unit,
@@ -94,7 +182,11 @@ public class EnterpriseRepository {
         for (int i = 0; i < params.size(); i++) {
             spec = spec.param(i + 1, params.get(i));
         }
-        return spec.query((rs, rowNum) -> new StockTransaction(
+        return spec.query(this::mapStockTransaction).list();
+    }
+
+    private StockTransaction mapStockTransaction(ResultSet rs, int rowNum) throws SQLException {
+        return new StockTransaction(
                 rs.getLong("id"),
                 rs.getString("transaction_code"),
                 rs.getLong("stock_item_id"),
@@ -108,7 +200,7 @@ public class EnterpriseRepository {
                 rs.getString("performed_by"),
                 rs.getString("notes"),
                 rs.getString("tx_date")
-        )).list();
+        );
     }
 
     public void addStockTransaction(Long stockItemId, String txType, Double quantity, Long deptId, String deptName, String recipient, String actor, String notes) {
@@ -149,6 +241,66 @@ public class EnterpriseRepository {
     // ==========================================
     // 2. ARAÇ & FİLO VE İŞ MAKİNELERİ
     // ==========================================
+    public PageResponse<FleetVehicle> findVehiclesPage(Long departmentId, String vehicleType, String status, String q, String sort, int page, int size) {
+        SortValidator.validatePagination(page, size);
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        where.append(" AND ").append(tenantQueryScope.getFleetFilterClause(null));
+        List<Object> params = new ArrayList<>();
+
+        if (departmentId != null) {
+            where.append(" AND department_id = ?");
+            params.add(departmentId);
+        }
+        if (vehicleType != null && !vehicleType.isBlank() && !"Tümü".equalsIgnoreCase(vehicleType)) {
+            where.append(" AND vehicle_type = ?");
+            params.add(vehicleType.trim());
+        }
+        if (status != null && !status.isBlank() && !"Tümü".equalsIgnoreCase(status)) {
+            where.append(" AND status = ?");
+            params.add(status.trim());
+        }
+        if (q != null && !q.isBlank()) {
+            where.append(" AND (LOWER(plate_number) LIKE LOWER(?) OR LOWER(vehicle_code) LIKE LOWER(?) OR LOWER(brand_model) LIKE LOWER(?) OR LOWER(assigned_driver) LIKE LOWER(?))");
+            String term = "%" + q.trim() + "%";
+            params.add(term);
+            params.add(term);
+            params.add(term);
+            params.add(term);
+        }
+
+        String countSql = "SELECT COUNT(*) FROM (SELECT id FROM fleet_vehicles " + where + " FETCH FIRST 10001 ROWS ONLY)";
+        var countSpec = jdbcClient.sql(countSql);
+        for (int i = 0; i < params.size(); i++) {
+            countSpec = countSpec.param(i + 1, params.get(i));
+        }
+        long total = countSpec.query(Long.class).single();
+
+        String orderBy = SortValidator.buildOrderBy(sort, SortValidator.FLEET_SORT_FIELDS, "id ASC", "id ASC");
+
+        String dataSql = """
+            SELECT id, plate_number, vehicle_code, vehicle_type, brand_model, model_year,
+                   department_id, department_name, assigned_driver, current_km, fuel_type,
+                   TO_CHAR(inspection_date, 'YYYY-MM-DD') AS inspection_date,
+                   TO_CHAR(insurance_date, 'YYYY-MM-DD') AS insurance_date,
+                   TO_CHAR(kasko_date, 'YYYY-MM-DD') AS kasko_date,
+                   status, notes,
+                   TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI') AS updated_at
+            FROM fleet_vehicles
+        """ + where + " ORDER BY " + orderBy + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        var dataSpec = jdbcClient.sql(dataSql);
+        int idx = 1;
+        for (Object p : params) {
+            dataSpec = dataSpec.param(idx++, p);
+        }
+        dataSpec = dataSpec.param(idx++, (long) page * size);
+        dataSpec = dataSpec.param(idx, size);
+
+        List<FleetVehicle> items = dataSpec.query(this::mapFleetVehicle).list();
+        return PageResponse.of(items, total, page, size);
+    }
+
     public List<FleetVehicle> findAllVehicles(Long departmentId, String vehicleType, String status) {
         StringBuilder sql = new StringBuilder("""
             SELECT id, plate_number, vehicle_code, vehicle_type, brand_model, model_year,
@@ -222,6 +374,59 @@ public class EnterpriseRepository {
     // ==========================================
     // 3. SATIN ALMA VE TEDARİK
     // ==========================================
+    public PageResponse<ProcurementOrder> findProcurementOrdersPage(Long departmentId, String status, String q, String sort, int page, int size) {
+        SortValidator.validatePagination(page, size);
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        where.append(" AND ").append(tenantQueryScope.getProcurementFilterClause(null));
+        List<Object> params = new ArrayList<>();
+
+        if (departmentId != null) {
+            where.append(" AND department_id = ?");
+            params.add(departmentId);
+        }
+        if (status != null && !status.isBlank() && !"Tümü".equalsIgnoreCase(status)) {
+            where.append(" AND status = ?");
+            params.add(status.trim());
+        }
+        if (q != null && !q.isBlank()) {
+            where.append(" AND (LOWER(order_no) LIKE LOWER(?) OR LOWER(title) LIKE LOWER(?) OR LOWER(supplier_name) LIKE LOWER(?))");
+            String term = "%" + q.trim() + "%";
+            params.add(term);
+            params.add(term);
+            params.add(term);
+        }
+
+        String countSql = "SELECT COUNT(*) FROM (SELECT id FROM procurement_orders " + where + " FETCH FIRST 10001 ROWS ONLY)";
+        var countSpec = jdbcClient.sql(countSql);
+        for (int i = 0; i < params.size(); i++) {
+            countSpec = countSpec.param(i + 1, params.get(i));
+        }
+        long total = countSpec.query(Long.class).single();
+
+        String orderBy = SortValidator.buildOrderBy(sort, SortValidator.PROCUREMENT_SORT_FIELDS, "order_date DESC, id DESC", "id DESC");
+
+        String dataSql = """
+            SELECT id, order_no, title, department_id, department_name, procurement_type,
+                   supplier_name, estimated_budget, final_amount, status, requested_by,
+                   TO_CHAR(order_date, 'YYYY-MM-DD') AS order_date,
+                   TO_CHAR(delivery_date, 'YYYY-MM-DD') AS delivery_date,
+                   description
+            FROM procurement_orders
+        """ + where + " ORDER BY " + orderBy + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        var dataSpec = jdbcClient.sql(dataSql);
+        int idx = 1;
+        for (Object p : params) {
+            dataSpec = dataSpec.param(idx++, p);
+        }
+        dataSpec = dataSpec.param(idx++, (long) page * size);
+        dataSpec = dataSpec.param(idx, size);
+
+        List<ProcurementOrder> items = dataSpec.query(this::mapProcurementOrder).list();
+        return PageResponse.of(items, total, page, size);
+    }
+
     public List<ProcurementOrder> findAllProcurementOrders(Long departmentId, String status) {
         StringBuilder sql = new StringBuilder("""
             SELECT id, order_no, title, department_id, department_name, procurement_type,
@@ -248,7 +453,11 @@ public class EnterpriseRepository {
         for (int i = 0; i < params.size(); i++) {
             spec = spec.param(i + 1, params.get(i));
         }
-        return spec.query((rs, rowNum) -> new ProcurementOrder(
+        return spec.query(this::mapProcurementOrder).list();
+    }
+
+    private ProcurementOrder mapProcurementOrder(ResultSet rs, int rowNum) throws SQLException {
+        return new ProcurementOrder(
                 rs.getLong("id"),
                 rs.getString("order_no"),
                 rs.getString("title"),
@@ -263,7 +472,7 @@ public class EnterpriseRepository {
                 rs.getString("order_date"),
                 rs.getString("delivery_date"),
                 rs.getString("description")
-        )).list();
+        );
     }
 
     // ==========================================
@@ -386,6 +595,65 @@ public class EnterpriseRepository {
     // ==========================================
     // 5. BELGE VE EVRAK YÖNETİMİ
     // ==========================================
+    public PageResponse<AssetDocument> findDocumentsPage(Long assetId, String docType, String q, String sort, int page, int size) {
+        SortValidator.validatePagination(page, size);
+
+        StringBuilder where = new StringBuilder(" WHERE 1=1");
+        if (tenantQueryScope.isStaff()) {
+            where.append(" AND d.asset_id IS NOT NULL AND a.is_active = 1 AND a.is_deleted = 0 AND ").append(tenantQueryScope.getAssetFilterClause("a"));
+        } else {
+            where.append(" AND (d.asset_id IS NULL OR (a.is_active = 1 AND a.is_deleted = 0 AND ").append(tenantQueryScope.getAssetFilterClause("a")).append("))");
+        }
+        List<Object> params = new ArrayList<>();
+
+        if (assetId != null) {
+            where.append(" AND d.asset_id = ?");
+            params.add(assetId);
+        }
+        if (docType != null && !docType.isBlank() && !"Tümü".equalsIgnoreCase(docType)) {
+            where.append(" AND d.document_type = ?");
+            params.add(docType.trim());
+        }
+        if (q != null && !q.isBlank()) {
+            where.append(" AND (LOWER(d.doc_code) LIKE LOWER(?) OR LOWER(d.title) LIKE LOWER(?) OR LOWER(d.document_no) LIKE LOWER(?) OR LOWER(d.asset_name) LIKE LOWER(?))");
+            String term = "%" + q.trim() + "%";
+            params.add(term);
+            params.add(term);
+            params.add(term);
+            params.add(term);
+        }
+
+        String countSql = "SELECT COUNT(*) FROM (SELECT d.id FROM asset_documents d LEFT JOIN assets a ON d.asset_id = a.id " + where + " FETCH FIRST 10001 ROWS ONLY)";
+        var countSpec = jdbcClient.sql(countSql);
+        for (int i = 0; i < params.size(); i++) {
+            countSpec = countSpec.param(i + 1, params.get(i));
+        }
+        long total = countSpec.query(Long.class).single();
+
+        String orderBy = SortValidator.buildOrderBy(sort, SortValidator.DOCUMENT_SORT_FIELDS, "d.created_at DESC, d.id DESC", "d.id DESC");
+
+        String dataSql = """
+            SELECT d.id, d.doc_code, d.asset_id, d.asset_name, d.document_type, d.title, d.document_no,
+                   d.file_name, d.file_size_kb, d.issued_by,
+                   TO_CHAR(d.valid_until, 'YYYY-MM-DD') AS valid_until,
+                   d.notes,
+                   TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI') AS created_at
+            FROM asset_documents d
+            LEFT JOIN assets a ON d.asset_id = a.id
+        """ + where + " ORDER BY " + orderBy + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+        var dataSpec = jdbcClient.sql(dataSql);
+        int idx = 1;
+        for (Object p : params) {
+            dataSpec = dataSpec.param(idx++, p);
+        }
+        dataSpec = dataSpec.param(idx++, (long) page * size);
+        dataSpec = dataSpec.param(idx, size);
+
+        List<AssetDocument> items = dataSpec.query(this::mapAssetDocument).list();
+        return PageResponse.of(items, total, page, size);
+    }
+
     public List<AssetDocument> findAllDocuments(Long assetId, String docType) {
         StringBuilder sql = new StringBuilder("""
             SELECT d.id, d.doc_code, d.asset_id, d.asset_name, d.document_type, d.title, d.document_no,
@@ -417,7 +685,11 @@ public class EnterpriseRepository {
         for (int i = 0; i < params.size(); i++) {
             spec = spec.param(i + 1, params.get(i));
         }
-        return spec.query((rs, rowNum) -> new AssetDocument(
+        return spec.query(this::mapAssetDocument).list();
+    }
+
+    private AssetDocument mapAssetDocument(ResultSet rs, int rowNum) throws SQLException {
+        return new AssetDocument(
                 rs.getLong("id"),
                 rs.getString("doc_code"),
                 rs.getObject("asset_id") != null ? rs.getLong("asset_id") : null,
@@ -431,12 +703,54 @@ public class EnterpriseRepository {
                 rs.getString("valid_until"),
                 rs.getString("notes"),
                 rs.getString("created_at")
-        )).list();
+        );
     }
 
     // ==========================================
     // 6. DENETİM LOGLARI
     // ==========================================
+    public List<SystemAuditLog> findAuditLogsKeyset(Long cursor, int fetchCount, String actionType, String actor, String dateFrom, String dateTo) {
+        StringBuilder sql = new StringBuilder("""
+            SELECT id, action_type, entity_type, entity_id, actor_username, actor_name,
+                   ip_address, description,
+                   TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at,
+                   old_value_json, new_value_json
+            FROM system_audit_logs
+            WHERE 1=1
+        """);
+        List<Object> params = new ArrayList<>();
+        if (cursor != null) {
+            sql.append(" AND id < ?");
+            params.add(cursor);
+        }
+        if (actionType != null && !actionType.isBlank() && !"Tümü".equalsIgnoreCase(actionType)) {
+            sql.append(" AND action_type = ?");
+            params.add(actionType.trim());
+        }
+        if (actor != null && !actor.isBlank()) {
+            sql.append(" AND (LOWER(actor_username) LIKE LOWER(?) OR LOWER(actor_name) LIKE LOWER(?))");
+            String term = "%" + actor.trim() + "%";
+            params.add(term);
+            params.add(term);
+        }
+        if (dateFrom != null && !dateFrom.isBlank()) {
+            sql.append(" AND created_at >= TO_TIMESTAMP(?, 'YYYY-MM-DD')");
+            params.add(dateFrom.trim());
+        }
+        if (dateTo != null && !dateTo.isBlank()) {
+            sql.append(" AND created_at <= TO_TIMESTAMP(?, 'YYYY-MM-DD') + INTERVAL '1' DAY");
+            params.add(dateTo.trim());
+        }
+        sql.append(" ORDER BY id DESC FETCH FIRST ? ROWS ONLY");
+        params.add(fetchCount);
+
+        var spec = jdbcClient.sql(sql.toString());
+        for (int i = 0; i < params.size(); i++) {
+            spec = spec.param(i + 1, params.get(i));
+        }
+        return spec.query(this::mapAuditLog).list();
+    }
+
     public List<SystemAuditLog> findRecentAuditLogs(int limit) {
         return jdbcClient.sql("""
             SELECT id, action_type, entity_type, entity_id, actor_username, actor_name,
@@ -448,7 +762,11 @@ public class EnterpriseRepository {
             FETCH FIRST ? ROWS ONLY
         """)
         .param(1, limit)
-        .query((rs, rowNum) -> new SystemAuditLog(
+        .query(this::mapAuditLog).list();
+    }
+
+    private SystemAuditLog mapAuditLog(ResultSet rs, int rowNum) throws SQLException {
+        return new SystemAuditLog(
                 rs.getLong("id"),
                 rs.getString("action_type"),
                 rs.getString("entity_type"),
@@ -460,7 +778,7 @@ public class EnterpriseRepository {
                 rs.getString("created_at"),
                 rs.getString("old_value_json"),
                 rs.getString("new_value_json")
-        )).list();
+        );
     }
 
     public void logAction(String actionType, String entityType, String entityId, String username, String fullName, String ip, String desc) {

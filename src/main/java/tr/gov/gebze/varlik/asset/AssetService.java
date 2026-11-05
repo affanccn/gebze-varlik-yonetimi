@@ -1,5 +1,11 @@
 package tr.gov.gebze.varlik.asset;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -66,6 +72,73 @@ public class AssetService {
                 departmentId, subUnitId, buildingId, floorId, roomId, categoryId, assignedPersonnelId,
                 lifecycleStatus, isActive, page, size
         );
+    }
+
+    public void exportAssetsCsv(
+            HttpServletResponse response,
+            String query,
+            String category,
+            String unit,
+            String status,
+            String condition,
+            String warrantyFilter,
+            String sortBy,
+            Long departmentId,
+            Long subUnitId,
+            Long buildingId,
+            Long floorId,
+            Long roomId,
+            Long categoryId,
+            Long assignedPersonnelId,
+            String lifecycleStatus,
+            Boolean isActive
+    ) throws IOException {
+        List<Asset> assets = assetRepository.findAssetsForExport(
+                query, category, unit, status, condition, warrantyFilter, sortBy,
+                departmentId, subUnitId, buildingId, floorId, roomId, categoryId,
+                assignedPersonnelId, lifecycleStatus, isActive
+        );
+
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setHeader("Content-Disposition", "attachment; filename=\"varlik-envanteri.csv\"");
+
+        OutputStream out = response.getOutputStream();
+        out.write(0xEF);
+        out.write(0xBB);
+        out.write(0xBF);
+
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+        writer.println("ID,Varlık Kodu,Varlık Adı,Kategori,Müdürlük,Alt Birim,Bina,Kat,Oda,Durum,Yaşam Döngüsü,Kondisyon,Tahmini Değer (TL),Zimmetli Kişi,Barkod,Seri No,Marka/Model,Satın Alma Tarihi,Garanti Bitiş");
+
+        for (Asset a : assets) {
+            writer.println(String.join(",",
+                    escapeCsv(String.valueOf(a.id())),
+                    escapeCsv(a.code()),
+                    escapeCsv(a.name()),
+                    escapeCsv(a.category()),
+                    escapeCsv(a.departmentName()),
+                    escapeCsv(a.subUnitName()),
+                    escapeCsv(a.buildingName()),
+                    escapeCsv(a.floorName()),
+                    escapeCsv(a.roomName() != null ? a.roomName() : a.roomNumber()),
+                    escapeCsv(a.status()),
+                    escapeCsv(a.lifecycleStatus()),
+                    escapeCsv(a.condition()),
+                    escapeCsv(a.estimatedValue() != null ? String.format(Locale.US, "%.2f", a.estimatedValue()) : "0.00"),
+                    escapeCsv(a.assignee()),
+                    escapeCsv(a.barcode()),
+                    escapeCsv(a.serialNumber()),
+                    escapeCsv(a.brandModel()),
+                    escapeCsv(a.acquisitionDate()),
+                    escapeCsv(a.warrantyEndDate())
+            ));
+        }
+        writer.flush();
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "\"\"";
+        return "\"" + value.replace("\"", "\"\"") + "\"";
     }
 
     public List<Asset> findAll(
