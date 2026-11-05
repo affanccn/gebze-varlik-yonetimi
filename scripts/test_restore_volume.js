@@ -60,3 +60,4 @@ try {
     fs.rmSync(targetDir, { recursive: true, force: true });
     console.log('Temizlik tamamlandı.');
 }
+

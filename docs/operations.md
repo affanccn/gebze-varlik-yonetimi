@@ -230,3 +230,4 @@ server {
 }
 ```
 Proxy arkasında çalışırken Spring Boot'un HTTPS yönlendirmelerini ve çerez `Secure` bayraklarını doğru yorumlaması için `server.forward-headers-strategy: native` yapılandırması `application-prod.yml` içinde hazır olarak sunulmuştur.
+

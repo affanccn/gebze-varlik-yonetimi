@@ -59,3 +59,4 @@ logging:
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql: WARN
     com.zaxxer.hikari: WARN
+
