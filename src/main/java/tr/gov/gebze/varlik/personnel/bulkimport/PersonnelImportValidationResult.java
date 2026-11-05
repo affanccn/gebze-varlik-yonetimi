@@ -9,3 +9,4 @@ public record PersonnelImportValidationResult(
         List<PersonnelImportError> errors,
         List<PersonnelImportRow> previewRows
 ) {}
+

@@ -27,3 +27,4 @@ public record MaintenanceWorkOrder(
         String workUnit,
         String printedAt
 ) {}
+

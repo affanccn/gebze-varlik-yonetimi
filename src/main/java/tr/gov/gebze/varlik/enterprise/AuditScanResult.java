@@ -10,3 +10,4 @@ public record AuditScanResult(
         String scannedLocation,
         String message
 ) {}
+

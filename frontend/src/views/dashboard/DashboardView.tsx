@@ -289,19 +289,19 @@ export const DashboardView: React.FC = () => {
           </div>
         }
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[380px] overflow-y-auto border border-slate-200/80 rounded-xl">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
               <tr>
-                <th className="py-3 px-4">Kod</th>
-                <th className="py-3 px-4">Müdürlük Adı</th>
-                <th className="py-3 px-4">Birim Yöneticisi</th>
-                <th className="py-3 px-3 text-center">Toplam</th>
-                <th className="py-3 px-3 text-center">Aktif</th>
-                <th className="py-3 px-3 text-center">Depoda</th>
-                <th className="py-3 px-3 text-center">Bakımda</th>
-                <th className="py-3 px-4 text-right">Toplam Değer</th>
-                <th className="py-3 px-4 text-center">İşlem</th>
+                <th className="py-2.5 px-4 bg-slate-50">Kod</th>
+                <th className="py-2.5 px-4 bg-slate-50">Müdürlük Adı</th>
+                <th className="py-2.5 px-4 bg-slate-50">Birim Yöneticisi</th>
+                <th className="py-2.5 px-3 bg-slate-50 text-center">Toplam</th>
+                <th className="py-2.5 px-3 bg-slate-50 text-center">Aktif</th>
+                <th className="py-2.5 px-3 bg-slate-50 text-center">Depoda</th>
+                <th className="py-2.5 px-3 bg-slate-50 text-center">Bakımda</th>
+                <th className="py-2.5 px-4 bg-slate-50 text-right">Toplam Değer</th>
+                <th className="py-2.5 px-4 bg-slate-50 text-center">İşlem</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -314,33 +314,33 @@ export const DashboardView: React.FC = () => {
               ) : (
                 filteredDepts.map((d) => (
                   <tr key={d.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-3 px-4 font-mono font-medium text-gebze-navy">
+                    <td className="py-2.5 px-4 font-mono font-medium text-gebze-navy">
                       <span className="bg-slate-100 px-2 py-0.5 rounded text-xs">{d.code}</span>
                     </td>
-                    <td className="py-3 px-4 font-semibold text-slate-900">{d.name}</td>
-                    <td className="py-3 px-4 text-xs text-slate-600">
+                    <td className="py-2.5 px-4 font-semibold text-slate-900">{d.name}</td>
+                    <td className="py-2.5 px-4 text-xs text-slate-600">
                       {d.managerName || <span className="text-slate-400 italic">Müdür Atanmamış</span>}
                     </td>
-                    <td className="py-3 px-3 text-center font-bold text-slate-900">{d.totalCount}</td>
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-2.5 px-3 text-center font-bold text-slate-900">{d.totalCount}</td>
+                    <td className="py-2.5 px-3 text-center">
                       <span className="inline-block min-w-6 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold text-xs border border-emerald-200">
                         {d.activeCount}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-2.5 px-3 text-center">
                       <span className="inline-block min-w-6 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold text-xs border border-blue-200">
                         {d.storageCount}
                       </span>
                     </td>
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-2.5 px-3 text-center">
                       <span className="inline-block min-w-6 px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-semibold text-xs border border-amber-200">
                         {d.maintenanceCount}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right font-medium text-slate-900">
+                    <td className="py-2.5 px-4 text-right font-medium text-slate-900">
                       {formatCurrency(d.totalValue)}
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-2.5 px-4 text-center">
                       <button
                         type="button"
                         onClick={() => navigate(`/departments?highlight=${d.id}`)}
@@ -374,23 +374,23 @@ export const DashboardView: React.FC = () => {
             </button>
           }
         >
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[300px] overflow-y-auto border border-slate-200/80 rounded-xl">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+              <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
                 <tr>
-                  <th className="py-2.5 px-3">Bina Adı</th>
-                  <th className="py-2.5 px-3">Tür</th>
-                  <th className="py-2.5 px-3 text-right">Oda Sayısı</th>
-                  <th className="py-2.5 px-3 text-right">Demirbaş</th>
+                  <th className="py-2 px-3 bg-slate-50">Bina Adı</th>
+                  <th className="py-2 px-3 bg-slate-50">Tür</th>
+                  <th className="py-2 px-3 bg-slate-50 text-right">Oda Sayısı</th>
+                  <th className="py-2 px-3 bg-slate-50 text-right">Demirbaş</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
                 {(dashboard.buildingsDistribution || []).map((b) => (
                   <tr key={b.id} className="hover:bg-slate-50/80">
-                    <td className="py-2.5 px-3 font-semibold text-slate-900">{b.name}</td>
-                    <td className="py-2.5 px-3 text-slate-500">{b.type}</td>
-                    <td className="py-2.5 px-3 text-right text-slate-600">{b.roomCount}</td>
-                    <td className="py-2.5 px-3 text-right font-bold text-gebze-navy">{b.assetCount}</td>
+                    <td className="py-2 px-3 font-semibold text-slate-900">{b.name}</td>
+                    <td className="py-2 px-3 text-slate-500">{b.type}</td>
+                    <td className="py-2 px-3 text-right text-slate-600">{b.roomCount}</td>
+                    <td className="py-2 px-3 text-right font-bold text-gebze-navy">{b.assetCount}</td>
                   </tr>
                 ))}
               </tbody>
@@ -403,14 +403,14 @@ export const DashboardView: React.FC = () => {
           title="En Çok Demirbaş Bulunan Odalar"
           subtitle="Oda detaylarını ve içindeki demirbaşları görmek için tıklayın"
         >
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[300px] overflow-y-auto border border-slate-200/80 rounded-xl">
             <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+              <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
                 <tr>
-                  <th className="py-2.5 px-3">Oda / Birim</th>
-                  <th className="py-2.5 px-3">Bina</th>
-                  <th className="py-2.5 px-3">Tür</th>
-                  <th className="py-2.5 px-3 text-right">Demirbaş</th>
+                  <th className="py-2 px-3 bg-slate-50">Oda / Birim</th>
+                  <th className="py-2 px-3 bg-slate-50">Bina</th>
+                  <th className="py-2 px-3 bg-slate-50">Tür</th>
+                  <th className="py-2 px-3 bg-slate-50 text-right">Demirbaş</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">
@@ -420,17 +420,17 @@ export const DashboardView: React.FC = () => {
                     onClick={() => setSelectedRoomId(r.roomId)}
                     className="hover:bg-blue-50/60 cursor-pointer transition-colors"
                   >
-                    <td className="py-2.5 px-3">
+                    <td className="py-2 px-3">
                       <span className="font-semibold text-slate-900">Oda {r.roomNumber}</span>
                       <span className="text-slate-500 ml-1.5">&mdash; {r.roomName}</span>
                     </td>
-                    <td className="py-2.5 px-3 text-slate-600">{r.buildingName}</td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-2 px-3 text-slate-600">{r.buildingName}</td>
+                    <td className="py-2 px-3">
                       <span className="bg-slate-100 px-2 py-0.5 rounded text-[11px] text-slate-600">
                         {r.roomType}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-right">
+                    <td className="py-2 px-3 text-right">
                       <span className="font-bold text-gebze-navy bg-blue-50 px-2 py-0.5 rounded">
                         {r.assetCount}
                       </span>
@@ -492,16 +492,16 @@ export const DashboardView: React.FC = () => {
           </button>
         }
       >
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[300px] overflow-y-auto border border-slate-200/80 rounded-xl">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-600 text-xs font-semibold uppercase tracking-wider border-b border-slate-200 sticky top-0 z-10">
               <tr>
-                <th className="py-2.5 px-4">Tarih</th>
-                <th className="py-2.5 px-4">Demirbaş</th>
-                <th className="py-2.5 px-4">İşlem Türü</th>
-                <th className="py-2.5 px-4">Hareket Yönü</th>
-                <th className="py-2.5 px-4">İşlemi Yapan</th>
-                <th className="py-2.5 px-4">Not</th>
+                <th className="py-2.5 px-4 bg-slate-50">Tarih</th>
+                <th className="py-2.5 px-4 bg-slate-50">Demirbaş</th>
+                <th className="py-2.5 px-4 bg-slate-50">İşlem Türü</th>
+                <th className="py-2.5 px-4 bg-slate-50">Hareket Yönü</th>
+                <th className="py-2.5 px-4 bg-slate-50">İşlemi Yapan</th>
+                <th className="py-2.5 px-4 bg-slate-50">Not</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700 text-xs">

@@ -114,7 +114,7 @@ export const TreeView: React.FC = () => {
           style={{ paddingLeft: `${depth * 1.25 + 0.5}rem` }}
           className={`flex items-center justify-between py-1.5 pr-2 rounded-lg cursor-pointer text-xs transition-colors ${
             isSelected
-              ? 'bg-gebze-navy text-white font-semibold'
+              ? 'bg-[#0f1e36] text-white font-semibold shadow-xs'
               : matchesSearch
               ? 'hover:bg-slate-100 text-slate-700'
               : 'opacity-40 hover:opacity-100 text-slate-500'
@@ -139,17 +139,17 @@ export const TreeView: React.FC = () => {
             ) : (
               <span className="w-4" />
             )}
-            <span className={isSelected ? 'text-white' : ''}>
+            <span className={isSelected ? 'text-blue-300' : ''}>
               {getNodeIcon(node.type, isExpanded)}
             </span>
-            <span className="truncate">{node.label}</span>
+            <span className={`truncate ${isSelected ? 'text-white font-bold' : ''}`}>{node.label}</span>
           </div>
 
           {node.count != null && (
             <span
               className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
                 isSelected
-                  ? 'bg-white/20 text-white'
+                  ? 'bg-white/20 text-white font-semibold'
                   : 'bg-slate-200/80 text-slate-600'
               }`}
             >
@@ -261,7 +261,7 @@ export const TreeView: React.FC = () => {
           {selectedNode ? (
             <Card
               title={selectedNode.label}
-              subtitle={`${selectedNode.type} &bull; ${selectedNode.count || 0} Taşınır/Demirbaş`}
+              subtitle={`${selectedNode.type} • ${selectedNode.count || 0} Taşınır/Demirbaş`}
             >
               <div className="space-y-4">
                 {/* Düğüm Meta Bilgileri */}

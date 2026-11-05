@@ -16,3 +16,4 @@ public record AuditReconciliationSummary(
         double completionRate,
         List<Map<String, Object>> missingAssets
 ) {}
+

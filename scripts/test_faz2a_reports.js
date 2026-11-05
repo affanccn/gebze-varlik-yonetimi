@@ -124,7 +124,7 @@ async function runTests() {
 
   // 6. STAFF Rolü İzolasyon Kısıtı Testi
   console.log('6. STAFF İzolasyon Güvenlik Testi:');
-  const staffCookies = await login('saha_personel', 'GebzeDev2026!');
+  const staffCookies = await login('staff', 'Personel2026!');
   const staffF13 = await req({
     hostname: 'localhost', port: 8080, path: '/api/reports/form13', method: 'GET',
     headers: { 'Cookie': formatCookieHeader(staffCookies) }

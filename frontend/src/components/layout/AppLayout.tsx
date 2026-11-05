@@ -46,7 +46,7 @@ export const AppLayout: React.FC = () => {
           title={currentTitle}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3 sm:p-5 lg:p-6 max-w-[1680px] w-full mx-auto">
           {/* Kurumsal Bilgilendirme Banner'ı */}
           <div className="mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>

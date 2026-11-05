@@ -17,7 +17,9 @@ export default {
           500: '#14b8a6',
           600: '#0d9488',
         },
+        'gebze-navy': '#0f1e36',
         gebze: {
+          navy: '#0f1e36',
           bg: '#f1f5f9',
           card: '#ffffff',
           primary: '#0f1e36',

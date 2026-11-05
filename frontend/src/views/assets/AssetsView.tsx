@@ -170,7 +170,7 @@ export const AssetsView: React.FC = () => {
         header: ({ column }) => (
           <button
             type="button"
-            className="flex items-center gap-1 font-semibold text-slate-700 hover:text-blue-700 text-xs"
+            className="flex items-center gap-1 font-semibold text-slate-700 hover:text-blue-700 text-xs whitespace-nowrap"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Varlık Kodu
@@ -186,10 +186,10 @@ export const AssetsView: React.FC = () => {
         cell: ({ row }) => {
           const item = row.original;
           return (
-            <div>
+            <div className="whitespace-nowrap">
               <span className="font-mono text-xs font-bold text-blue-700">{item.code}</span>
               {item.barcode && (
-                <div className="text-[11px] font-mono text-slate-500 mt-0.5">{item.barcode}</div>
+                <div className="text-[10px] font-mono text-slate-500 mt-0.5">{item.barcode}</div>
               )}
             </div>
           );
@@ -200,7 +200,7 @@ export const AssetsView: React.FC = () => {
         header: ({ column }) => (
           <button
             type="button"
-            className="flex items-center gap-1 font-semibold text-slate-700 hover:text-blue-700 text-xs"
+            className="flex items-center gap-1 font-semibold text-slate-700 hover:text-blue-700 text-xs whitespace-nowrap"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Varlık Adı & Model
@@ -216,12 +216,12 @@ export const AssetsView: React.FC = () => {
         cell: ({ row }) => {
           const item = row.original;
           return (
-            <div className="max-w-[220px]">
+            <div className="max-w-[160px] xl:max-w-[220px]">
               <div className="font-semibold text-slate-800 truncate" title={item.name}>
                 {item.name}
               </div>
               {item.brandModel && (
-                <div className="text-[11px] text-slate-500 truncate" title={item.brandModel}>
+                <div className="text-[10px] text-slate-500 truncate" title={item.brandModel}>
                   {item.brandModel}
                 </div>
               )}
@@ -233,7 +233,7 @@ export const AssetsView: React.FC = () => {
         accessorKey: 'category',
         header: 'Kategori',
         cell: ({ row }) => (
-          <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200">
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200 whitespace-nowrap inline-block">
             {row.original.category}
           </span>
         ),
@@ -251,9 +251,9 @@ export const AssetsView: React.FC = () => {
             : item.location || '-';
 
           return (
-            <div className="text-xs text-slate-700 max-w-[200px]">
-              {bldStr && <div className="font-medium truncate">{bldStr}</div>}
-              <div className="text-slate-500 truncate">{roomStr}</div>
+            <div className="text-xs text-slate-700 max-w-[130px] xl:max-w-[180px]">
+              {bldStr && <div className="font-medium truncate" title={bldStr}>{bldStr}</div>}
+              <div className="text-slate-500 truncate text-[11px]" title={roomStr}>{roomStr}</div>
             </div>
           );
         },
@@ -262,7 +262,7 @@ export const AssetsView: React.FC = () => {
         accessorKey: 'departmentName',
         header: 'Müdürlük',
         cell: ({ row }) => (
-          <div className="text-xs text-slate-700 max-w-[170px] truncate" title={row.original.departmentName || row.original.unit || '-'}>
+          <div className="text-xs text-slate-700 max-w-[130px] xl:max-w-[170px] truncate" title={row.original.departmentName || row.original.unit || '-'}>
             {row.original.departmentName || row.original.unit || '-'}
           </div>
         ),
@@ -274,13 +274,15 @@ export const AssetsView: React.FC = () => {
           const val = row.original.assignee;
           const isAssigned = val && !val.toLowerCase().includes('atanmamış');
           return (
-            <span
-              className={`text-xs ${
-                isAssigned ? 'font-medium text-slate-800' : 'text-slate-400 italic'
-              }`}
-            >
-              {val || 'Atanmamış'}
-            </span>
+            <div className="max-w-[120px] xl:max-w-[160px] truncate" title={val || 'Atanmamış'}>
+              <span
+                className={`text-xs ${
+                  isAssigned ? 'font-medium text-slate-800' : 'text-slate-400 italic'
+                }`}
+              >
+                {val || 'Atanmamış'}
+              </span>
+            </div>
           );
         },
       },
@@ -289,7 +291,7 @@ export const AssetsView: React.FC = () => {
         header: ({ column }) => (
           <button
             type="button"
-            className="flex items-center gap-1 font-semibold text-slate-700 hover:text-blue-700 text-xs text-right w-full justify-end"
+            className="flex items-center gap-1 font-semibold text-slate-700 hover:text-blue-700 text-xs text-right w-full justify-end whitespace-nowrap"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Rayiç Değer
@@ -303,7 +305,7 @@ export const AssetsView: React.FC = () => {
           </button>
         ),
         cell: ({ row }) => (
-          <div className="text-right font-mono text-xs font-semibold text-slate-800">
+          <div className="text-right font-mono text-xs font-semibold text-slate-800 whitespace-nowrap">
             {formatCurrency(row.original.estimatedValue)}
           </div>
         ),
@@ -312,16 +314,18 @@ export const AssetsView: React.FC = () => {
         accessorKey: 'status',
         header: 'Yaşam Döngüsü',
         cell: ({ row }) => (
-          <StatusBadge status={row.original.lifecycleStatus || row.original.status} />
+          <div className="whitespace-nowrap">
+            <StatusBadge status={row.original.lifecycleStatus || row.original.status} />
+          </div>
         ),
       },
       {
         id: 'actions',
-        header: () => <div className="text-right">Eylemler</div>,
+        header: () => <div className="text-right whitespace-nowrap pr-1">Eylemler</div>,
         cell: ({ row }) => {
           const item = row.original;
           return (
-            <div className="flex items-center justify-end gap-1.5">
+            <div className="flex items-center justify-end gap-1">
               <button
                 type="button"
                 data-open-detail-id={item.id}
@@ -329,7 +333,7 @@ export const AssetsView: React.FC = () => {
                   setSelectedAssetIdForDetail(item.id);
                   setIsDetailOpen(true);
                 }}
-                className="p-1.5 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                className="p-1 text-slate-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                 title="Detay Görüntüle"
               >
                 <Eye className="w-4 h-4" />
@@ -345,7 +349,7 @@ export const AssetsView: React.FC = () => {
                       setAssetToTransfer(item);
                       setIsTransferOpen(true);
                     }}
-                    className="p-1.5 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors"
+                    className="p-1 text-slate-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-colors"
                     title="Konum Transferi"
                   >
                     <Send className="w-4 h-4" />
@@ -633,7 +637,7 @@ export const AssetsView: React.FC = () => {
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <th key={header.id} className="px-4 py-3 font-semibold text-slate-700">
+                      <th key={header.id} className="px-3 py-2.5 font-semibold text-slate-700">
                         {header.isPlaceholder
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
@@ -649,7 +653,7 @@ export const AssetsView: React.FC = () => {
                     className="hover:bg-slate-50/80 transition-colors cursor-default"
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-4 py-3">
+                      <td key={cell.id} className="px-3 py-2.5">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}

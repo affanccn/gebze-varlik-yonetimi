@@ -16,3 +16,4 @@ public record PersonnelImportRow(
         Long subUnitId,
         Long roomId
 ) {}
+
