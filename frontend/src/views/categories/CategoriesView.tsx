@@ -7,6 +7,35 @@ import { Modal } from '../../components/common/Modal';
 import { StatusBadge } from '../../components/common/Badge';
 import { AssetCategory } from '../../types/hierarchy';
 
+const CATEGORY_ICON_MAP: Record<string, string> = {
+  computer: '💻',
+  chair: '🪑',
+  devices: '🖥️',
+  ac_unit: '❄️',
+  precision_manufacturing: '🚜',
+  directions_car: '🚐',
+  handyman: '🛠️',
+  construction: '🏗️',
+  cleaning_services: '🧹',
+  security: '🛡️',
+  medical_services: '🩺',
+  fitness_center: '🏋️',
+  theater_comedy: '🎭',
+  park: '🌳',
+  inventory_2: '📦',
+  category: '🏷️',
+  more_horiz: '📦',
+};
+
+function resolveCategoryIcon(icon?: string): string {
+  if (!icon) return '📦';
+  const key = icon.trim().toLowerCase();
+  if (CATEGORY_ICON_MAP[key]) return CATEGORY_ICON_MAP[key];
+  // If it is an ASCII word (Material Icon name), fallback to package emoji
+  if (/^[a-z0-9_]+$/i.test(key)) return '📦';
+  return icon;
+}
+
 export const CategoriesView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCat, setSelectedCat] = useState<AssetCategory | null>(null);
@@ -34,7 +63,7 @@ export const CategoriesView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Varlık Kategorileri
@@ -84,8 +113,8 @@ export const CategoriesView: React.FC = () => {
                     <span className="font-mono text-xs font-bold text-gebze-navy bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
                       {cat.code}
                     </span>
-                    <span className="text-xl">
-                      {cat.icon || '📦'}
+                    <span className="text-xl" aria-hidden="true">
+                      {resolveCategoryIcon(cat.icon)}
                     </span>
                   </div>
 

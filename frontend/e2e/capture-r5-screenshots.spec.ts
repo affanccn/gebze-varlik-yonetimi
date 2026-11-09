@@ -28,13 +28,39 @@ test.describe('Faz R5: Üretim Ekran Görüntüleri Yakalama (Port 8080)', () =>
     await page.waitForTimeout(500);
     await page.screenshot({ path: path.join(artifactDir, '28-r5-dashboard.png'), fullPage: true });
 
-    // 2b. Dashboard View (Dark Theme via #btn-theme-toggle)
+    // 2b. Dark Theme Screenshots Across Main Views (via #btn-theme-toggle)
     const themeToggle = page.locator('#btn-theme-toggle');
     if (await themeToggle.isVisible()) {
       await themeToggle.click();
       await page.waitForTimeout(300);
       await page.screenshot({ path: path.join(artifactDir, '37-asama2-dashboard-dark.png'), fullPage: true });
-      await themeToggle.click();
+
+      await page.goto('/assets');
+      await page.waitForSelector('table tbody tr');
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(artifactDir, '39-asama2-assets-dark.png'), fullPage: true });
+
+      await page.goto('/personnel');
+      await page.waitForSelector('table tbody tr');
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(artifactDir, '40-asama2-personnel-dark.png'), fullPage: true });
+
+      await page.goto('/fleet');
+      await page.waitForSelector('table tbody tr');
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(artifactDir, '41-asama2-fleet-dark.png'), fullPage: true });
+
+      await page.goto('/users');
+      await page.waitForSelector('table tbody tr');
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(artifactDir, '42-asama2-users-dark.png'), fullPage: true });
+
+      await page.goto('/settings');
+      await page.waitForSelector('table tbody tr');
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(artifactDir, '43-asama2-settings-dark.png'), fullPage: true });
+
+      await page.locator('#btn-theme-toggle').click();
       await page.waitForTimeout(300);
     }
 

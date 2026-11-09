@@ -65,7 +65,7 @@ export const LocationsView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
           Binalar, Katlar ve Odalar
         </h1>

@@ -172,7 +172,7 @@ export const TreeView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Üst Başlık & Mod Seçimi */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Kurumsal ve Fiziksel Hiyerarşi Ağacı

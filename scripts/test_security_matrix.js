@@ -747,7 +747,7 @@ UPDATE personnel SET is_active = 0, is_deleted = 1, deleted_at = CURRENT_TIMESTA
 UPDATE departments SET is_active = 0 WHERE code LIKE 'TEST-%' OR code LIKE 'CSRF-%';
 UPDATE buildings SET is_active = 0 WHERE code LIKE 'TEST-%';
 UPDATE floors SET is_active = 0 WHERE floor_code LIKE 'TEST-%';
-UPDATE rooms SET is_active = 0 WHERE room_number LIKE '%SEC%' OR room_number LIKE '999%';
+UPDATE rooms SET is_active = 0 WHERE room_number LIKE '%SEC%' OR room_number LIKE '999%' OR room_number LIKE 'TEST-%';
 UPDATE sub_units SET is_active = 0 WHERE code LIKE 'TEST-%';
 UPDATE assets SET status = 'Aktif', lifecycle_status = 'KULLANIMDA', is_deleted = 0, is_active = 1, deleted_at = NULL, deleted_by = NULL WHERE id = 1;
 UPDATE assets SET building_id = 10, floor_id = 9, room_id = 10, status = 'Depoda', lifecycle_status = 'KAYDEDILDI', assignee_name = 'Atanmamış (Depo Sorumlusu)' WHERE id = 4;

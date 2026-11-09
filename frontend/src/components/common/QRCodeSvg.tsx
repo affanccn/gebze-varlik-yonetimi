@@ -97,9 +97,11 @@ export const QRCodeSvg: React.FC<QRCodeSvgProps> = ({
       viewBox="0 0 100 100"
       width={size}
       height={size}
-      className={`bg-white rounded p-1 ${className}`}
+      className={`rounded p-1 ${className}`}
+      style={{ backgroundColor: '#ffffff' }}
       aria-label={`QR Code for ${value}`}
     >
+      <rect x="0" y="0" width="100" height="100" fill="#ffffff" rx="4" />
       {matrix.map((row, r) =>
         row.map((filled, c) =>
           filled ? (
@@ -109,7 +111,7 @@ export const QRCodeSvg: React.FC<QRCodeSvgProps> = ({
               y={r * cellSize}
               width={cellSize}
               height={cellSize}
-              fill="currentColor"
+              fill="#0f172a"
             />
           ) : null
         )
