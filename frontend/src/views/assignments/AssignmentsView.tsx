@@ -14,6 +14,7 @@ import { assignmentService } from '../../services/assignmentService';
 import { AssetAssignment } from '../../types/assignment';
 import { AssignmentFormModal } from './AssignmentFormModal';
 import { AssignmentReturnModal } from './AssignmentReturnModal';
+import { AssignmentSlipModal } from './AssignmentSlipModal';
 import { useAuth } from '../../hooks/useAuth';
 import {
   FileCheck,
@@ -39,6 +40,7 @@ export const AssignmentsView: React.FC = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isReturnOpen, setIsReturnOpen] = useState(false);
   const [selectedAssignmentForReturn, setSelectedAssignmentForReturn] = useState<AssetAssignment | null>(null);
+  const [selectedAssignmentForSlip, setSelectedAssignmentForSlip] = useState<AssetAssignment | null>(null);
 
   const {
     data: assignmentsData,
@@ -175,6 +177,15 @@ export const AssignmentsView: React.FC = () => {
           const isAktif = item.status === 'AKTIF';
           return (
             <div className="flex items-center justify-end gap-1.5">
+              <button
+                type="button"
+                onClick={() => setSelectedAssignmentForSlip(item)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors"
+                title="Resmi Zimmet Fişi (A4 Çıktı)"
+              >
+                <FileCheck className="w-3.5 h-3.5 text-blue-600" />
+                Fiş
+              </button>
               {canWrite && isAktif ? (
                 <button
                   type="button"
@@ -440,6 +451,12 @@ export const AssignmentsView: React.FC = () => {
           setSelectedAssignmentForReturn(null);
         }}
         onSuccess={() => refetch()}
+      />
+
+      <AssignmentSlipModal
+        assignment={selectedAssignmentForSlip}
+        isOpen={selectedAssignmentForSlip != null}
+        onClose={() => setSelectedAssignmentForSlip(null)}
       />
     </div>
   );

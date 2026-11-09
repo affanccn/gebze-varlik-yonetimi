@@ -34,6 +34,10 @@ export const StatCard: React.FC<StatCardProps> = ({
     slate: 'border-t-slate-600',
   };
 
+  const valStr = String(value ?? '');
+  const isVeryLong = valStr.length > 13;
+  const isLong = valStr.length > 9;
+
   return (
     <div
       className={`bg-white rounded-2xl border border-slate-200/90 border-t-4 ${accentBarMap[color]} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-4 sm:p-5 flex items-start justify-between gap-4`}
@@ -42,7 +46,16 @@ export const StatCard: React.FC<StatCardProps> = ({
         <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
           {title}
         </p>
-        <p className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1.5 tracking-tight truncate">
+        <p
+          className={`${
+            isVeryLong
+              ? 'text-lg sm:text-xl xl:text-2xl'
+              : isLong
+              ? 'text-xl sm:text-2xl lg:text-3xl'
+              : 'text-2xl sm:text-3xl'
+          } font-extrabold text-slate-900 mt-1.5 tracking-tight truncate`}
+          title={valStr}
+        >
           {value}
         </p>
         {subtitle && (

@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   FileSpreadsheet,
   Users,
+  FileCheck,
 } from 'lucide-react';
 import { personnelService } from '../../services/personnelService';
 import { hierarchyService } from '../../services/hierarchyService';
@@ -28,6 +29,7 @@ import { Department } from '../../types/hierarchy';
 import { PageResponse } from '../../types/api';
 import { PersonnelFormModal } from './PersonnelFormModal';
 import { PersonnelImportModal } from './PersonnelImportModal';
+import { PersonnelClearanceModal } from './PersonnelClearanceModal';
 
 export const PersonnelView: React.FC = () => {
   const { user } = useAuth();
@@ -50,6 +52,7 @@ export const PersonnelView: React.FC = () => {
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [personnelToEdit, setPersonnelToEdit] = useState<Personnel | null>(null);
   const [personnelToDelete, setPersonnelToDelete] = useState<Personnel | null>(null);
+  const [clearancePersonnel, setClearancePersonnel] = useState<Personnel | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const canManage = user?.role === 'ADMIN' || user?.role === 'DEPT_MANAGER';
@@ -305,6 +308,15 @@ export const PersonnelView: React.FC = () => {
                           <Package className="w-3.5 h-3.5" />
                           Zimmetleri Gör
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setClearancePersonnel(p)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded transition-colors"
+                          title="İlişik Kesme Belgesi (A4 Çıktı)"
+                        >
+                          <FileCheck className="w-3.5 h-3.5" />
+                          İlişik Kesme
+                        </button>
                         {canManage && (
                           <>
                             <button
@@ -478,6 +490,13 @@ export const PersonnelView: React.FC = () => {
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['personnel'] });
         }}
+      />
+
+      {/* Personel İlişik Kesme Belgesi Modalı */}
+      <PersonnelClearanceModal
+        isOpen={clearancePersonnel != null}
+        onClose={() => setClearancePersonnel(null)}
+        personnel={clearancePersonnel}
       />
 
       {/* Personel Silme Onay Modalı */}

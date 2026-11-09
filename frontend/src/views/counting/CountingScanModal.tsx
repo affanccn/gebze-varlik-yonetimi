@@ -82,11 +82,114 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
   // Canlı Okutulanlar Geçmişi (Bu oturumda okutulanlar)
   const [sessionScans, setSessionScans] = useState<AuditScanResult[]>([]);
 
+  // Kamera & Barkod Algılayıcı Durumları
+  const videoRef = React.useRef<HTMLVideoElement | null>(null);
+  const streamRef = React.useRef<MediaStream | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isCameraStarting, setIsCameraStarting] = useState(false);
+  const [isSecureContext, setIsSecureContext] = useState(true);
+
+  const isCameraFlagEnabled =
+    import.meta.env.VITE_ENABLE_CAMERA_SCAN === 'true' ||
+    (typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'));
+
+  // Kamera Başlatma
+  const startCamera = async () => {
+    setCameraError(null);
+    setIsCameraStarting(true);
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Tarayıcınız kamera akışını desteklemiyor veya güvenli bağlantı (HTTPS/localhost) gereklidir.');
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Kamera erişimi sağlanamadı.';
+      setCameraError(msg);
+    } finally {
+      setIsCameraStarting(false);
+    }
+  };
+
+  // Kamera Durdurma
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  // Kamera Yaşam Döngüsü
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsSecureContext(
+        window.isSecureContext ||
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'
+      );
+    }
+
+    if (isOpen && activeTab === 'CAMERA') {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+
+    return () => {
+      stopCamera();
+    };
+  }, [isOpen, activeTab]);
+
+  // Barkod Algılama Döngüsü (BarcodeDetector API destekleniyorsa)
+  useEffect(() => {
+    let scanInterval: ReturnType<typeof setInterval> | null = null;
+    if (isOpen && activeTab === 'CAMERA' && streamRef.current && videoRef.current) {
+      const hasBarcodeDetector = typeof window !== 'undefined' && 'BarcodeDetector' in window;
+      if (hasBarcodeDetector) {
+        try {
+          // @ts-expect-error Web BarcodeDetector standard API
+          const detector = new window.BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13', 'code_39'] });
+          scanInterval = setInterval(async () => {
+            if (!videoRef.current || videoRef.current.readyState < 2 || isSubmitting) return;
+            try {
+              const barcodes = await detector.detect(videoRef.current);
+              if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                const detectedCode = barcodes[0].rawValue.trim();
+                if (detectedCode && detectedCode !== assetCode) {
+                  setAssetCode(detectedCode);
+                  executeScan(detectedCode, scannedLocation);
+                }
+              }
+            } catch {
+              // Algılama hatası olursa bir sonraki kareye geç
+            }
+          }, 350);
+        } catch {
+          // BarcodeDetector nesnesi oluşturulamadı
+        }
+      }
+    }
+    return () => {
+      if (scanInterval) clearInterval(scanInterval);
+    };
+  }, [isOpen, activeTab, scannedLocation, isSubmitting, assetCode]);
+
   // Modal kapandığında sıfırla
   useEffect(() => {
     if (!isOpen) {
       setAssetCode('');
       setSessionScans([]);
+      stopCamera();
     }
   }, [isOpen]);
 
@@ -178,8 +281,14 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
             >
               <Camera className="w-3.5 h-3.5" />
               Kamera ile Say
-              <span className="text-[10px] bg-amber-500/20 text-amber-700 px-1 py-0.2 rounded font-semibold border border-amber-300">
-                Yakında
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded font-semibold border ${
+                  isCameraFlagEnabled
+                    ? 'bg-emerald-500/20 text-emerald-700 border-emerald-300'
+                    : 'bg-amber-500/20 text-amber-700 border-amber-300'
+                }`}
+              >
+                {isCameraFlagEnabled ? 'Aktif' : 'Bayrak Kapalı'}
               </span>
             </button>
           </div>
@@ -209,25 +318,86 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
           </div>
         </div>
 
-        {/* KAMERA BİLGİLENDİRME VE YAKINDA ALANI */}
+        {/* KAMERA GÖRÜNTÜLEME VE ÇÖZÜMLEME ALANI */}
         {activeTab === 'CAMERA' && (
-          <div className="bg-slate-900 rounded-xl p-6 text-center text-slate-300 border-2 border-slate-700 space-y-3">
-            <Camera className="w-12 h-12 mx-auto text-amber-400" />
-            <h4 className="text-sm font-bold text-white">
-              Kamera & Barkod Çözümleyici Modülü (Pilot Hazırlığı)
-            </h4>
-            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-              Mobil tarayıcı kamera entegrasyonu belediye HTTPS sertifikasyonu ve donanım kararı (Karar S.8) doğrultusunda aktifleşecektir. Lütfen USB barkod okuyucu tabanca veya klavye girişi ile sayım yapınız.
-            </p>
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab('MANUAL')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
-              >
-                Barkod / Klavye Girişine Dön
-              </button>
-            </div>
+          <div className="bg-slate-900 rounded-xl p-4 text-center text-slate-300 border-2 border-slate-700 space-y-3">
+            {!isSecureContext ? (
+              <div className="p-4 bg-amber-950/60 border border-amber-500/40 rounded-xl text-left text-xs text-amber-200 space-y-2">
+                <div className="flex items-center gap-2 font-bold text-amber-300">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                  Güvenli Bağlantı (HTTPS) Zorunluluğu
+                </div>
+                <p>
+                  W3C tarayıcı güvenlik standardı gereği kamera akışına yalnızca <strong>HTTPS</strong> veya <strong>localhost</strong> üzerinden erişilebilir.
+                </p>
+                <p className="text-[11px] text-amber-400/90">
+                  Canlı ortamda Gebze Belediyesi SSL sertifikası kurulduğunda kamera akışı otomatik olarak tam yetkiyle çalışacaktır. Lütfen sahada USB barkod tabancası veya el terminali modunu kullanınız.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('MANUAL')}
+                  className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-xs"
+                >
+                  El Terminali Moduna Geç
+                </button>
+              </div>
+            ) : cameraError ? (
+              <div className="p-4 bg-rose-950/60 border border-rose-500/40 rounded-xl text-left text-xs text-rose-200 space-y-2">
+                <div className="flex items-center gap-2 font-bold text-rose-300">
+                  <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  Kamera Başlatılamadı
+                </div>
+                <p>{cameraError}</p>
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold"
+                  >
+                    Yeniden Dene
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('MANUAL')}
+                    className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-semibold"
+                  >
+                    El Terminaline Dön
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="relative w-full max-w-md mx-auto aspect-video bg-black rounded-xl overflow-hidden border border-slate-700 shadow-inner flex items-center justify-center">
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Tarama Hedefleme Çerçevesi (Reticle) */}
+                  <div className="absolute inset-8 border-2 border-dashed border-teal-400/70 rounded-xl pointer-events-none flex items-center justify-center">
+                    <div className="w-full h-0.5 bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)] animate-pulse" />
+                  </div>
+                  {isCameraStarting && (
+                    <div className="absolute inset-0 bg-black/75 flex items-center justify-center text-xs text-slate-300 gap-2">
+                      <div className="w-4 h-4 border-2 border-teal-400 border-t-transparent rounded-full animate-spin" />
+                      Kamera başlatılıyor...
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-400 px-2 max-w-md mx-auto">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    Kamera Canlı Akış
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    Barkod veya QR kodu yeşil çerçeveye hizalayınız
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
