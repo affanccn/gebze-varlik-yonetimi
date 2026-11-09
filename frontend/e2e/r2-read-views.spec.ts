@@ -149,6 +149,20 @@ test.describe('Faz R2: 10 Temel Okuma Ekranı E2E Test Paketi', () => {
     await expect(modal).toBeVisible();
     await expect(modal.locator('text=Personele Zimmetli Varlıklar (1)')).toBeVisible();
     await expect(modal.locator('text=GBZ-AST-108')).toBeVisible();
+    await expect(modal.locator('text=GBZ-AST-112')).not.toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toBeVisible();
+
+    // Farklı bir zimmetli personeli ara (SCL-0601 Ayşe Demir -> yalnızca GBZ-AST-112 gelmeli, tüm zimmetler gelmemeli)
+    await page.fill('input[placeholder*="sicil no ara"]', 'SCL-0601');
+    const ayseRow = page.locator('tr:has-text("SCL-0601")').first();
+    await expect(ayseRow).toBeVisible();
+    await ayseRow.locator('button:has-text("Zimmetleri Gör")').click();
+
+    await expect(modal).toBeVisible();
+    await expect(modal.locator('text=Personele Zimmetli Varlıklar (1)')).toBeVisible();
+    await expect(modal.locator('text=GBZ-AST-112')).toBeVisible();
+    await expect(modal.locator('text=GBZ-AST-108')).not.toBeVisible();
     await page.keyboard.press('Escape');
     await expect(modal).not.toBeVisible();
   });

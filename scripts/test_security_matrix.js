@@ -656,6 +656,42 @@ async function runSecurityTests() {
     console.log('ADIM 8: Zimmet - Personel Tutarliligi ve Filtre Kontrolu');
     console.log('===============================================================');
 
+    // A0. Yeni zimmet olusturmada personnel_id yazildigini dogrulama (hem personnelId ile hem isim eslestirmesi ile)
+    const zmtTmpAssetRes = await apiCall(sessions.ADMIN, 'POST', '/api/assets', {
+        code: 'TEST-TMP-ZMT-' + Date.now(),
+        name: 'Zimmet PersonnelId Test Varligi',
+        category: 'Bilgi İşlem Donanımları',
+        categoryId: 1,
+        departmentId: 1,
+        acquisitionValue: 500,
+        location: 'Bilgi İşlem Test Odası',
+        status: 'AKTIF'
+    });
+    const zmtTestAssetId = zmtTmpAssetRes.json?.id;
+
+    const assignWithPid = await apiCall(sessions.ADMIN, 'POST', '/api/assignments', {
+        assetId: zmtTestAssetId,
+        personnelId: 2,
+        location: 'Ana Hizmet Binasi - Oda 301',
+        note: 'personnel_id yazma testi (acik ID)'
+    });
+    console.log(`- POST /api/assignments (personnelId=2): HTTP ${assignWithPid.status}, Donen personnelId: ${assignWithPid.json?.personnelId}`);
+    if (assignWithPid.status !== 200 || assignWithPid.json?.personnelId !== 2) {
+        throw new Error(`AssignmentService personnelId=2 yazmadi! Donen: ${JSON.stringify(assignWithPid.json)}`);
+    }
+
+    const assignByName = await apiCall(sessions.ADMIN, 'POST', '/api/assignments', {
+        assetId: zmtTestAssetId,
+        assigneeName: 'Kemal Şahin',
+        unit: 'Mali Hizmetler Müdürlüğü',
+        location: 'Ana Hizmet Binasi - Oda 105',
+        note: 'personnel_id yazma testi (isimden cozumleme)'
+    });
+    console.log(`- POST /api/assignments (assigneeName='Kemal Şahin'): HTTP ${assignByName.status}, Donen personnelId: ${assignByName.json?.personnelId}`);
+    if (assignByName.status !== 200 || assignByName.json?.personnelId !== 10) {
+        throw new Error(`AssignmentService isimden personnelId=10 cozumlemedi! Donen: ${JSON.stringify(assignByName.json)}`);
+    }
+
     // A. /api/assignments?personnelId=... filtresini test et (Murat Yılmaz ID=1 için en az 1 zimmet dönmeli)
     const p1Assignments = await apiCall(sessions.ADMIN, 'GET', '/api/assignments?personnelId=1');
     console.log(`- GET /api/assignments?personnelId=1: HTTP ${p1Assignments.status}, Donen Kayit: ${p1Assignments.json.total}`);
