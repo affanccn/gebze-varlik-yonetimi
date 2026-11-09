@@ -90,6 +90,39 @@ async function runTests() {
   }
   console.log('4. DEPT_MANAGER -> /api/personnel/export-template: 200 OK ✅');
 
+  // 5. İndirilen .xlsx şablonunun validate edilmesi (200 OK, 0 hata)
+  const validateForm = new FormData();
+  validateForm.append('file', new Blob([tplRes.raw], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'sablon.xlsx');
+  const valFetch = await fetch('http://localhost:8080/api/personnel/import/validate', {
+    method: 'POST',
+    headers: {
+      'Cookie': formatCookieHeader(adminCookies),
+      'X-XSRF-TOKEN': adminCookies['XSRF-TOKEN'] || ''
+    },
+    body: validateForm
+  });
+  const valJson = await valFetch.json();
+  if (valFetch.status !== 200 || valJson.errorRows !== 0 || valJson.validRows < 1) {
+    throw new Error(`Şablon doğrulama hatası: HTTP ${valFetch.status} ${JSON.stringify(valJson)}`);
+  }
+  console.log(`5. Şablon Doğrulama (/api/personnel/import/validate): 200 OK (${valJson.validRows} geçerli satır) ✅`);
+
+  // 6. .xls veya CSV uzantılı dosyanın 400 Bad Request ile reddedilmesi
+  const badExtForm = new FormData();
+  badExtForm.append('file', new Blob([tplRes.raw], { type: 'application/vnd.ms-excel' }), 'eski_format.xls');
+  const badExtFetch = await fetch('http://localhost:8080/api/personnel/import/validate', {
+    method: 'POST',
+    headers: {
+      'Cookie': formatCookieHeader(adminCookies),
+      'X-XSRF-TOKEN': adminCookies['XSRF-TOKEN'] || ''
+    },
+    body: badExtForm
+  });
+  if (badExtFetch.status !== 400) {
+    throw new Error(`.xls uzantılı dosya 400 dönmeliydi, dönen: ${badExtFetch.status}`);
+  }
+  console.log('6. .xls Uzantı Reddi (/api/personnel/import/validate): 400 Bad Request ✅');
+
   console.log('\n=== FAZ 2B TÜM TESTLER BAŞARIYLA GEÇTİ! 🎉 ===');
 }
 

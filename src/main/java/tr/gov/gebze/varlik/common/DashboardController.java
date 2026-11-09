@@ -56,7 +56,12 @@ public class DashboardController {
         }
 
         List<Map<String, Object>> departmentsSummary = jdbcClient.sql("""
-            SELECT d.id, d.code, d.name, d.manager_name,
+            SELECT d.id, d.code, d.name,
+                   COALESCE(
+                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND p.is_active = 1 AND (LOWER(p.title) LIKE '%müdür%' OR LOWER(p.title) LIKE '%mudur%' OR LOWER(p.title) LIKE '%başkan%' OR LOWER(p.title) LIKE '%müşavir%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
+                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND p.is_active = 1 AND (LOWER(p.title) LIKE '%amir%' OR LOWER(p.title) LIKE '%şef%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
+                       d.manager_name
+                   ) AS manager_name,
                    COUNT(a.id) AS total_count,
                    SUM(CASE WHEN a.status = 'Aktif' OR a.status = 'Zimmetli' THEN 1 ELSE 0 END) AS active_count,
                    SUM(CASE WHEN a.status = 'Depoda' THEN 1 ELSE 0 END) AS storage_count,

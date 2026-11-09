@@ -1,6 +1,8 @@
 package tr.gov.gebze.varlik.assignment;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -96,10 +98,12 @@ public class AssignmentService {
                 resolvedLocation = person.roomName();
             }
         } else if (resolvedAssigneeName != null && !resolvedAssigneeName.isBlank()) {
+            final Locale trLocale = Locale.forLanguageTag("tr-TR");
             final String nameToMatch = resolvedAssigneeName.trim();
+            final String nameLower = nameToMatch.toLowerCase(trLocale);
             var matched = personnelRepository.findAll(null, null, nameToMatch);
             var exact = matched.stream()
-                    .filter(p -> p.fullName() != null && p.fullName().equalsIgnoreCase(nameToMatch))
+                    .filter(p -> p.fullName() != null && p.fullName().trim().toLowerCase(trLocale).equals(nameLower))
                     .findFirst();
             if (exact.isPresent()) {
                 Personnel person = exact.get();
@@ -135,7 +139,7 @@ public class AssignmentService {
             assignmentRepository.returnAssignment(active.id(), "Yeni zimmet ataması (" + resolvedAssigneeName.trim() + ") nedeniyle devredildi.");
         }
 
-        String docNo = String.format("GBZ-ZMT-2026-%04d", System.currentTimeMillis() % 100000);
+        String docNo = String.format("GBZ-ZMT-%d-%04d", LocalDate.now().getYear(), System.currentTimeMillis() % 100000);
 
         // Yaşam döngüsü durum geçişi: ZIMMETLENDI
         assetLifecycleService.transitionState(asset.id(), AssetLifecycleStatus.ZIMMETLENDI, docNo + " fişi ile " + resolvedAssigneeName.trim() + " adına zimmetlendi.", actorName);

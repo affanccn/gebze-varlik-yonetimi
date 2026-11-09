@@ -98,6 +98,13 @@ async function runTests() {
         }
     }
 
+    // 0. Test Excel dosyalarının varlığını kontrol et, yoksa üret
+    if (!fs.existsSync(path.join('target', 'test-excels', 'mixed_5_valid_2_invalid.xlsx'))) {
+        console.log('Test Excel dosyaları bulunamadı, TestExcelGenerator çalıştırılıyor...');
+        const mvnCmd = process.platform === 'win32' ? '.\\mvnw.cmd' : './mvnw';
+        execSync(`${mvnCmd} exec:java "-Dexec.mainClass=tr.gov.gebze.varlik.asset.bulkimport.TestExcelGenerator" -q`, { stdio: 'inherit' });
+    }
+
     // 0. Ön-kontrol: Snapshot
     const preCount = parseInt(await runSql('SELECT COUNT(*) FROM assets WHERE is_deleted = 0;'));
     const preSum = await runSql('SELECT TO_CHAR(SUM(estimated_value), \'999999999.99\') FROM assets WHERE is_deleted = 0;');

@@ -28,14 +28,15 @@ public class HierarchyRepository {
         String sql = """
             SELECT d.id, d.code, d.name,
                    COALESCE(
-                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND (LOWER(p.title) LIKE '%müdür%' OR LOWER(p.title) LIKE '%mudur%' OR LOWER(p.title) LIKE '%başkan%' OR LOWER(p.title) LIKE '%müşavir%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
-                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND (LOWER(p.title) LIKE '%amir%' OR LOWER(p.title) LIKE '%şef%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
+                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND p.is_active = 1 AND (LOWER(p.title) LIKE '%müdür%' OR LOWER(p.title) LIKE '%mudur%' OR LOWER(p.title) LIKE '%başkan%' OR LOWER(p.title) LIKE '%müşavir%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
+                       (SELECT p.full_name FROM personnel p WHERE p.department_id = d.id AND p.is_deleted = 0 AND p.is_active = 1 AND (LOWER(p.title) LIKE '%amir%' OR LOWER(p.title) LIKE '%şef%') ORDER BY p.id FETCH FIRST 1 ROWS ONLY),
                        d.manager_name
                    ) AS manager_name,
                    d.phone, d.email, d.display_order, d.is_active,
                    COUNT(a.id) AS asset_count
             FROM departments d
             LEFT JOIN assets a ON a.department_id = d.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
+            WHERE d.is_active = 1
             GROUP BY d.id, d.code, d.name, d.manager_name, d.phone, d.email, d.display_order, d.is_active
             ORDER BY d.display_order ASC, d.id ASC
             """;
@@ -119,7 +120,7 @@ public class HierarchyRepository {
             FROM sub_units s
             JOIN departments d ON s.department_id = d.id
             LEFT JOIN assets a ON a.sub_unit_id = s.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
-            WHERE (:deptId IS NULL OR s.department_id = :deptId)
+            WHERE s.is_active = 1 AND (:deptId IS NULL OR s.department_id = :deptId)
             GROUP BY s.id, s.department_id, d.name, s.parent_unit_id, s.code, s.name,
                      s.unit_type, s.manager_name, s.phone, s.description, s.is_active
             ORDER BY s.department_id ASC, s.name ASC
@@ -209,6 +210,7 @@ public class HierarchyRepository {
             FROM buildings b
             LEFT JOIN rooms r ON r.building_id = b.id AND r.is_active = 1
             LEFT JOIN assets a ON a.building_id = b.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
+            WHERE b.is_active = 1
             GROUP BY b.id, b.code, b.name, b.building_type, b.address, b.phone, b.total_floors, b.description, b.is_active
             ORDER BY b.id ASC
             """;
@@ -292,7 +294,7 @@ public class HierarchyRepository {
             JOIN buildings b ON f.building_id = b.id
             LEFT JOIN rooms r ON r.floor_id = f.id AND r.is_active = 1
             LEFT JOIN assets a ON a.floor_id = f.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
-            WHERE (:bldId IS NULL OR f.building_id = :bldId)
+            WHERE f.is_active = 1 AND (:bldId IS NULL OR f.building_id = :bldId)
             GROUP BY f.id, f.building_id, b.name, f.floor_code, f.floor_name, f.floor_order, f.description, f.is_active
             ORDER BY f.floor_order ASC, f.id ASC
             """;
@@ -380,7 +382,8 @@ public class HierarchyRepository {
             LEFT JOIN departments d ON r.department_id = d.id
             LEFT JOIN sub_units s ON r.sub_unit_id = s.id
             LEFT JOIN assets a ON a.room_id = r.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
-            WHERE (:bldId IS NULL OR r.building_id = :bldId)
+            WHERE r.is_active = 1
+              AND (:bldId IS NULL OR r.building_id = :bldId)
               AND (:flrId IS NULL OR r.floor_id = :flrId)
               AND (:deptId IS NULL OR r.department_id = :deptId)
               AND (:rType IS NULL OR r.room_type = :rType)
@@ -515,6 +518,7 @@ public class HierarchyRepository {
                    COUNT(a.id) AS asset_count
             FROM asset_categories c
             LEFT JOIN assets a ON a.category_id = c.id AND a.is_active = 1 AND a.is_deleted = 0 AND """ + assetFilter + """
+            WHERE c.is_active = 1
             GROUP BY c.id, c.parent_id, c.code, c.name, c.icon, c.description, c.is_active
             ORDER BY c.code ASC
             """;

@@ -115,7 +115,6 @@ public class SecurityConfig {
                 .requestMatchers("/api/health").permitAll()
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/**").denyAll()
-                .requestMatchers("/api/olmayan").permitAll()
 
                 // 5.2. Kimliği Doğrulanmış Ortak Uç Noktalar
                 .requestMatchers(HttpMethod.POST, "/api/auth/logout").authenticated()

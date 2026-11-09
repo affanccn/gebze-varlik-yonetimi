@@ -656,11 +656,23 @@ async function runSecurityTests() {
     console.log('ADIM 8: Zimmet - Personel Tutarliligi ve Filtre Kontrolu');
     console.log('===============================================================');
 
-    // A. /api/assignments?personnelId=... filtresini test et
+    // A. /api/assignments?personnelId=... filtresini test et (Murat Yılmaz ID=1 için en az 1 zimmet dönmeli)
     const p1Assignments = await apiCall(sessions.ADMIN, 'GET', '/api/assignments?personnelId=1');
     console.log(`- GET /api/assignments?personnelId=1: HTTP ${p1Assignments.status}, Donen Kayit: ${p1Assignments.json.total}`);
-    if (p1Assignments.status !== 200) {
-        throw new Error('personnelId filtresi basarisiz oldu!');
+    if (p1Assignments.status !== 200 || p1Assignments.json.total < 1) {
+        throw new Error('personnelId=1 filtresi basarisiz oldu veya zimmet kaydi bulunamadi!');
+    }
+
+    // A2. Negatif stok cikisi denemesi -> 409 Conflict
+    const negStockRes = await apiCall(sessions.ADMIN, 'POST', '/api/stock/transactions', {
+        stockItemId: 1,
+        txType: 'CIKIS',
+        quantity: 999999,
+        recipientName: 'Negatif Stok Testi'
+    });
+    console.log(`- Negatif stok cikisi (quantity: 999999): HTTP ${negStockRes.status} (Beklenen: 409)`);
+    if (negStockRes.status !== 409) {
+        throw new Error(`Negatif stok cikisi 409 yerine ${negStockRes.status} dondu!`);
     }
 
     // B. Aktif zimmeti olan personeli pasife alma girisimi -> 409 Conflict
@@ -682,10 +694,21 @@ async function runSecurityTests() {
         spawnSync('docker', ['exec', '-i', 'gebze-varlik-oracle23ai', 'sqlplus', '-s', 'varlik_app/GebzeVarlik2026@localhost:1521/FREEPDB1'], {
             input: `
 DELETE FROM asset_movements WHERE asset_id IN (SELECT id FROM assets WHERE code LIKE 'TEST-%');
+DELETE FROM asset_assignments WHERE asset_id IN (SELECT id FROM assets WHERE code LIKE 'TEST-%');
+DELETE FROM asset_maintenances WHERE asset_id IN (SELECT id FROM assets WHERE code LIKE 'TEST-%');
 DELETE FROM assets WHERE code LIKE 'TEST-%';
+UPDATE asset_assignments SET status = 'IADE_EDILDI', returned_at = CURRENT_TIMESTAMP WHERE asset_id = 4 AND status = 'AKTIF';
 UPDATE system_users SET full_name = UNISTR('Sistem Y\\00f6neticisi') WHERE username = 'admin';
-UPDATE assets SET status = 'Aktif', is_deleted = 0, is_active = 1, deleted_at = NULL, deleted_by = NULL WHERE id = 1;
-UPDATE assets SET building_id = 10, floor_id = 9, room_id = 10, status = 'Depoda' WHERE id = 4;
+DELETE FROM system_users WHERE username = 'test_sec_user_tmp';
+UPDATE personnel SET is_active = 1, is_deleted = 0, deleted_at = NULL, deleted_by = NULL WHERE id = 1;
+UPDATE personnel SET is_active = 0, is_deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = 'test_cleanup' WHERE registration_number LIKE 'TEST-%';
+UPDATE departments SET is_active = 0 WHERE code LIKE 'TEST-%' OR code LIKE 'CSRF-%';
+UPDATE buildings SET is_active = 0 WHERE code LIKE 'TEST-%';
+UPDATE floors SET is_active = 0 WHERE floor_code LIKE 'TEST-%';
+UPDATE rooms SET is_active = 0 WHERE room_number LIKE '%SEC%' OR room_number LIKE '999%';
+UPDATE sub_units SET is_active = 0 WHERE code LIKE 'TEST-%';
+UPDATE assets SET status = 'Aktif', lifecycle_status = 'KULLANIMDA', is_deleted = 0, is_active = 1, deleted_at = NULL, deleted_by = NULL WHERE id = 1;
+UPDATE assets SET building_id = 10, floor_id = 9, room_id = 10, status = 'Depoda', lifecycle_status = 'KAYDEDILDI', assignee_name = 'Atanmamış (Depo Sorumlusu)' WHERE id = 4;
 COMMIT;
 EXIT;
 `,

@@ -208,6 +208,21 @@ public class EnterpriseRepository {
     }
 
     public void addStockTransaction(Long stockItemId, String txType, Double quantity, Long deptId, String deptName, String recipient, String actor, String notes) {
+        if (quantity == null || quantity <= 0) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Hareket miktarı sıfırdan büyük olmalıdır.");
+        }
+        if ("CIKIS".equalsIgnoreCase(txType)) {
+            Double currentQty = jdbcClient.sql("SELECT current_quantity FROM stock_items WHERE id = ? AND is_deleted = 0 FOR UPDATE")
+                    .param(1, stockItemId)
+                    .query(Double.class)
+                    .optional()
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Stok kalemi bulunamadı: ID=" + stockItemId));
+            if (currentQty < quantity) {
+                throw new ApiException(HttpStatus.CONFLICT,
+                        String.format("Yetersiz stok miktarı: Mevcut stok %.2f, talep edilen çıkış %.2f.", currentQty, quantity));
+            }
+        }
+
         String txCode = "TX-STK-" + System.currentTimeMillis() % 1000000;
         jdbcClient.sql("""
             INSERT INTO stock_transactions (transaction_code, stock_item_id, tx_type, quantity, department_id, department_name, recipient_name, performed_by, notes)
@@ -956,7 +971,8 @@ public class EnterpriseRepository {
             if (acqDateStr != null && acqDateStr.length() >= 4) {
                 try {
                     int acqYear = Integer.parseInt(acqDateStr.substring(0, 4));
-                    yearsElapsed = Math.max(1, 2026 - acqYear);
+                    int currentYear = LocalDate.now().getYear();
+                    yearsElapsed = Math.max(1, currentYear - acqYear);
                 } catch (Exception ignored) {}
             }
 
