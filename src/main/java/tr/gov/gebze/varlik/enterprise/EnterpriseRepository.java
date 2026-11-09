@@ -257,6 +257,62 @@ public class EnterpriseRepository {
         .update();
     }
 
+    public Long createStockItem(
+            String itemCode,
+            String itemName,
+            String category,
+            String warehouseName,
+            Long buildingId,
+            Long departmentId,
+            Double currentQuantity,
+            Double minThreshold,
+            String unit,
+            Double unitPrice
+    ) {
+        if (tenantQueryScope.isDeptManager() && tenantQueryScope.getDepartmentId() != null) {
+            if (departmentId != null && !departmentId.equals(tenantQueryScope.getDepartmentId())) {
+                throw new ApiException(HttpStatus.FORBIDDEN, "Müdürlük yöneticisi yalnızca kendi birimi adına stok kartı açabilir.");
+            }
+        }
+
+        double qty = currentQuantity != null ? currentQuantity : 0.0;
+        double min = minThreshold != null ? minThreshold : 10.0;
+        String status = "NORMAL";
+        if (qty <= 0) {
+            status = "TUKENDI";
+        } else if (qty <= min) {
+            status = "KRITIK";
+        }
+
+        jdbcClient.sql("""
+            INSERT INTO stock_items (
+                item_code, item_name, category, warehouse_name,
+                building_id, department_id, current_quantity, min_threshold,
+                unit, unit_price, status, last_restocked_at, is_deleted
+            ) VALUES (
+                :itemCode, :itemName, :category, :warehouseName,
+                :buildingId, :departmentId, :currentQuantity, :minThreshold,
+                :unit, :unitPrice, :status, CURRENT_TIMESTAMP, 0
+            )
+        """)
+        .param("itemCode", itemCode)
+        .param("itemName", itemName)
+        .param("category", category != null && !category.isBlank() ? category : "Genel Sarf")
+        .param("warehouseName", warehouseName != null && !warehouseName.isBlank() ? warehouseName : "Ana Ambar")
+        .param("buildingId", buildingId)
+        .param("departmentId", departmentId)
+        .param("currentQuantity", qty)
+        .param("minThreshold", min)
+        .param("unit", unit != null && !unit.isBlank() ? unit : "Adet")
+        .param("unitPrice", unitPrice != null ? unitPrice : 0.0)
+        .param("status", status)
+        .update();
+
+        return jdbcClient.sql("SELECT id FROM stock_items WHERE item_code = :itemCode AND is_deleted = 0 ORDER BY id DESC FETCH FIRST 1 ROWS ONLY")
+                .param("itemCode", itemCode)
+                .query(Long.class).single();
+    }
+
     // ==========================================
     // 2. ARAÇ & FİLO VE İŞ MAKİNELERİ
     // ==========================================

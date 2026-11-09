@@ -46,5 +46,23 @@ export const stockService = {
       body: JSON.stringify(data),
     });
   },
+
+  createStockItem: (data: {
+    itemCode: string;
+    itemName: string;
+    category?: string;
+    warehouseName?: string;
+    buildingId?: number;
+    departmentId?: number;
+    currentQuantity?: number;
+    minThreshold?: number;
+    unit?: string;
+    unitPrice?: number;
+  }): Promise<{ status: string; message: string; id: number }> => {
+    return apiRequest<{ status: string; message: string; id: number }>(API_ENDPOINTS.STOCK, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };
 

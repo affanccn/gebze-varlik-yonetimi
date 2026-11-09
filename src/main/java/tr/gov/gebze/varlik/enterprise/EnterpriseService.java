@@ -48,6 +48,26 @@ public class EnterpriseService {
                 txType + " işlemi: " + quantity + " birim aktarıldı. Not: " + (notes != null ? notes : "-"));
     }
 
+    @Transactional
+    public Long createStockItem(
+            String itemCode,
+            String itemName,
+            String category,
+            String warehouseName,
+            Long buildingId,
+            Long departmentId,
+            Double currentQuantity,
+            Double minThreshold,
+            String unit,
+            Double unitPrice,
+            String actor
+    ) {
+        Long id = repository.createStockItem(itemCode, itemName, category, warehouseName, buildingId, departmentId, currentQuantity, minThreshold, unit, unitPrice);
+        repository.logAction("STOK_KARTI_OLUSTURULDU", "STOCK", String.valueOf(id), actor, actor, SecurityAuditService.resolveCurrentClientIp(),
+                "Yeni stok kartı açıldı: " + itemCode + " - " + itemName);
+        return id;
+    }
+
     public PageResponse<FleetVehicle> findVehiclesPage(Long departmentId, String vehicleType, String status, String q, String sort, int page, int size) {
         return repository.findVehiclesPage(departmentId, vehicleType, status, q, sort, page, size);
     }

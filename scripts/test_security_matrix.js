@@ -365,6 +365,7 @@ async function runSecurityTests() {
         if (p === '/api/rooms') return { buildingId: 1, floorId: 1, roomNumber: 'SEC-RM', name: 'Test Odasi', departmentId: deptId };
         if (p === '/api/sub-units') return { departmentId: deptId, code: 'TEST-SUB-SEC', name: 'Test Birimi' };
         if (p === '/api/settings') return { paramKey: 'TEST_SEC_KEY', paramValue: 'VAL' };
+        if (p === '/api/stock') return { itemCode: 'TEST-STK-' + Date.now(), itemName: 'Test Malzeme', category: 'Genel Sarf', warehouseName: 'Ana Ambar', currentQuantity: 10, minThreshold: 5, unit: 'Adet', unitPrice: 100.0, departmentId: deptId };
         if (p === '/api/stock/transactions') return { stockItemId: 1, txType: 'GIRIS', quantity: 1, recipientName: 'Test' };
         if (p.includes('/deactivate')) return {};
         if (p.includes('/transition')) return { targetStatus: 'BAKIMDA', reason: 'Test' };

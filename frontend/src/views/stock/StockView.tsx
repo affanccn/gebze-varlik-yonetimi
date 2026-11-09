@@ -2,7 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { stockService } from '../../services/stockService';
 import { StockItem } from '../../types/stock';
+import { StockTransaction } from '../../types/stock';
 import { StockTransactionModal } from './StockTransactionModal';
+import { StockItemCreateModal } from './StockItemCreateModal';
+import { TifVoucherModal } from './TifVoucherModal';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency } from '../../components/common/formatters';
 import {
@@ -15,6 +18,7 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   History,
+  FileText,
 } from 'lucide-react';
 
 export const StockView: React.FC = () => {
@@ -27,9 +31,12 @@ export const StockView: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'CRITICAL' | 'NORMAL'>('ALL');
 
-  // Modal
+  // Modals
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [preselectedItem, setPreselectedItem] = useState<StockItem | null>(null);
+  const [selectedTifTx, setSelectedTifTx] = useState<StockTransaction | null>(null);
+  const [isTifModalOpen, setIsTifModalOpen] = useState(false);
 
   // Queries
   const {
@@ -131,18 +138,29 @@ export const StockView: React.FC = () => {
           </button>
 
           {canWrite && (
-            <button
-              type="button"
-              data-action="new-stock-tx"
-              onClick={() => {
-                setPreselectedItem(null);
-                setIsTxModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs transition-all hover:shadow"
-            >
-              <Plus className="w-4 h-4" />
-              Stok Hareketi Yap
-            </button>
+            <>
+              <button
+                type="button"
+                data-action="new-stock-item"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-all hover:shadow"
+              >
+                <Plus className="w-4 h-4 text-teal-600" />
+                Yeni Stok Kartı
+              </button>
+              <button
+                type="button"
+                data-action="new-stock-tx"
+                onClick={() => {
+                  setPreselectedItem(null);
+                  setIsTxModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs transition-all hover:shadow"
+              >
+                <Plus className="w-4 h-4" />
+                Stok Hareketi Yap
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -389,6 +407,7 @@ export const StockView: React.FC = () => {
                     <th className="px-4 py-3">Teslim Alan</th>
                     <th className="px-4 py-3">İşlemi Yapan</th>
                     <th className="px-4 py-3">Açıklama</th>
+                    <th className="px-4 py-3 text-right">Belge</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -420,6 +439,20 @@ export const StockView: React.FC = () => {
                         <td className="px-4 py-3 text-slate-700 font-medium">{tx.recipientName || '—'}</td>
                         <td className="px-4 py-3 text-slate-500">{tx.performedBy}</td>
                         <td className="px-4 py-3 text-slate-500 max-w-xs truncate">{tx.notes || '—'}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedTifTx(tx);
+                              setIsTifModalOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-700 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                            title="Taşınır İşlem Fişi (TİF) Yazdır"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            TİF Fişi
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -440,6 +473,22 @@ export const StockView: React.FC = () => {
           setPreselectedItem(null);
         }}
         onSuccess={handleRefresh}
+      />
+
+      {/* New Stock Item Modal */}
+      <StockItemCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      {/* TIF Voucher Printable Modal */}
+      <TifVoucherModal
+        isOpen={isTifModalOpen}
+        onClose={() => {
+          setIsTifModalOpen(false);
+          setSelectedTifTx(null);
+        }}
+        transaction={selectedTifTx}
       />
     </div>
   );

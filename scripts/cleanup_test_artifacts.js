@@ -13,6 +13,8 @@ DELETE FROM asset_maintenances WHERE order_no LIKE 'TEST-%' OR asset_id IN (SELE
 DELETE FROM asset_assignments WHERE document_no LIKE 'TEST-%' OR asset_id IN (SELECT id FROM assets WHERE code LIKE 'TEST-%' OR code LIKE 'GBZ-E2E%');
 DELETE FROM asset_movements WHERE asset_code LIKE 'TEST-%' OR asset_code LIKE 'GBZ-E2E%';
 DELETE FROM asset_documents WHERE doc_code LIKE 'TEST-%' OR title LIKE '%TEST%';
+DELETE FROM stock_transactions WHERE notes LIKE '%TEST%' OR stock_item_id IN (SELECT id FROM stock_items WHERE item_code LIKE 'TEST-%');
+UPDATE stock_items SET is_deleted = 1 WHERE item_code LIKE 'TEST-%' AND is_deleted = 0;
 DELETE FROM assets WHERE code LIKE 'GBZ-E2E%';
 
 UPDATE assets

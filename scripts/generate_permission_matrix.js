@@ -369,7 +369,11 @@ const matrix = endpoints.map((ep, idx) => {
             csrfRequired = true;
             auditLogged = true;
 
-            if (path.startsWith('/api/stock/transactions')) {
+            if (path === '/api/stock' && httpMethod === 'POST') {
+                deptManager = 200;
+                scopeRule = 'DEPT_MANAGER: Kendi müdürlüğü; ADMIN: Tüm ambarlar';
+                description = 'Yeni stok kartı tanımlama';
+            } else if (path.startsWith('/api/stock/transactions')) {
                 deptManager = 200; // scope: kendi müdürlük stoğu
                 scopeRule = 'DEPT_MANAGER: Kendi müdürlük stok kalemi; ADMIN: Tüm ambarlar';
                 description = 'Stok giriş / çıkış / sayım düzeltme hareketi kaydetme';

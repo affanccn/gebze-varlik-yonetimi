@@ -94,7 +94,7 @@ public class SecurityConfig {
                 );
                 headers.frameOptions(frame -> frame.deny());
                 headers.permissionsPolicy(permissions -> permissions
-                    .policy("camera=(), microphone=(), geolocation=()")
+                    .policy("camera=(self), microphone=(), geolocation=()")
                 );
                 if (hstsEnabled) {
                     headers.httpStrictTransportSecurity(hsts -> hsts
@@ -170,7 +170,7 @@ public class SecurityConfig {
                     "/api/reports/depreciation", "/api/reports/disposal", "/api/reports/export", "/api/reports/form13",
                     "/api/alerts"
                 ).hasAnyRole("ADMIN", "DEPT_MANAGER", "AUDITOR", "VIEWER")
-                .requestMatchers(HttpMethod.POST, "/api/stock/transactions").hasAnyRole("ADMIN", "DEPT_MANAGER")
+                .requestMatchers(HttpMethod.POST, "/api/stock", "/api/stock/transactions").hasAnyRole("ADMIN", "DEPT_MANAGER")
                 .requestMatchers(HttpMethod.POST, "/api/fleet/*/status").hasAnyRole("ADMIN", "DEPT_MANAGER")
                 .requestMatchers(HttpMethod.POST, "/api/audits/*/scan").hasAnyRole("ADMIN", "DEPT_MANAGER")
 

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import tr.gov.gebze.varlik.common.ApiException;
 import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.CursorResponse;
 import tr.gov.gebze.varlik.common.PageResponse;
@@ -59,6 +60,47 @@ public class EnterpriseController {
         String searchQuery = (query != null && !query.isBlank()) ? query : q;
         String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
         return enterpriseService.findStockItemsPage(departmentId, warehouse, status, searchQuery, sortParam, page, size);
+    }
+
+    @PostMapping("/stock")
+    public Map<String, Object> createStockItem(
+            @RequestHeader(value = "X-Auth-Token", required = false) String token,
+            @RequestBody Map<String, Object> payload
+    ) {
+        tenantQueryScope.enforceStaffModuleRestriction("stock");
+        UserSession session = authService.requireWriteAccess(token);
+
+        if (payload == null || !payload.containsKey("itemCode") || !payload.containsKey("itemName")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Malzeme kodu ve adı zorunludur.");
+        }
+
+        String itemCode = payload.get("itemCode").toString().trim();
+        String itemName = payload.get("itemName").toString().trim();
+        if (itemCode.isBlank() || itemName.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Malzeme kodu ve adı boş bırakılamaz.");
+        }
+
+        String category = payload.getOrDefault("category", "Genel Sarf").toString();
+        String warehouseName = payload.getOrDefault("warehouseName", "Ana Ambar").toString();
+        String unit = payload.getOrDefault("unit", "Adet").toString();
+
+        Long buildingId = payload.get("buildingId") != null && !payload.get("buildingId").toString().isBlank()
+                ? Long.valueOf(payload.get("buildingId").toString()) : null;
+        Long departmentId = payload.get("departmentId") != null && !payload.get("departmentId").toString().isBlank()
+                ? Long.valueOf(payload.get("departmentId").toString()) : null;
+        Double currentQuantity = payload.get("currentQuantity") != null && !payload.get("currentQuantity").toString().isBlank()
+                ? Double.valueOf(payload.get("currentQuantity").toString()) : 0.0;
+        Double minThreshold = payload.get("minThreshold") != null && !payload.get("minThreshold").toString().isBlank()
+                ? Double.valueOf(payload.get("minThreshold").toString()) : 10.0;
+        Double unitPrice = payload.get("unitPrice") != null && !payload.get("unitPrice").toString().isBlank()
+                ? Double.valueOf(payload.get("unitPrice").toString()) : 0.0;
+
+        Long newId = enterpriseService.createStockItem(
+                itemCode, itemName, category, warehouseName, buildingId, departmentId,
+                currentQuantity, minThreshold, unit, unitPrice, session.fullName()
+        );
+
+        return Map.of("status", "SUCCESS", "message", "Yeni stok kartı başarıyla oluşturuldu.", "id", newId);
     }
 
     @GetMapping("/stock/transactions")

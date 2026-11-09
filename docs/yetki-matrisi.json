@@ -1502,6 +1502,25 @@
   },
   {
     "id": 80,
+    "httpMethod": "POST",
+    "path": "/api/stock",
+    "controller": "EnterpriseController",
+    "methodName": "createStockItem",
+    "expectedResults": {
+      "ADMIN": 200,
+      "DEPT_MANAGER": 200,
+      "STAFF": 403,
+      "AUDITOR": 403,
+      "VIEWER": 403,
+      "ANONYMOUS": 401
+    },
+    "scopeRule": "DEPT_MANAGER: Kendi müdürlüğü; ADMIN: Tüm ambarlar",
+    "csrfRequired": true,
+    "auditLogged": true,
+    "description": "Yeni stok kartı tanımlama"
+  },
+  {
+    "id": 81,
     "httpMethod": "GET",
     "path": "/api/stock/transactions",
     "controller": "EnterpriseController",
@@ -1520,7 +1539,7 @@
     "description": "Kurumsal operasyonel veri / rapor okuma"
   },
   {
-    "id": 81,
+    "id": 82,
     "httpMethod": "POST",
     "path": "/api/stock/transactions",
     "controller": "EnterpriseController",
@@ -1539,7 +1558,7 @@
     "description": "Stok giriş / çıkış / sayım düzeltme hareketi kaydetme"
   },
   {
-    "id": 82,
+    "id": 83,
     "httpMethod": "GET",
     "path": "/api/sub-units",
     "controller": "HierarchyController",
@@ -1558,7 +1577,7 @@
     "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
   },
   {
-    "id": 83,
+    "id": 84,
     "httpMethod": "POST",
     "path": "/api/sub-units",
     "controller": "HierarchyController",
@@ -1577,7 +1596,7 @@
     "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
   },
   {
-    "id": 84,
+    "id": 85,
     "httpMethod": "DELETE",
     "path": "/api/sub-units/{id}",
     "controller": "HierarchyController",
@@ -1596,7 +1615,7 @@
     "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
   },
   {
-    "id": 85,
+    "id": 86,
     "httpMethod": "GET",
     "path": "/api/sub-units/{id}",
     "controller": "HierarchyController",
@@ -1615,7 +1634,7 @@
     "description": "Hiyerarşi / Lokasyon / Kategori salt okunur sorgulama"
   },
   {
-    "id": 86,
+    "id": 87,
     "httpMethod": "PUT",
     "path": "/api/sub-units/{id}",
     "controller": "HierarchyController",
@@ -1634,7 +1653,7 @@
     "description": "Teşkilat, bina, kat veya oda tanımını ekleme / düzenleme / silme"
   },
   {
-    "id": 87,
+    "id": 88,
     "httpMethod": "GET",
     "path": "/api/users",
     "controller": "UserController",
@@ -1653,7 +1672,7 @@
     "description": "Kullanıcıları listeleme"
   },
   {
-    "id": 88,
+    "id": 89,
     "httpMethod": "POST",
     "path": "/api/users",
     "controller": "UserController",
@@ -1672,7 +1691,7 @@
     "description": "Kullanıcı oluşturma / güncelleme / pasife alma / şifre sıfırlama"
   },
   {
-    "id": 89,
+    "id": 90,
     "httpMethod": "GET",
     "path": "/api/users/{id}",
     "controller": "UserController",
@@ -1691,7 +1710,7 @@
     "description": "Kullanıcı detayını görme"
   },
   {
-    "id": 90,
+    "id": 91,
     "httpMethod": "PUT",
     "path": "/api/users/{id}",
     "controller": "UserController",
@@ -1710,7 +1729,7 @@
     "description": "Kullanıcı oluşturma / güncelleme / pasife alma / şifre sıfırlama"
   },
   {
-    "id": 91,
+    "id": 92,
     "httpMethod": "POST",
     "path": "/api/users/{id}/deactivate",
     "controller": "UserController",
@@ -1729,7 +1748,7 @@
     "description": "Kullanıcı oluşturma / güncelleme / pasife alma / şifre sıfırlama"
   },
   {
-    "id": 92,
+    "id": 93,
     "httpMethod": "POST",
     "path": "/api/users/{id}/reset-password",
     "controller": "UserController",

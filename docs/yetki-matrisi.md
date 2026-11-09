@@ -1,7 +1,7 @@
 # Gebze Belediyesi EKYS — Yetkilendirme Matrisi (RBAC & Scope Matrix)
 
 > **Tarih:** 5 Kasım 2026  
-> **Kapsam:** Tüm `@RestController` uç noktalarının (`92` adet) 5 sistem rolü (`ADMIN`, `DEPT_MANAGER`, `STAFF`, `AUDITOR`, `VIEWER`) ve kimlik doğrulamamış (`ANONYMOUS`) istekler için beklenen HTTP durum kodları, veri kapsamı kuralları (Scope Rules), CSRF koruma gereksinimi ve `system_audit_logs` denetim izi tablosu.
+> **Kapsam:** Tüm `@RestController` uç noktalarının (`93` adet) 5 sistem rolü (`ADMIN`, `DEPT_MANAGER`, `STAFF`, `AUDITOR`, `VIEWER`) ve kimlik doğrulamamış (`ANONYMOUS`) istekler için beklenen HTTP durum kodları, veri kapsamı kuralları (Scope Rules), CSRF koruma gereksinimi ve `system_audit_logs` denetim izi tablosu.
 
 ---
 
@@ -35,7 +35,7 @@
 
 ---
 
-## 2. Tüm Uç Noktalar Yetki ve Kapsam Tablosu (92 Uç Nokta)
+## 2. Tüm Uç Noktalar Yetki ve Kapsam Tablosu (93 Uç Nokta)
 
 | # | Yöntem & Yol | Controller & Metot | ADMIN | DEPT_MANAGER | STAFF | AUDITOR | VIEWER | Anonim | Kapsam Kuralı (Scope Rule) | CSRF | Audit |
 | :-: | :--- | :--- | :-: | :-: | :-: | :-: | :-: | :-: | :--- | :-: | :-: |
@@ -118,32 +118,33 @@
 | **77** | `GET    /api/settings` | `EnterpriseController.listSettings` | `200` | `403` | `403` | `200` | `403` | `401` | Sistem Yapılandırması | ❌ | ❌ |
 | **78** | `POST   /api/settings` | `EnterpriseController.updateSetting` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yapılandırması | ✅ | ✅ |
 | **79** | `GET    /api/stock` | `EnterpriseController.listStock` | `200` | `200` | `403` | `200` | `200` | `401` | DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum | ❌ | ❌ |
-| **80** | `GET    /api/stock/transactions` | `EnterpriseController.listStockTransactions` | `200` | `200` | `403` | `200` | `200` | `401` | DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum | ❌ | ❌ |
-| **81** | `POST   /api/stock/transactions` | `EnterpriseController.addStockTx` | `200` | `200` | `403` | `403` | `403` | `401` | DEPT_MANAGER: Kendi müdürlük stok kalemi; ADMIN: Tüm ambarlar | ✅ | ✅ |
-| **82** | `GET    /api/sub-units` | `HierarchyController.getSubUnits` | `200` | `200` | `200` | `200` | `200` | `401` | Tüm Kurum (Salt Okunur Seçici / Tanım Listesi) | ❌ | ❌ |
-| **83** | `POST   /api/sub-units` | `HierarchyController.createSubUnit` | `200` | `403` | `403` | `403` | `403` | `401` | Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi) | ✅ | ✅ |
-| **84** | `DELETE /api/sub-units/{id}` | `HierarchyController.deleteSubUnit` | `200` | `403` | `403` | `403` | `403` | `401` | Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi) | ✅ | ✅ |
-| **85** | `GET    /api/sub-units/{id}` | `HierarchyController.getSubUnitById` | `200` | `200` | `200` | `200` | `200` | `401` | Tüm Kurum (Salt Okunur Seçici / Tanım Listesi) | ❌ | ❌ |
-| **86** | `PUT    /api/sub-units/{id}` | `HierarchyController.updateSubUnit` | `200` | `403` | `403` | `403` | `403` | `401` | Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi) | ✅ | ✅ |
-| **87** | `GET    /api/users` | `UserController.listUsers` | `200` | `403` | `403` | `200` | `403` | `401` | Sistem Yönetimi | ❌ | ❌ |
-| **88** | `POST   /api/users` | `UserController.createUser` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yönetimi | ✅ | ✅ |
-| **89** | `GET    /api/users/{id}` | `UserController.getUserById` | `200` | `403` | `403` | `200` | `403` | `401` | Sistem Yönetimi | ❌ | ❌ |
-| **90** | `PUT    /api/users/{id}` | `UserController.updateUser` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yönetimi | ✅ | ✅ |
-| **91** | `POST   /api/users/{id}/deactivate` | `UserController.deactivateUser` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yönetimi | ✅ | ✅ |
-| **92** | `POST   /api/users/{id}/reset-password` | `UserController.resetPassword` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yönetimi | ✅ | ✅ |
+| **80** | `POST   /api/stock` | `EnterpriseController.createStockItem` | `200` | `200` | `403` | `403` | `403` | `401` | DEPT_MANAGER: Kendi müdürlüğü; ADMIN: Tüm ambarlar | ✅ | ✅ |
+| **81** | `GET    /api/stock/transactions` | `EnterpriseController.listStockTransactions` | `200` | `200` | `403` | `200` | `200` | `401` | DEPT_MANAGER: Kendi Müdürlüğü; ADMIN/AUDITOR/VIEWER: Tüm Kurum | ❌ | ❌ |
+| **82** | `POST   /api/stock/transactions` | `EnterpriseController.addStockTx` | `200` | `200` | `403` | `403` | `403` | `401` | DEPT_MANAGER: Kendi müdürlük stok kalemi; ADMIN: Tüm ambarlar | ✅ | ✅ |
+| **83** | `GET    /api/sub-units` | `HierarchyController.getSubUnits` | `200` | `200` | `200` | `200` | `200` | `401` | Tüm Kurum (Salt Okunur Seçici / Tanım Listesi) | ❌ | ❌ |
+| **84** | `POST   /api/sub-units` | `HierarchyController.createSubUnit` | `200` | `403` | `403` | `403` | `403` | `401` | Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi) | ✅ | ✅ |
+| **85** | `DELETE /api/sub-units/{id}` | `HierarchyController.deleteSubUnit` | `200` | `403` | `403` | `403` | `403` | `401` | Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi) | ✅ | ✅ |
+| **86** | `GET    /api/sub-units/{id}` | `HierarchyController.getSubUnitById` | `200` | `200` | `200` | `200` | `200` | `401` | Tüm Kurum (Salt Okunur Seçici / Tanım Listesi) | ❌ | ❌ |
+| **87** | `PUT    /api/sub-units/{id}` | `HierarchyController.updateSubUnit` | `200` | `403` | `403` | `403` | `403` | `401` | Yalnızca ADMIN (Teşkilat ve Yapı Yönetimi) | ✅ | ✅ |
+| **88** | `GET    /api/users` | `UserController.listUsers` | `200` | `403` | `403` | `200` | `403` | `401` | Sistem Yönetimi | ❌ | ❌ |
+| **89** | `POST   /api/users` | `UserController.createUser` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yönetimi | ✅ | ✅ |
+| **90** | `GET    /api/users/{id}` | `UserController.getUserById` | `200` | `403` | `403` | `200` | `403` | `401` | Sistem Yönetimi | ❌ | ❌ |
+| **91** | `PUT    /api/users/{id}` | `UserController.updateUser` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yönetimi | ✅ | ✅ |
+| **92** | `POST   /api/users/{id}/deactivate` | `UserController.deactivateUser` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yönetimi | ✅ | ✅ |
+| **93** | `POST   /api/users/{id}/reset-password` | `UserController.resetPassword` | `200` | `403` | `403` | `403` | `403` | `401` | Sistem Yönetimi | ✅ | ✅ |
 
 ---
 
 ## 3. Matris Özet İstatistikleri
 
-* **Toplam İncelenen Uç Nokta:** **92** adet
+* **Toplam İncelenen Uç Nokta:** **93** adet
 * **HTTP Metot Dağılımı:**
   * `GET`: 49 uç nokta
-  * `POST`: 28 uç nokta
+  * `POST`: 29 uç nokta
   * `DELETE`: 7 uç nokta
   * `PUT`: 8 uç nokta
-* **CSRF Başlığı Zorunlu Uç Noktalar:** 43 adet
-* **Denetim İzi (`system_audit_logs`) Üreten Uç Noktalar:** 43 adet
+* **CSRF Başlığı Zorunlu Uç Noktalar:** 44 adet
+* **Denetim İzi (`system_audit_logs`) Üreten Uç Noktalar:** 44 adet
 * **STAFF Rolünün Erişebildiği Okuma Uç Noktaları:** 29 adet
-* **STAFF Rolünün Engellendiği (`403`) Uç Noktalar:** 63 adet
+* **STAFF Rolünün Engellendiği (`403`) Uç Noktalar:** 64 adet
 * **AUDITOR ve VIEWER Salt Okunur (`200`) Uç Noktaları:** 50 adet
