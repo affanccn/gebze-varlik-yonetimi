@@ -249,10 +249,28 @@ node scripts/prod_demo_cleanup.js --restore=backups/demo_cleanup_backup_2026-11-
 
 ## 7. Bağlantı Günü Geri Dönüş (Rollback) Planı
 
-Bağlantı gününde herhangi bir adımda kritik bir engel oluşursa:
-1. **Uygulama Seviyesinde Geri Dönüş:** Spring Boot sürecini durdurun (`Stop-Process` / `systemctl stop gebze-varlik`).
-2. **Veritabanı Seviyesinde Geri Dönüş (Sıfır Kurulumda):** DBA `DROP USER VARLIK_OWNER CASCADE; DROP USER VARLIK_APP_RUNTIME CASCADE;` komutuyla şemayı temizler veya bağlantı öncesi alınan Data Pump (`expdp`) yedeğine geri döner.
-3. **Veri Aktarımı Seviyesinde Geri Dönüş:**
-   * Doğrulama (`validate`) aşaması veritabanına hiçbir kayıt yazmaz (`byte[]` bellek tamponunda çalışır).
-   * `commit` aşaması `@Transactional` olarak çalışır; herhangi bir satırda beklenmeyen bir veritabanı hatası oluşursa tüm paket otomatik `ROLLBACK` olur.
+> [!NOTE]
+> Sistem Gebze Belediyesi altyapısına **ilk defa sıfırdan kurulacağı için**, geçmiş sistem yedeğinden (T-60 restore) geri dönme senaryosu söz konusu değildir. Geri dönüş, yeni açılan şemanın ve uygulama bağlantılarının güvenle temizlenmesidir.
+
+Bağlantı gününde herhangi bir adımda kritik bir engel oluşması halinde aşağıdaki 3 adımlı kesin prosedür uygulanır:
+
+1. **Uygulama Servisini Durdurma:**
+   * Spring Boot servis sürecini durdurun:
+     ```bash
+     systemctl stop gebze-varlik
+     # veya Windows ortamında:
+     Stop-Process -Name "java" -Force
+     ```
+2. **Veritabanı Şemasını ve Nesnelerini Temizleme (`dba-rollback.sql`):**
+   * DBA yetkili hesabı ile [`docs/dba-rollback.sql`](file:///c:/Users/Asus/gebze-varlik-yonetimi/docs/dba-rollback.sql) betiğini SQL*Plus veya SQLcl üzerinden çalıştırın:
+     ```sql
+     sqlplus sys/sifre@PDB as sysdba @docs/dba-rollback.sql
+     ```
+   * Betik önce mevcut şemadaki tablo satır sayılarını ekrana listeler, ardından `VARLIK_APP_RUNTIME` ve `VARLIK_OWNER` kullanıcılarının açık oturumlarını sonlandırır (`DISCONNECT SESSION IMMEDIATE`), şemaları ve kullanıcıları `CASCADE` ile tamamen kaldırır. İsteğe bağlı olarak `GEBZE_VARLIK_DATA` ve `GEBZE_VARLIK_IDX` tablespace'lerini temizler.
+3. **Ağ / DNS / Ters Vekil Temizliği:**
+   * Nginx / HAProxy ters vekil sunucusunda tanımlanan yönlendirme kuralını ve DNS kaydını devre dışı bırakın.
+4. **Veri Aktarımı Seviyesinde Geri Dönüş (İşlem Anında):**
+   * Excel doğrulama (`validate`) aşaması salt okunur çalışır; veritabanına hiçbir kayıt yazmaz.
+   * `commit` aşaması `@Transactional` olarak çalışır; aktarım sırasında herhangi bir hata oluşursa veritabanı işlemi otomatik olarak bütünüyle `ROLLBACK` edilir.
+
 
