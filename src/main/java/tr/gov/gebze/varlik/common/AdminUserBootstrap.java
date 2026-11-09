@@ -22,6 +22,9 @@ public class AdminUserBootstrap implements ApplicationRunner {
     @Value("${app.admin.email:admin@gebze.bel.tr}")
     private String adminEmail;
 
+    @Value("${APP_ADMIN_PASSWORD:}")
+    private String configuredAdminPassword;
+
     public AdminUserBootstrap(JdbcClient jdbcClient) {
         this.jdbcClient = jdbcClient;
     }
@@ -38,10 +41,13 @@ public class AdminUserBootstrap implements ApplicationRunner {
                 return;
             }
 
-            // Ortam değişkenini kontrol et
+            // Ortam değişkenini veya yapılandırma (.env / -D) değerini kontrol et
             String envPassword = System.getenv("APP_ADMIN_PASSWORD");
             if (envPassword == null || envPassword.isBlank()) {
                 envPassword = System.getProperty("APP_ADMIN_PASSWORD");
+            }
+            if (envPassword == null || envPassword.isBlank()) {
+                envPassword = configuredAdminPassword;
             }
 
             if (envPassword == null || envPassword.isBlank()) {

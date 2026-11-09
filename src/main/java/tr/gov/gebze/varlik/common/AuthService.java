@@ -2,6 +2,8 @@ package tr.gov.gebze.varlik.common;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,9 +13,14 @@ import tr.gov.gebze.varlik.security.SystemUserDetails;
 @Service
 public class AuthService {
 
+    private final Environment environment;
+
+    public AuthService(Environment environment) {
+        this.environment = environment;
+    }
+
     public record DemoAccount(
             String username,
-            String password,
             String fullName,
             String role,
             String roleLabel,
@@ -26,7 +33,6 @@ public class AuthService {
     private static final List<DemoAccount> DEMO_ACCOUNTS = List.of(
             new DemoAccount(
                     "admin",
-                    "Ortam Değişkeni / Şifre",
                     "Sistem Yöneticisi",
                     "ADMIN",
                     "Sistem Yöneticisi",
@@ -36,7 +42,6 @@ public class AuthService {
             ),
             new DemoAccount(
                     "fen_isleri_mudur",
-                    "GebzeDev2026!",
                     "Fen İşleri Müdürü",
                     "DEPT_MANAGER",
                     "Müdürlük Yöneticisi",
@@ -46,7 +51,6 @@ public class AuthService {
             ),
             new DemoAccount(
                     "saha_personel",
-                    "GebzeDev2026!",
                     "Fatih Koç",
                     "STAFF",
                     "Birim Personeli",
@@ -56,7 +60,6 @@ public class AuthService {
             ),
             new DemoAccount(
                     "ic_denetci",
-                    "GebzeDev2026!",
                     "İç Denetim Uzmanı",
                     "AUDITOR",
                     "İç Denetçi (Salt Okunur)",
@@ -66,7 +69,6 @@ public class AuthService {
             ),
             new DemoAccount(
                     "kurum_izleyici",
-                    "GebzeDev2026!",
                     "Kurum İzleyicisi",
                     "VIEWER",
                     "Kurum İzleyicisi (Salt Okunur)",
@@ -77,6 +79,9 @@ public class AuthService {
     );
 
     public List<Map<String, Object>> getPublicDemoAccounts() {
+        if (environment.acceptsProfiles(Profiles.of("prod")) || !environment.acceptsProfiles(Profiles.of("dev"))) {
+            return List.of();
+        }
         return DEMO_ACCOUNTS.stream()
                 .map(acc -> Map.<String, Object>of(
                         "username", acc.username(),

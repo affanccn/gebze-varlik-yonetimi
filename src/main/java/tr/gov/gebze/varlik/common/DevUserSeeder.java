@@ -23,7 +23,7 @@ public class DevUserSeeder implements ApplicationRunner {
     private final JdbcClient jdbcClient;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.dev.password:${DEV_USER_PASSWORD:GebzeDev2026!}}")
+    @Value("${app.dev.password:${DEV_USER_PASSWORD:}}")
     private String devPassword;
 
     public DevUserSeeder(JdbcClient jdbcClient, PasswordEncoder passwordEncoder) {
@@ -34,6 +34,10 @@ public class DevUserSeeder implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         logger.info("[DEV SEEDER] 'dev' profili aktif, geliştirme test kullanıcıları kontrol ediliyor...");
+        if (devPassword == null || devPassword.isBlank()) {
+            logger.warn("[DEV SEEDER] DEV_USER_PASSWORD tanımlanmadığı için geliştirme test kullanıcıları oluşturulmadı.");
+            return;
+        }
 
         try {
             Long fenDeptId = jdbcClient.sql("""

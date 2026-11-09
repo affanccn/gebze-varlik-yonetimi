@@ -1,6 +1,10 @@
 spring:
   application:
     name: gebze-varlik-yonetimi
+  profiles:
+    default: dev
+  config:
+    import: optional:file:.env[.properties]
 
   servlet:
     encoding:
@@ -13,23 +17,29 @@ spring:
 
   datasource:
     url: ${DB_URL:jdbc:oracle:thin:@//${DB_HOST:localhost}:${DB_PORT:1521}/${DB_SERVICE:FREEPDB1}}
-    username: ${DB_USERNAME:varlik_app}
-    password: ${DB_PASSWORD:GebzeVarlik2026}
+    username: ${DB_USER:${DB_USERNAME:varlik_app}}
+    password: ${DB_PASSWORD:}
     driver-class-name: oracle.jdbc.OracleDriver
     hikari:
       pool-name: GebzeVarlikHikariPool
-      maximum-pool-size: 10
-      minimum-idle: 2
-      connection-timeout: 30000
-      connection-init-sql: "ALTER SESSION SET NLS_COMP=LINGUISTIC NLS_SORT=TURKISH_AI"
-      # Yerel veritabanı henüz açık değilken uygulamanın arayüz modunda başlayabilmesi için:
-      initialization-fail-timeout: -1
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:30000}
+      idle-timeout: ${DB_IDLE_TIMEOUT_MS:600000}
+      max-lifetime: ${DB_MAX_LIFETIME_MS:1800000}
+      connection-init-sql: ${DB_CONNECTION_INIT_SQL:ALTER SESSION SET NLS_COMP=LINGUISTIC NLS_SORT=TURKISH_AI}
+      initialization-fail-timeout: ${DB_INIT_FAIL_TIMEOUT:-1}
       data-source-properties:
         oracle.jdbc.timezoneAsRegion: "false"
+        oracle.net.CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT_MS:10000}
+        oracle.jdbc.ReadTimeout: ${DB_READ_TIMEOUT_MS:30000}
 
   flyway:
     enabled: ${DB_MIGRATION_ENABLED:true}
-    locations: classpath:db/migration
+    locations: ${DB_MIGRATION_LOCATIONS:classpath:db/migration}
+    url: ${FLYWAY_URL:${spring.datasource.url}}
+    user: ${FLYWAY_USER:${spring.datasource.username}}
+    password: ${FLYWAY_PASSWORD:${spring.datasource.password}}
     baseline-on-migrate: true
     validate-on-migrate: false
 
@@ -53,6 +63,9 @@ management:
       show-details: never
 
 app:
+  admin:
+    username: ${APP_ADMIN_USERNAME:admin}
+    email: ${APP_ADMIN_EMAIL:admin@gebze.bel.tr}
   security:
     hsts:
       enabled: ${SECURITY_HSTS_ENABLED:false}

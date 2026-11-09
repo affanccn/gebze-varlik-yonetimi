@@ -171,13 +171,23 @@ public class BulkImportService {
                 sheet.addValidationData(roomVal);
             }
 
-            // Örnek 1 satır veri
+            // Örnek 1 satır veri (Oda ve Müdürlük birbiriyle uyumlu seçilir)
+            Room sampleRoom = !allowedRooms.isEmpty() ? allowedRooms.get(0) : null;
+            String sampleDeptCode = !allowedDepts.isEmpty() ? allowedDepts.get(0).code() : "DEPT-01";
+            if (sampleRoom != null && sampleRoom.departmentId() != null) {
+                for (Department d : allowedDepts) {
+                    if (d.id().equals(sampleRoom.departmentId())) {
+                        sampleDeptCode = d.code();
+                        break;
+                    }
+                }
+            }
             Row sampleRow = sheet.createRow(1);
             sampleRow.createCell(0).setCellValue("GBZ-VRK-2026-0001");
             sampleRow.createCell(1).setCellValue("Örnek Masaüstü Bilgisayar");
             sampleRow.createCell(2).setCellValue(!categories.isEmpty() ? categories.get(0).code() : "CAT-01");
-            sampleRow.createCell(3).setCellValue(!allowedDepts.isEmpty() ? allowedDepts.get(0).code() : "DEPT-11");
-            sampleRow.createCell(4).setCellValue(!allowedRooms.isEmpty() ? allowedRooms.get(0).qrCode() : "GBZ-ROOM-FEN-KZ-01");
+            sampleRow.createCell(3).setCellValue(sampleDeptCode);
+            sampleRow.createCell(4).setCellValue(sampleRoom != null ? sampleRoom.qrCode() : "GBZ-ROOM-ANA-K3-301");
             sampleRow.createCell(5).setCellValue("8690001112233");
             sampleRow.createCell(6).setCellValue("255.02.01.01");
             sampleRow.createCell(7).setCellValue("Dell OptiPlex 7000");

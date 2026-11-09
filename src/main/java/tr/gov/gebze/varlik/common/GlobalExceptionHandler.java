@@ -60,6 +60,26 @@ public class GlobalExceptionHandler {
         ));
     }
 
+    @ExceptionHandler(org.springframework.dao.DataAccessResourceFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleDatabaseConnectionFailure(org.springframework.dao.DataAccessResourceFailureException ex) {
+        String raw = ex.getMessage() != null ? ex.getMessage().toUpperCase() : "";
+        String friendly = "Oracle veritabanı sunucusuna şu anda ulaşılamıyor. Lütfen ağ bağlantısını, DB_URL adresini ve Oracle servis durumunu kontrol ediniz.";
+        if (raw.contains("ORA-01017")) {
+            friendly = "Veritabanı kullanıcı adı veya şifresi hatalı (ORA-01017). Lütfen DB_USER ve DB_PASSWORD ortam değişkenlerini kontrol ediniz.";
+        } else if (raw.contains("ORA-28000")) {
+            friendly = "Veritabanı kullanıcı hesabı kilitlenmiş (ORA-28000). Lütfen DBA ile iletişime geçiniz.";
+        } else if (raw.contains("ORA-12514") || raw.contains("ORA-12505")) {
+            friendly = "Oracle servis adı (DB_SERVICE) veya SID dinleyici tarafından tanınmadı (ORA-12514/12505).";
+        } else if (raw.contains("ORA-12541")) {
+            friendly = "Oracle TNS dinleyicisine (Listener) ulaşılamıyor (ORA-12541). Sunucu adresi ve portu kontrol ediniz.";
+        }
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                "error", friendly,
+                "status", HttpStatus.SERVICE_UNAVAILABLE.value(),
+                "timestamp", Instant.now().toString()
+        ));
+    }
+
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(

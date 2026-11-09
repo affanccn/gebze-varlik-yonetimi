@@ -1,0 +1,22 @@
+# =============================================================================
+# GEBZE BELEDİYESİ KURUMSAL VARLIK VE KAYNAK YÖNETİM SİSTEMİ (GEBZE-EKYS)
+# Geliştirme (Development) Ortamı Yapılandırması (application-dev.yml)
+# =============================================================================
+
+spring:
+  flyway:
+    enabled: ${DB_MIGRATION_ENABLED:true}
+    locations: ${DB_MIGRATION_LOCATIONS:classpath:db/migration}
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE:false}
+
+app:
+  security:
+    hsts:
+      enabled: ${SECURITY_HSTS_ENABLED:false}
+    cookie:
+      secure: ${COOKIE_SECURE:false}

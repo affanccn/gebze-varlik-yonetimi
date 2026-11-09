@@ -67,10 +67,10 @@ public class PersonnelImportService {
             sampleRow.createCell(0).setCellValue("SCL-2026-001");
             sampleRow.createCell(1).setCellValue("Ali");
             sampleRow.createCell(2).setCellValue("Yılmaz");
-            sampleRow.createCell(3).setCellValue("Elektrik Mühendisi");
-            sampleRow.createCell(4).setCellValue(deptId != null ? String.format("DEPT-%02d", deptId) : "DEPT-11");
-            sampleRow.createCell(5).setCellValue("Atölye ve Saha Amirliği");
-            sampleRow.createCell(6).setCellValue("101");
+            sampleRow.createCell(3).setCellValue("Yazılım Mühendisi");
+            sampleRow.createCell(4).setCellValue(deptId != null ? String.format("DEPT-%02d", deptId) : "DEPT-01");
+            sampleRow.createCell(5).setCellValue("Yazılım ve Uygulama Birimi");
+            sampleRow.createCell(6).setCellValue("302");
             sampleRow.createCell(7).setCellValue("0262 642 00 01");
             sampleRow.createCell(8).setCellValue("ali.yilmaz@gebze.bel.tr");
 

@@ -21,6 +21,7 @@ backups/
 hs_err_pid*
 replay_pid*
 *.log
+logs/
 
 # IDE ve editör dosyaları
 .idea/
@@ -42,6 +43,7 @@ Desktop.ini
 # Yerel ortam ve gizli bilgi dosyaları (asla versiyon kontrolüne eklenmemeli)
 .env
 .env.*
+!.env.example
 *.env
 application-local.yml
 application-local.properties
