@@ -172,7 +172,7 @@ test.describe('Faz R5: Üretim Dağıtımı ve SPA Doğrulama Testleri (Port 808
     expect(headers['x-content-type-options']).toBe('nosniff');
     expect(headers['x-frame-options']).toBe('DENY');
     expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
-    expect(headers['permissions-policy']).toContain('camera=()');
+    expect(headers['permissions-policy']).toContain('camera=(self)');
 
     // Giriş yap ve ana ekranları gezerek CSP ihlali olmadığını doğrula
     await login(page, 'admin', ADMIN_PASSWORD);

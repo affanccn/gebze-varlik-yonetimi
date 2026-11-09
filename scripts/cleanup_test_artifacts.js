@@ -2,7 +2,7 @@ const { execSync } = require('child_process');
 
 function runCleanup() {
     const dbUser = process.env.DB_USER || 'varlik_app';
-    const dbPass = process.env.DB_PASSWORD || 'GebzeVarlik2026!';
+    const dbPass = process.env.DB_PASSWORD || 'GebzeVarlik2026';
     const dbService = process.env.DB_SERVICE || 'FREEPDB1';
 
     const sql = `

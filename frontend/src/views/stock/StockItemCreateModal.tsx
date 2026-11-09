@@ -267,3 +267,4 @@ export const StockItemCreateModal: React.FC<StockItemCreateModalProps> = ({
     </div>
   );
 };
+

@@ -123,3 +123,4 @@ PROMPT 5. GERİ DÖNÜŞ (ROLLBACK) TAMAMLANDI VE DOĞRULANDI.
 PROMPT ============================================================================
 
 SELECT username, account_status FROM all_users WHERE username IN ('VARLIK_OWNER', 'VARLIK_APP_RUNTIME');
+
