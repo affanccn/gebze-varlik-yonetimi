@@ -6,6 +6,13 @@
 
 ## A. Oracle Veritabanı ve DBA Soruları
 
+### 0. Öncelikli Talep: Oracle 19c Test Şeması Tahsisi (Kuru Prova İçin)
+* **Talep / Soru:**
+  * Canlıya geçiş öncesinde belediyenin mevcut Oracle sürümünde (özellikle 19c/21c ise) migrasyon ve şema kurulumunun kuru provasını yapabilmemiz için boş bir **test şeması / veritabanı kullanıcısı** (örn. `VARLIK_TEST_DRYRUN`) tahsis edilebilir mi?
+  * Bu test şeması üzerinde `docs/kuru-prova-19c.sql` ve `scripts/dry_run_oracle19c.ps1` kuru prova doğrulama paketimizi çalıştırıp; `CLOB CHECK (IS JSON)`, `NLS_SORT=TURKISH_AI`, kimlik sütunları (`IDENTITY`) ve DDL yetkilerinin canlı ortamla %100 uyumunu canlı kesinti gününden önce raporlamak istiyoruz.
+* **Neden soruyoruz?**
+  * Yerel geliştirme ortamımız Oracle 23ai olup, canlı sistem 19c veya 21c olduğunda son dakika sürprizleri (örneğin sözdizimi farkı, kısıt hataları veya karakter seti uyumsuzlukları) yaşanmaması için canlı öncesi riskleri sıfıra indirmek hedeflenmektedir.
+
 ### 1. Kurumsal Oracle Veritabanı Sürümü ve Mimarisi Nedir?
 * **Sorular:**
   * Bağlanacağımız Oracle veritabanının tam sürümü nedir? (`19c`, `21c`, `23ai` veya `12c R2`?)

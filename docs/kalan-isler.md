@@ -76,6 +76,9 @@ Belediyenin kurumsal Oracle veritabanı `19c` veya `21c` olabileceğinden, tüm 
 * **Doğrulama:** `db/migration-prod/V1` ve `V2` betikleri gerçek Oracle motoru üzerinde izole `VARLIK_PROVA` şemasında `CLOB CHECK (... IS JSON)` kısıtlarıyla çalıştırılmış; `DATA_TYPE = CLOB` ve JSON doğrulama kısıtlarının (`IS JSON`) uygulama (`JdbcTemplate`) ile %100 uyumlu çalıştığı kanıtlanmıştır.
 * **Belediye 19c Sunucusunda Bağlantı Günü Manuel Kontrol Listesi:**
   - [ ] `SELECT banner_full FROM v$version;` ile sürümün `19c` (19.3+) olduğu doğrulandı.
+  - [ ] **NLS_SORT=TURKISH_AI Geçerlilik Sorgusu:** `SELECT value FROM v$nls_valid_values WHERE parameter='SORT' AND value IN ('TURKISH','XTURKISH');` sorgusuyla dil tablosunun varlığı ve `ALTER SESSION SET NLS_COMP=LINGUISTIC NLS_SORT=TURKISH_AI; SELECT CASE WHEN 'İSTANBUL' = 'istanbul' THEN 'OK' ELSE 'FAIL' END FROM dual;` çıktısının `OK` olduğu doğrulandı.
+  - [ ] **CLOB Üzerinde IS JSON Kısıtı Doğrulaması:** `CREATE TABLE tmp_json_chk (id NUMBER, doc CLOB CONSTRAINT chk_doc_json CHECK (doc IS JSON)); INSERT INTO tmp_json_chk VALUES (1, '{"test":true}'); DROP TABLE tmp_json_chk PURGE;` sorgusuyla `IS JSON` sözdiziminin CLOB üzerinde çalıştığı doğrulandı.
+  - [ ] **Logon Trigger Yetkisi ve Fallback:** `VARLIK_APP_RUNTIME` için `AFTER LOGON` tetikleyicisi (`TRG_VARLIK_APP_LOGON`) oluşturulabilmesi için DBA'nın `GRANT ADMINISTER DATABASE TRIGGER TO VARLIK_OWNER;` yetkisi vermesi gerekir. Eğer DBA bu sistem yetkisini vermezse, **Fallback mekanizması hazırdır**: HikariCP havuzu her bağlantı açılışında `connection-init-sql: "ALTER SESSION SET CURRENT_SCHEMA=VARLIK_OWNER NLS_COMP=LINGUISTIC NLS_SORT=TURKISH_AI"` çalıştırarak aynı işlevi sıfır ek DB yetkisiyle eksiksiz yerine getirir.
   - [ ] `VARLIK_OWNER` kullanıcısına `CREATE TABLE, CREATE VIEW, CREATE SEQUENCE, CREATE TRIGGER, CREATE PROCEDURE` yetkilerinin verildiği doğrulandı.
   - [ ] `V1__init_core_schema_19c_23ai.sql` çalıştıktan sonra `SELECT column_name, data_type FROM user_tab_columns WHERE table_name='ASSETS' AND column_name='SPECIFICATIONS';` sorgusunun `CLOB` döndürdüğü doğrulandı.
 
@@ -117,16 +120,25 @@ Belediyenin kurumsal Oracle veritabanı `19c` veya `21c` olabileceğinden, tüm 
 
 ## 5. Önceliklendirilmiş Yol Haritası (P1 / P2 / P3) ve Tahmini Eforlar
 
-> **Not:** Önceki yol haritasında P1 altında yer alan **En Az Yetkili DB Kullanıcısı (`dba-kurulum.sql`)**, **Sıfır Demo Verili Prod Migrasyonu (`db/migration-prod`)**, **`.env` Yapılandırması**, **`application-prod.yml` Sertleştirmesi**, **`logback-spring.xml` Log Rotasyonu**, **`/api/health` Gerçek DB Kontrolü**, **`DEMO-VRK` Temizlik Betiği (`prod_demo_cleanup.js`)** ve **Otomatik Test Teardown (`cleanup_test_artifacts.js`)** maddeleri bu aşamada **TAMAMLANMIŞTIR**.
+> **Not:** Önceki yol haritasında P1 altında yer alan kritik çekirdek maddeler:
+> - **En Az Yetkili DB Kullanıcısı (`dba-kurulum.sql`)**,
+> - **Sıfır Demo Verili Prod Migrasyonu (`db/migration-prod`)**,
+> - **`.env` Yapılandırması ve `application-prod.yml` Sertleştirmesi**,
+> - **`logback-spring.xml` Log Rotasyonu ve `/api/health` Gerçek DB Kontrolü**,
+> - **`DEMO-VRK` Temizlik Betiği (`prod_demo_cleanup.js`) ve Otomatik Test Teardown (`cleanup_test_artifacts.js`)**,
+> - **Güvenli CSV Dışa Aktarımı (Formül Kaçışı: `=`, `+`, `-`, `@`, `\t`, `\r` başına `'` ekleme) ve `DATA_EXPORT` Denetim İzi**,
+> - **Gerçek İstemci IP Loglaması (Sahte `X-Forwarded-For` başlıklarını engelleme, güvenli `RemoteIpValve` soket adresi denetimi)**,
+> - **Stok Eşzamanlılık Koruması ve Negatif Miktar Engeli (`SELECT ... FOR UPDATE` pesimist kilit + yetersiz stokta `409 CONFLICT` fırlatma)**
+> bu aşamada **TAMAMLANMIŞ VE REGRESYON TESTLERİYLE DOĞRULANMIŞTIR** (`scripts/test_p1_regressions.js`).
 
-### 🔴 P1 — Canlıya Çıkış Öncesi Kalan Uygulama İyileştirmeleri (Toplam: ~4.0 İş Günü)
+### 🔴 P1 — Canlıya Çıkış Öncesi Kalan Uygulama İyileştirmeleri (Toplam: ~2.5 İş Günü)
 
-| Kod | İş Kalemi | Öncelik | Tahmini Efor | Bağımlılık |
+| Kod | İş Kalemi (Kalan Kapsam) | Öncelik | Tahmini Efor | Bağımlılık |
 | :-: | :--- | :---: | :---: | :--- |
-| **F.1 / F.2 / F.3** | **Stok Negatif Miktar Engeli (`FOR UPDATE`), Yeni Stok Kartı, Resmi Taşınır Hesap Kodları (`253/254/255`) ve Dinamik Amortisman Yılı** | **P1** | **1.5 Gün** *(12 saat)* | Karar S.10 |
-| **B.3 / J.2** | **Güvenli CSV Dışa Aktarım (Formül Kaçışı + `DATA_EXPORT` Audit Log), Gerçek İstemci IP Loglaması, KVKK Aydınlatma Metni ve Filtreli QR Etiket Basımı** | **P1** | **1.0 Gün** *(8 saat)* | Yok |
-| **D.2 / A.4** | **Resmi Zimmet Fişi & Personel İlişik Kesme Tutanağı A4 Çıktısı; Ekran Üstü KPI Kartlarının Sunucu Toplamlarına Bağlanması** | **P1** | **1.0 Gün** *(8 saat)* | Yok |
-| **K.5** | **Giriş Uç Noktasında (`/api/auth/login`) IP Bazlı Hız Sınırlaması (Rate-Limiting)** | **P1** | **0.5 Gün** *(4 saat)* | Yok |
+| **F.1(UI) / F.2 / F.3** | **Stok Yönetimi Genişletmesi:** Çekirdeği tamamlanan stok çıkışına ek olarak yeni stok kartı açma modalı (`POST /api/stock`), TİF sarf fişi önizleme modalı, Resmi Taşınır Hesap Kodları (`253/254/255`) seçicisi ve Dinamik Amortisman Yılı hesaplama servisi. | **P1** | **1.0 Gün** *(8 saat)* | Karar S.10 |
+| **B.3 / J.2 (Ek)** | **KVKK ve Etiket Basım Genişletmesi:** Çekirdeği tamamlanan güvenli CSV ve IP loglamasına ek olarak ilk girişte KVKK Aydınlatma Metni Onay Modalı ve filtrelenmiş varlık listesinden çoklu QR etiket A4 sayfası dökümü. | **P1** | **0.5 Gün** *(4 saat)* | Yok |
+| **D.2 / A.4** | **Resmi Zimmet Fişi & Personel İlişik Kesme Tutanağı:** A4 resmi tutanak formatında PDF/yazdırma modalı; Ekran Üstü KPI Kartlarının sunucu tabanlı toplamlarına (`/api/dashboard/stats`) tam bağlanması. | **P1** | **0.5 Gün** *(4 saat)* | Yok |
+| **K.5** | **Giriş Uç Noktasında (`/api/auth/login`) IP Bazlı Hız Sınırlaması:** Kaba kuvvet (brute-force) saldırılarına karşı IP başına dakikada maksimum 10 istek sınırlaması (Bucket4j veya Caffeine Cache). | **P1** | **0.5 Gün** *(4 saat)* | Yok |
 
 ### 🟡 P2 — Pilot Sürecinde / Kurumsal Yaygınlaştırma Öncesi (Toplam: ~6.5 İş Günü)
 
