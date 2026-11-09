@@ -33,7 +33,7 @@ export const AssignmentSlipModal: React.FC<AssignmentSlipModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-800">Resmi Zimmet Fişi (A4)</h2>
-              <p className="text-xs text-slate-500">Taşınır Mal Yönetmeliği Taşınır Teslim Belgesi.</p>
+              <p className="text-xs text-slate-500">Taslak şablon; format ve hesap kodları Taşınır Kayıt Yetkilisi onayına tabidir.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -111,25 +111,30 @@ export const AssignmentSlipModal: React.FC<AssignmentSlipModalProps> = ({
           </table>
 
           {/* Commitment Text */}
-          <div className="text-[10px] text-slate-600 leading-relaxed mb-10 p-3 bg-slate-50 border border-slate-200 rounded-lg text-justify print:bg-white print:border-slate-300">
-            <strong>Taahhütname:</strong> Yukarıda marka, model, seri numarası ve barkodu belirtilen taşınır mal / demirbaş, belediyemizdeki görevim süresince kullanılmak ve muhafaza edilmek üzere tarafıma eksiksiz ve çalışır vaziyette teslim edilmiştir. Görevimden ayrılmam, birim değiştirmem veya idarece talep edilmesi halinde söz konusu taşınırı Taşınır Mal Yönetmeliği hükümleri doğrultusunda aynen ve noksansız olarak ambar / taşınır kayıt yetkilisine teslim etmeyi kabul ve taahhüt ederim.
+          <div className="text-[10px] text-slate-600 leading-relaxed mb-6 p-3 bg-slate-50 border border-slate-200 rounded-lg text-justify print:bg-white print:border-slate-300">
+            <strong>Taahhütname:</strong> Yukarıda marka, model, seri numarası ve barkodu belirtilen taşınır mal / demirbaş, belediyemizdeki görevim süresince kullanılmak ve muhafaza edilmek üzere tarafıma eksiksiz ve çalışır vaziyette teslim edilmiştir. Görevimden ayrılmam, birim değiştirmem veya idarece talep edilmesi halinde söz konusu taşınırı kurum içi taşınır yönergeleri doğrultusunda aynen ve noksansız olarak ambar / taşınır kayıt yetkilisine teslim etmeyi kabul ve taahhüt ederim.
           </div>
 
           {/* Signatures */}
-          <div className="grid grid-cols-2 gap-8 text-center text-xs mt-12 pt-6">
+          <div className="grid grid-cols-2 gap-8 text-center text-xs mt-6 pt-4">
             <div className="border-t border-slate-400 pt-3">
               <div className="font-bold text-slate-900">TESLİM EDEN</div>
               <div className="text-slate-600 mt-1">Taşınır Kayıt ve Kontrol Yetkilisi</div>
               <div className="text-[10px] text-slate-400 mt-1">İmza / Mühür</div>
-              <div className="h-16"></div>
+              <div className="h-12"></div>
             </div>
 
             <div className="border-t border-slate-400 pt-3">
               <div className="font-bold text-slate-900">TESLİM ALAN (ZİMMET SAHİBİ)</div>
               <div className="text-slate-600 mt-1">{assignment.assigneeName}</div>
               <div className="text-[10px] text-slate-400 mt-1">İmza</div>
-              <div className="h-16"></div>
+              <div className="h-12"></div>
             </div>
+          </div>
+
+          {/* Footnote */}
+          <div className="text-[9px] text-slate-500 text-center italic mt-4 border-t border-slate-100 pt-2">
+            * Taslak şablon; format ve hesap kodları Taşınır Kayıt Yetkilisi onayına tabidir.
           </div>
         </div>
       </div>

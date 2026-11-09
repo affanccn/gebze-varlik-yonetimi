@@ -1,6 +1,6 @@
 # Migrasyon Çift Set (Dual-Track) Yönetim Kuralı
 
-> **Kuralın Amacı:** Geliştirme ortamında (`db/migration/`) Flyway checksum geçmişini bozmadan ilerlerken, üretim ortamında (`db/migration-prod/`) Oracle 19c/21c/23ai uyumlu (`CLOB CHECK (... IS JSON)`) ve **sıfır demo verili** temiz şemayı garanti altına almaktır.
+> **Kuralın Amacı:** Geliştirme ortamında (`db/migration/`) Flyway checksum geçmişini bozmadan ilerlerken, üretim ortamında (`db/migration-prod/`) Oracle 19c/21c/23ai uyumlu (`CLOB CHECK (... IS JSON)`) ve **sıfır demo verili** temiz şemayı sağlamaktır.
 
 ---
 

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-09T12:04:42.975Z",
+  "generatedAt": "2026-11-09T12:36:54.745Z",
   "system": {
     "name": "T.C. Gebze Belediyesi Kurumsal Varlık Yönetim Sistemi",
     "code": "GEBZE-EKYS",
     "currentStage": "Altyapı ve Yazılım Tamamlama (Belediye Entegrasyonu Öncesi)",
-    "status": "Tamamen Hazır — Sıfır Kod Değişikliğiyle Yapılandırmaya Bağlı Çalışma"
+    "status": "Teknik Altyapı Hazır — Belediye Entegrasyonuna Esnek Yapılandırma Desteği"
   },
   "technologyStack": {
     "runtime": "Java 25 (OpenJDK 64-Bit Server VM)",
@@ -22,28 +22,31 @@
     "applicationTables": 21,
     "migrationHistoryTables": 1,
     "totalColumns": 317,
+    "applicationColumns": 291,
     "totalIndexes": 115,
+    "applicationIndexes": 112,
     "totalConstraints": 263,
+    "applicationConstraints": 73,
     "totalTriggers": 1,
-    "departmentsCount": 32,
+    "departmentsCount": 30,
     "categoriesCount": 16,
-    "buildingsCount": 13,
-    "roomsCount": 58,
+    "buildingsCount": 12,
+    "roomsCount": 56,
     "personnelActiveCount": 48,
     "personnelTotalCount": 55,
     "assetsActiveCount": 74,
     "assetsTotalCount": 74,
     "assetsTotalValue": 48298300,
     "assignmentsActiveCount": 10,
-    "assignmentsTotalCount": 36,
-    "stockItemsCount": 14,
-    "stockTransactionsCount": 75,
+    "assignmentsTotalCount": 37,
+    "stockItemsCount": 12,
+    "stockTransactionsCount": 77,
     "fleetVehiclesCount": 8,
     "procurementOrdersCount": 3,
     "maintenancesCount": 2,
     "inventoryAuditsCount": 1,
     "systemUsersActiveCount": 5,
-    "auditLogsCount": 9999
+    "auditLogsCount": 10284
   },
   "securityAndTesting": {
     "totalEndpoints": 93,

@@ -2,28 +2,45 @@ const fs = require('fs');
 const path = require('path');
 
 const forbidden = ['Sayın', 'Başkan', 'ay sonra', 'hafta', 'iş günü', 'P1', 'garanti', '%100'];
+
+function getAllFiles(dir, exts) {
+  let results = [];
+  const list = fs.readdirSync(dir);
+  list.forEach((file) => {
+    const fullPath = path.join(dir, file);
+    const stat = fs.statSync(fullPath);
+    if (stat && stat.isDirectory()) {
+      results = results.concat(getAllFiles(fullPath, exts));
+    } else {
+      if (exts.some((ext) => file.endsWith(ext))) {
+        results.push(fullPath);
+      }
+    }
+  });
+  return results;
+}
+
+const docsFiles = getAllFiles(path.join(__dirname, '..', 'docs'), ['.md', '.sql']);
 const targets = [
-  'docs/Gebze_Varlik_Yonetimi_Yonetici_Raporu.pdf',
-  'docs/kalan-isler.md',
-  'scripts/generate_executive_report_pdf.js'
+  ...docsFiles,
+  path.join(__dirname, 'generate_executive_report_pdf.js')
 ];
 
-console.log('=== YASAKLI KELİME KONTROLÜ ===');
+console.log('=== YASAKLI KELİME KONTROLÜ (TÜM DOCS MD, SQL VE RAPOR KODU) ===');
 let foundTotal = 0;
 
 targets.forEach((file) => {
-  if (!fs.existsSync(file)) return;
-  if (file.endsWith('.pdf')) return; // We'll extract text from PDF separately
+  const rel = path.relative(path.join(__dirname, '..'), file);
   const content = fs.readFileSync(file, 'utf8');
   forbidden.forEach((word) => {
-    // regex case insensitive or exact
+    // Regex matches
     const re = new RegExp(word, 'gi');
     const matches = content.match(re);
     if (matches && matches.length > 0) {
-      console.log(`[UYARI] ${file} içinde '${word}' bulundu: ${matches.length} adet`);
+      console.log(`[BULGU] ${rel} -> '${word}': ${matches.length} eşleşme`);
       foundTotal += matches.length;
     }
   });
 });
 
-console.log(`Toplam bulunan: ${foundTotal}`);
+console.log(`\nToplam bulunan yasaklı kelime sayısı: ${foundTotal}`);

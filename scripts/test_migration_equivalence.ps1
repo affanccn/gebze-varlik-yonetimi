@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   GEBZE-EKYS migrasyon seti eşdeğerlik testi (db/migration V1..Vn  <->  db/migration-prod V1..Vm).
 
@@ -45,21 +45,24 @@ END;
 /
 '@
 
-$q = [char]34
-$create = "CREATE USER VARLIK_EQ_PROD IDENTIFIED BY " + $q + "GebzeVarlik2026!" + $q + " QUOTA UNLIMITED ON USERS;`r`nGRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE TRIGGER, CREATE VIEW, CREATE PROCEDURE TO VARLIK_EQ_PROD;"
+$pw = "GebzeEq2026Pass"
+$create = "CREATE USER VARLIK_EQ_PROD IDENTIFIED BY $pw QUOTA UNLIMITED ON USERS;`r`nGRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE TRIGGER, CREATE VIEW, CREATE PROCEDURE TO VARLIK_EQ_PROD;"
 
 try {
     Write-Host "== Gecici bos semalar olusturuluyor (VARLIK_EQ_PROD) =="
-    Invoke-Sys ($drop + $create) | Out-Null
+    Invoke-Sys ($drop + "`r`n" + $create) | Out-Null
 
     if (-not (Test-Path target/cp.txt)) {
         & .\mvnw.cmd -q dependency:build-classpath "-Dmdep.outputFile=target/cp.txt" "-Dmdep.includeScope=runtime"
     }
     $cp = (Get-Content target/cp.txt -Raw).Trim()
 
+    Write-Host "== MigrationEquivalence derleniyor =="
+    & javac -cp $cp -d scripts scripts/MigrationEquivalence.java
+
     Write-Host "== Migrasyonlar uygulanip veri sozlukleri karsilastiriliyor =="
     $cp = "target/classes;scripts;" + $cp
-    & java -cp $cp MigrationEquivalence $JdbcUrl VARLIK_APP 'GebzeVarlik2026!' VARLIK_EQ_PROD 'GebzeVarlik2026!'
+    & java -cp $cp MigrationEquivalence $JdbcUrl varlik_app 'GebzeVarlik2026' VARLIK_EQ_PROD $pw
     $code = $LASTEXITCODE
 }
 finally {

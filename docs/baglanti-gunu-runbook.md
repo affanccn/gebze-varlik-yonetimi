@@ -37,7 +37,7 @@ SELECT parameter, value
   FROM nls_database_parameters
  WHERE parameter IN ('NLS_CHARACTERSET', 'NLS_NCHAR_CHARACTERSET', 'NLS_LANGUAGE', 'NLS_TERRITORY', 'NLS_SORT', 'NLS_COMP');
 ```
-* **Beklenen:** Oracle `19c`, `21c` veya `23ai`. (`db/migration-prod` içindeki `CLOB CHECK (... IS JSON)` yapısı her üç sürümle de %100 uyumludur).
+* **Beklenen:** Oracle `19c`, `21c` veya `23ai`. (`db/migration-prod` içindeki `CLOB CHECK (... IS JSON)` yapısı her üç sürümle de tam uyumludur).
 
 ---
 

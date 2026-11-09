@@ -330,7 +330,7 @@ const htmlContent = `<!DOCTYPE html>
         <h3 style="color: #166534; font-size: 10.5px;">Doğrulanan Çekirdek Yetenekler</h3>
         <ul>
           <li><strong>Tam Rol İzolasyonu:</strong> 5 rol (ADMIN, DEPT_MANAGER, STAFF, AUDITOR, VIEWER) ve ${metrics.securityAndTesting.totalEndpoints} uç nokta için varsayılan-red (default-deny) güvenlik mimarisi.</li>
-          <li><strong>Resmi A4 Dökümleri:</strong> Islak imzaya hazır Taşınır Mal Yönetmeliği teslim senedi, TİF fişi ve ilişik kesme kontrol belgesi.</li>
+          <li><strong>Resmi A4 Dökümleri:</strong> Islak imzaya hazır resmi taşınır teslim senedi, TİF sarf fişi ve personel ilişik kesme kontrol belgesi (Taslak şablon; format ve hesap kodları Taşınır Kayıt Yetkilisi onayına tabidir).</li>
           <li><strong>Kaba Kuvvet Koruması:</strong> Giriş uç noktasında IP ve kullanıcı adı kombinasyonuyla hız sınırlaması (HTTP 429) ve güvenilir ters vekil IP çözümleme motoru.</li>
           <li><strong>Oracle Çoklu Sürüm Desteği:</strong> 19c, 21c ve 23ai üzerinde çalışan CLOB IS JSON veri mimarisi.</li>
         </ul>
@@ -491,11 +491,15 @@ const htmlContent = `<!DOCTYPE html>
           <tr><td style="width: 55%;"><strong>Uygulama Tabloları</strong></td><td><strong>${metrics.databaseMetrics.applicationTables} Adet</strong></td></tr>
           <tr><td><strong>Flyway Geçmiş Tablosu</strong></td><td>1 Adet</td></tr>
           <tr><td><strong>Toplam Tablo Sayısı</strong></td><td><strong>${metrics.databaseMetrics.totalTables} Adet</strong></td></tr>
-          <tr><td><strong>Toplam Sütun Sayısı</strong></td><td>${metrics.databaseMetrics.totalColumns} Sütun</td></tr>
-          <tr><td><strong>Toplam İndeks Sayısı</strong></td><td>${metrics.databaseMetrics.totalIndexes} İndeks (B-Tree + FBI)</td></tr>
-          <tr><td><strong>Toplam Kısıt (Constraint)</strong></td><td>${metrics.databaseMetrics.totalConstraints} (PK, FK, UNIQUE, CHECK)</td></tr>
+          <tr><td><strong>Toplam Sütun Sayısı</strong></td><td>${metrics.databaseMetrics.totalColumns} Sütun (${metrics.databaseMetrics.applicationColumns} uygulama)*</td></tr>
+          <tr><td><strong>Toplam İndeks Sayısı</strong></td><td>${metrics.databaseMetrics.totalIndexes} İndeks (${metrics.databaseMetrics.applicationIndexes} B-Tree/FBI + 3 LOB)</td></tr>
+          <tr><td><strong>Toplam Kısıt (Constraint)</strong></td><td>${metrics.databaseMetrics.totalConstraints} (${metrics.databaseMetrics.applicationConstraints} kurumsal + 190 NOT NULL)**</td></tr>
           <tr><td><strong>Değiştirilemezlik Tetikleyicisi</strong></td><td>1 Adet (trg_system_audit_logs_immutable)</td></tr>
         </table>
+        <div style="font-size: 7.2px; color: #64748b; margin-top: 3px; line-height: 1.2;">
+          * 291 uygulama sütunu + 26 sistem kimlik sütunu.<br/>
+          ** 73 kurumsal PK, UK, FK kısıtı + 190 Oracle sistem IS NOT NULL kontrolü.
+        </div>
       </div>
 
       <div class="card card-success">
@@ -526,7 +530,7 @@ const htmlContent = `<!DOCTYPE html>
           <tr>
             <td><strong>Teşkilat ve Yerleşke</strong></td>
             <td><code>DEPARTMENTS, SUB_UNITS, BUILDINGS, FLOORS, ROOMS</code></td>
-            <td>32 müdürlük, alt birimler, 13 hizmet binası ve 58 oda/alan hiyerarşisi.</td>
+            <td>${metrics.databaseMetrics.departmentsCount} resmi müdürlük, alt birimler, ${metrics.databaseMetrics.buildingsCount} hizmet binası ve ${metrics.databaseMetrics.roomsCount} oda/alan hiyerarşisi.</td>
           </tr>
           <tr>
             <td><strong>Varlık ve Envanter</strong></td>
@@ -706,10 +710,10 @@ const htmlContent = `<!DOCTYPE html>
       <div class="card">
         <h3 style="color: #0369a1;">2. Zimmet ve Personel Takibi</h3>
         <p style="margin-bottom: 3px;">
-          Demirbaşların personele tahsisi, iade süreçleri ve Taşınır Mal Yönetmeliği senet dökümleri.
+          Demirbaşların personele tahsisi, iade süreçleri ve resmi teslim senedi dökümleri (Taslak şablon).
         </p>
         <ul>
-          <li><strong>Resmi Zimmet Senedi:</strong> Islak imzaya hazır resmi taahhüt metinli A4 fişi.</li>
+          <li><strong>Resmi Zimmet Senedi:</strong> Islak imzaya hazır resmi taahhüt metinli A4 fişi (Taslak şablon).</li>
           <li><strong>İlişik Kesme Belgesi:</strong> Personel ayrılışında zimmet varlığını denetleyen resmi tutanak.</li>
           <li><strong>Güvenli Pasife Alma:</strong> Üzerinde zimmet bulunan personelin silinmesi engellenir (HTTP 409).</li>
         </ul>
@@ -723,8 +727,8 @@ const htmlContent = `<!DOCTYPE html>
           Periyodik fiziksel sayımların oda bazında yürütülmesi ve uzlaştırma raporlaması.
         </p>
         <ul>
-          <li><strong>El Terminali Modu:</strong> USB/Bluetooth barkod tabancası ile seri okutma.</li>
-          <li><strong>Kamera ile Sayım:</strong> Ortam değişkeniyle devreye alınabilen mobil kamera akışı.</li>
+          <li><strong>El Terminali Modu:</strong> USB/Bluetooth barkod tabancası ile seri okutma (varsayılan).</li>
+          <li><strong>Kamera ile Sayım:</strong> Kamera ile okutma özellik bayrağıyla hazır; HTTPS ve saha cihazında doğrulama gerekir.</li>
           <li><strong>Sayım Uzlaştırması:</strong> Doğru Konum, Farklı Konum ve Eksik Varlık ayrıştırması.</li>
         </ul>
       </div>
@@ -736,7 +740,7 @@ const htmlContent = `<!DOCTYPE html>
         </p>
         <ul>
           <li><strong>Yeni Stok Kartı Açma:</strong> Kategori, birim fiyat ve kritik eşik tanımlama.</li>
-          <li><strong>TİF Sarf Fişi (A4):</strong> Taşınır Mal Yönetmeliği formatında resmi çıkış fişi dökümü.</li>
+          <li><strong>TİF Sarf Fişi (A4):</strong> İki nüsha ve çift imzalı resmi sarf çıkış fişi dökümü (Taslak şablon).</li>
           <li><strong>Eşzamanlılık Koruması:</strong> Negatif stok çıkışını önleyen SELECT FOR UPDATE kilidi.</li>
         </ul>
       </div>
@@ -936,7 +940,7 @@ const htmlContent = `<!DOCTYPE html>
 </div>
 
 <!-- ==================================================================== -->
-<!-- SAYFA 8: BAĞLANTI GÜNÜ RUNBOOK VE DOKÜMANTASYON -->
+<!-- SAYFA 8: BELEDİYEDEN BEKLENEN BİLGİ VE KARARLAR (10 MADDE) -->
 <!-- ==================================================================== -->
 <div class="page">
   <div>
@@ -946,102 +950,108 @@ const htmlContent = `<!DOCTYPE html>
         <div class="sub-title">KURUMSAL VARLIK YÖNETİMİ SİSTEMİ (EKYS)</div>
       </div>
       <div class="header-right">
-        <span class="badge">BAĞLANTI GÜNÜ RUNBOOK</span>
+        <span class="badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">KURUMSAL ENTEGRASYON</span>
       </div>
     </div>
 
-    <h2>Bağlantı Günü Kesintisiz Geçiş Runbook'u ve Dokümantasyon İndeksi</h2>
-    <p>Belediyeden gerekli bilgiler ve erişim sağlandığında uygulanacak adım adım operasyonel zaman çizelgesi:</p>
+    <h2>Belediyeden Beklenen Bilgi, Karar ve Kurumsal Erişimler (10 Madde)</h2>
+    <p>Sistemin belediye kurumsal altyapısında canlıya alınabilmesi için Bilgi İşlem, Mali Hizmetler ve İK birimlerinden beklenen 10 operasyonel madde:</p>
 
-    <div class="card" style="margin-bottom: 7px;">
-      <h3 style="color: #0f172a;">Bağlantı Günü Operasyon Çizelgesi (T-60 dk .. T+60 dk)</h3>
+    <div class="card" style="margin-bottom: 7px; padding: 6px 9px;">
       <table>
         <thead>
           <tr>
-            <th style="width: 15%;">Zaman</th>
-            <th style="width: 35%;">Uygulanacak Operasyonel Adım</th>
-            <th style="width: 25%;">Sorumlu Ekip</th>
-            <th style="width: 25%;">Doğrulama Ölçütü</th>
+            <th style="width: 5%; text-align: center;">#</th>
+            <th style="width: 27%;">Beklenen Bilgi / Karar</th>
+            <th style="width: 50%;">Teknik Gerekçe ve Detay</th>
+            <th style="width: 18%;">Muhatap Birim</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>T-60 dk</strong></td>
-            <td>Ağ erişimi testi ve Oracle port kontrolü (Port 1521).</td>
-            <td>Yazılım Ekibi / Belediye Ağ Ekibi</td>
-            <td><code>Test-NetConnection -Port 1521</code> OK</td>
+            <td style="text-align: center; font-weight: bold;">1</td>
+            <td><strong>Oracle Sürümü ve Mimarisi</strong></td>
+            <td>Oracle veritabanının tam sürümü (19c / 21c / 23ai) ve mimarisi (CDB/PDB veya Standalone).</td>
+            <td>Bilgi İşlem (DBA)</td>
           </tr>
           <tr>
-            <td><strong>T-45 dk</strong></td>
-            <td>DBA şema kurulum betiğinin çalıştırılması (<code>dba-kurulum.sql</code>).</td>
-            <td>Belediye Oracle DBA</td>
-            <td><code>VARLIK_OWNER</code> ve <code>VARLIK_APP_RUNTIME</code> hazır.</td>
+            <td style="text-align: center; font-weight: bold;">2</td>
+            <td><strong>Servis Adı ve Bağlantı Parametresi</strong></td>
+            <td>DB sunucu IP adresi, portu (1521), SERVICE_NAME veya SID; TNS / Wallet gereksinimi.</td>
+            <td>Bilgi İşlem (DBA / Ağ)</td>
           </tr>
           <tr>
-            <td><strong>T-30 dk</strong></td>
-            <td>Üretim ortam değişkenlerinin (<code>.env</code>) tanımlanması.</td>
-            <td>Sistem Yöneticisi</td>
-            <td>Parolalar ortam değişkeninden okunur.</td>
+            <td style="text-align: center; font-weight: bold;">3</td>
+            <td><strong>DBA Kurulum Yetkileri</strong></td>
+            <td><code>docs/dba-kurulum.sql</code> ile VARLIK_OWNER (DDL) ve VARLIK_APP_RUNTIME (DML) şemalarının açılması.</td>
+            <td>Bilgi İşlem (DBA)</td>
           </tr>
           <tr>
-            <td><strong>T-15 dk</strong></td>
-            <td>Spring Boot uygulamasının <code>prod</code> profilinde başlatılması.</td>
-            <td>Yazılım Ekibi</td>
-            <td>Flyway V1+V2 ile 21 uygulama tablosu açılır.</td>
+            <td style="text-align: center; font-weight: bold;">4</td>
+            <td><strong>Logon Trigger Yetki Onayı</strong></td>
+            <td>CURRENT_SCHEMA ve TURKISH_AI ayarlayan trigger için ADMINISTER DATABASE TRIGGER yetkisi veya HikariCP fallback onayı.</td>
+            <td>Bilgi İşlem (DBA)</td>
           </tr>
           <tr>
-            <td><strong>T-00 dk</strong></td>
-            <td>Sağlık kontrolü ve ilk kurumsal yönetici girişi.</td>
-            <td>Yazılım Ekibi / Proje Sorumlusu</td>
-            <td><code>/api/health</code> UP, zorunlu şifre değişimi.</td>
+            <td style="text-align: center; font-weight: bold;">5</td>
+            <td><strong>Karakter Seti ve NLS_SORT</strong></td>
+            <td>Veritabanının karakter seti (AL32UTF8) ve TURKISH_AI dil desteğinin doğrulanması.</td>
+            <td>Bilgi İşlem (DBA)</td>
           </tr>
           <tr>
-            <td><strong>T+30 dk</strong></td>
-            <td>Örnek personel ve varlık Excel içe aktarımının doğrulanması.</td>
-            <td>İlgili Birim Yetkilisi</td>
-            <td>Örnek kayıtların onaylanıp listelenmesi.</td>
+            <td style="text-align: center; font-weight: bold;">6</td>
+            <td><strong>Kurumsal Ağ ve Port Erişimi</strong></td>
+            <td>Uygulama sunucusu ile Oracle veritabanı arasında 1521 port erişimi ve güvenlik duvarı izinleri.</td>
+            <td>Bilgi İşlem (Ağ/Siber)</td>
           </tr>
           <tr>
-            <td><strong>T+60 dk</strong></td>
-            <td>Ters vekil (Nginx/IIS) yönlendirmesi ve canlıya geçiş onayı.</td>
-            <td>Belediye BT Yönetimi</td>
-            <td>Kurumsal URL üzerinden erişim sağlandı.</td>
+            <td style="text-align: center; font-weight: bold;">7</td>
+            <td><strong>HTTPS ve SSL Sertifikası</strong></td>
+            <td>Kurumsal alan adı ve SSL sertifikası (güvenli çerezler ve kamera ile okutma HTTPS zorunluluğuna tabidir).</td>
+            <td>Bilgi İşlem (Sistem)</td>
+          </tr>
+          <tr>
+            <td style="text-align: center; font-weight: bold;">8</td>
+            <td><strong>Personel Veri Kaynağı Modeli</strong></td>
+            <td>Canlıya geçişte personelin Excel şablonuyla yüklenmesi veya doğrudan İK web servisi / DB View entegrasyon kararı.</td>
+            <td>İnsan Kaynakları / BT</td>
+          </tr>
+          <tr>
+            <td style="text-align: center; font-weight: bold;">9</td>
+            <td><strong>Kimlik Doğrulama Yöntemi</strong></td>
+            <td>Sistemin yerel güvenli kimlik doğrulaması (BCrypt + kaba kuvvet koruması) mı yoksa Active Directory (LDAP) mi kullanılacağı.</td>
+            <td>Bilgi İşlem (Sistem)</td>
+          </tr>
+          <tr>
+            <td style="text-align: center; font-weight: bold;">10</td>
+            <td><strong>Mevcut Envanter ve Hesap Kodu Onayları</strong></td>
+            <td>Mevcut demirbaş envanterinin Excel dökümü ile 16 kategori için Taşınır Kayıt Yetkilisinin hesap kodu ve amortisman onayları.</td>
+            <td>Mali Hizmetler (TKY)</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="grid-2" style="margin-bottom: 7px;">
+    <div class="grid-2" style="margin-bottom: 0;">
       <div class="card card-highlight">
-        <h3 style="color: #0284c7;">Sıfır Kurulum Geri Dönüş (Rollback) Prosedürü</h3>
-        <p style="font-size: 8.5px; text-align: justify; margin-bottom: 3px;">
-          Sistem ilk defa kurulacağı için geçmiş sistem yedeğinden restore söz konusu değildir. Herhangi bir aşamada kritik bir engel oluşursa aşağıdaki prosedür uygulanır:
+        <h3 style="color: #0284c7;">Bağlantı Günü Kesintisiz Geçiş Mimarisi</h3>
+        <p style="font-size: 8.4px; text-align: justify; margin-bottom: 2px;">
+          Sistem, yukarıdaki 10 parametre sağlandığında kod üzerinde hiçbir değişiklik yapılmadan, yalnızca kurumsal <code>.env</code> ortam değişkenleri tanımlanarak <code>prod</code> profilinde ayağa kalkacak şekilde tasarlanmıştır.
         </p>
-        <ul style="font-size: 8px;">
-          <li><strong>1. Uygulamayı Durdur:</strong> Spring Boot servis süreci durdurulur (<code>systemctl stop gebze-varlik</code>).</li>
-          <li><strong>2. DBA Rollback Betiğini Çalıştır:</strong> <code>docs/dba-rollback.sql</code> çalıştırılarak mevcut tablo satırları dökümlenir, açık oturumlar sonlandırılır, <code>VARLIK_APP_RUNTIME</code> ve <code>VARLIK_OWNER</code> kullanıcıları <code>CASCADE</code> ile kaldırılır.</li>
-          <li><strong>3. Yönlendirmeyi Kaldır:</strong> Ters vekil yönlendirmesi devre dışı bırakılır.</li>
-        </ul>
+        <p style="font-size: 8.4px; color: #0369a1; margin-bottom: 0;">
+          <strong>Çalışma Kitabı:</strong> <code>docs/baglanti-gunu-runbook.md</code> adım adım geçiş rehberi hazırdır.
+        </p>
       </div>
 
-      <div class="card">
-        <h3 style="color: #0f172a;">Proje Dokümantasyon İndeksi (docs/)</h3>
-        <ul style="font-size: 8px;">
-          <li><code>docs/baglanti-gunu-runbook.md</code>: Adım adım operasyon rehberi.</li>
-          <li><code>docs/belediye-bt-sorulari.md</code>: Belediye BT'ye yöneltilen 13 teknik soru.</li>
-          <li><code>docs/dba-kurulum.sql</code>: En az yetkili DBA kullanıcı kurulum SQL'i.</li>
-          <li><code>docs/dba-rollback.sql</code>: Sıfır kurulum geri dönüş ve kaldırma betiği.</li>
-          <li><code>docs/yetki-matrisi.md</code>: 93 uç noktalı kurumsal yetki matrisi tablosu.</li>
-          <li><code>docs/kalan-isler.md</code>: Özellik ve entegrasyon durum envanteri.</li>
-        </ul>
+      <div class="card card-warning">
+        <h3 style="color: #92400e;">Sıfır Kurulum Geri Dönüş (Rollback) Güvenliği</h3>
+        <p style="font-size: 8.4px; text-align: justify; margin-bottom: 2px;">
+          İlk kurulum esnasında beklenmedik bir engel oluşması durumunda, <code>docs/dba-rollback.sql</code> betiği güvenlik kilidiyle donatılmıştır. Şemada veri tespit edildiğinde koruma kilidi devreye girer.
+        </p>
+        <p style="font-size: 8.4px; color: #92400e; margin-bottom: 0;">
+          <strong>DBA Güvencesi:</strong> Bilinçli onay olmadan hiçbir nesne silinmez; sistem temiz başlangıç durumuna döner.
+        </p>
       </div>
-    </div>
-
-    <div class="card card-success" style="margin-bottom: 0;">
-      <h3 style="color: #166534; font-size: 10px;">Sonuç ve Entegrasyon Hazırlığı</h3>
-      <p style="font-size: 8.8px; text-align: justify; margin-bottom: 0;">
-        Gebze Belediyesi Kurumsal Varlık Yönetimi Sistemi (EKYS), teknik altyapı ve kod geliştirme açısından eksiksiz tamamlanmış durumdadır. Bağlantı gününde kod üzerinde hiçbir değişiklik yapılmasına gerek kalmaksızın, yalnızca belediye veritabanı bağlantı parametrelerinin yapılandırılmasıyla sistem üretime alınabilecektir.
-      </p>
     </div>
   </div>
 

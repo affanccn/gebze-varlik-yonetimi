@@ -46,7 +46,7 @@ export const PersonnelClearanceModal: React.FC<PersonnelClearanceModalProps> = (
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-800">Personel İlişik Kesme Tutanağı (A4)</h2>
-              <p className="text-xs text-slate-500">Taşınır zimmet ve ambar kontrol belgesi.</p>
+              <p className="text-xs text-slate-500">Taslak şablon; format ve hesap kodları Taşınır Kayıt Yetkilisi onayına tabidir.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ export const PersonnelClearanceModal: React.FC<PersonnelClearanceModalProps> = (
                   İLİŞİK KESİLMESİ UYGUNDUR (ZİMMET KAYDI BULUNMAMAKTADIR)
                 </div>
                 <div className="text-xs mt-1 leading-relaxed text-emerald-700">
-                  Kurumsal Varlık Yönetim Sistemi üzerinde yapılan sorgulamada, yukarıda kimlik ve sicil bilgileri belirtilen personelin üzerinde kayıtlı herhangi bir zimmetli taşınır mal, bilişim donanımı veya araç/gereç bulunmamaktadır. Taşınır Mal Yönetmeliği açısından ilişiğinin kesilmesinde sakınca yoktur.
+                  Kurumsal Varlık Yönetim Sistemi üzerinde yapılan sorgulamada, yukarıda kimlik ve sicil bilgileri belirtilen personelin üzerinde kayıtlı herhangi bir zimmetli taşınır mal, bilişim donanımı veya araç/gereç bulunmamaktadır. Taşınır zimmet ve ambar kontrolü açısından ilişiğinin kesilmesinde sakınca yoktur.
                 </div>
               </div>
             </div>
@@ -150,27 +150,32 @@ export const PersonnelClearanceModal: React.FC<PersonnelClearanceModalProps> = (
           )}
 
           {/* Official Signatures */}
-          <div className="grid grid-cols-3 gap-4 text-center text-xs mt-12 pt-6">
+          <div className="grid grid-cols-3 gap-4 text-center text-xs mt-6 pt-4">
             <div className="border-t border-slate-400 pt-3">
               <div className="font-bold text-slate-900">TAŞINIR KAYIT YETKİLİSİ</div>
               <div className="text-slate-600 mt-1">Mali Hizmetler Müdürlüğü</div>
               <div className="text-[10px] text-slate-400 mt-1">İmza / Mühür</div>
-              <div className="h-16"></div>
+              <div className="h-12"></div>
             </div>
 
             <div className="border-t border-slate-400 pt-3">
               <div className="font-bold text-slate-900">İNSAN KAYNAKLARI YETKİLİSİ</div>
               <div className="text-slate-600 mt-1">Özlük ve Sicil Birimi</div>
               <div className="text-[10px] text-slate-400 mt-1">İmza / Mühür</div>
-              <div className="h-16"></div>
+              <div className="h-12"></div>
             </div>
 
             <div className="border-t border-slate-400 pt-3">
               <div className="font-bold text-slate-900">İLGİLİ PERSONEL</div>
               <div className="text-slate-600 mt-1">{personnel.firstName} {personnel.lastName}</div>
               <div className="text-[10px] text-slate-400 mt-1">İmza</div>
-              <div className="h-16"></div>
+              <div className="h-12"></div>
             </div>
+          </div>
+
+          {/* Footnote */}
+          <div className="text-[9px] text-slate-500 text-center italic mt-4 border-t border-slate-100 pt-2">
+            * Taslak şablon; format ve hesap kodları Taşınır Kayıt Yetkilisi onayına tabidir.
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@
 ### 0. Öncelikli Talep: Oracle 19c Test Şeması Tahsisi (Kuru Prova İçin)
 * **Talep / Soru:**
   * Canlıya geçiş öncesinde belediyenin mevcut Oracle sürümünde (özellikle 19c/21c ise) migrasyon ve şema kurulumunun kuru provasını yapabilmemiz için boş bir **test şeması / veritabanı kullanıcısı** (örn. `VARLIK_TEST_DRYRUN`) tahsis edilebilir mi?
-  * Bu test şeması üzerinde `docs/kuru-prova-19c.sql` ve `scripts/dry_run_oracle19c.ps1` kuru prova doğrulama paketimizi çalıştırıp; `CLOB CHECK (IS JSON)`, `NLS_SORT=TURKISH_AI`, kimlik sütunları (`IDENTITY`) ve DDL yetkilerinin canlı ortamla %100 uyumunu canlı kesinti gününden önce raporlamak istiyoruz.
+  * Bu test şeması üzerinde `docs/kuru-prova-19c.sql` ve `scripts/dry_run_oracle19c.ps1` kuru prova doğrulama paketimizi çalıştırıp; `CLOB CHECK (IS JSON)`, `NLS_SORT=TURKISH_AI`, kimlik sütunları (`IDENTITY`) ve DDL yetkilerinin canlı ortamla tam uyumunu canlı kesinti gününden önce raporlamak istiyoruz.
 * **Neden soruyoruz?**
   * Yerel geliştirme ortamımız Oracle 23ai olup, canlı sistem 19c veya 21c olduğunda son dakika sürprizleri (örneğin sözdizimi farkı, kısıt hataları veya karakter seti uyumsuzlukları) yaşanmaması için canlı öncesi riskleri sıfıra indirmek hedeflenmektedir.
 
@@ -63,7 +63,7 @@
   * Canlıya geçişte personel listesi İK sisteminden alınan `.xlsx` dosyasıyla mı yüklenecek, yoksa doğrudan İK veritabanı görünümü (Oracle DB View) / Web Servisi (REST/SOAP) entegrasyonu mu kurulacak?
   * Aktarım tek seferlik (ve sonrasında yeni başlayan/ayrılan personelin ekran üzerinden veya aylık Excel ile güncellenmesi) mi olacak, yoksa her gece otomatik senkronizasyon mu isteniyor?
 * **Neden soruyoruz?**
-  * Sistemde **Excel Upsert** (`Sicil No` üzerinden ekleme/güncelleme) ve **Personel Ekle/Düzenle/Pasife Al** ekranları şu an %100 hazırdır. Eğer otomatik entegrasyon istenirse [`docs/baglanti-gunu-runbook.md`](file:///c:/Users/Asus/gebze-varlik-yonetimi/docs/baglanti-gunu-runbook.md) içinde tasarlanan `HrPersonnelSyncPort` adaptörü İK sisteminin teknolojisine göre bağlanacaktır.
+  * Sistemde **Excel Upsert** (`Sicil No` üzerinden ekleme/güncelleme) ve **Personel Ekle/Düzenle/Pasife Al** ekranları şu an tamamen hazırdır. Eğer otomatik entegrasyon istenirse [`docs/baglanti-gunu-runbook.md`](file:///c:/Users/Asus/gebze-varlik-yonetimi/docs/baglanti-gunu-runbook.md) içinde tasarlanan `HrPersonnelSyncPort` adaptörü İK sisteminin teknolojisine göre bağlanacaktır.
 
 ### 8. İK Sisteminden Gelecek Alanlar ve Müdürlük Eşleştirmesi Nasıl Yapılacak?
 * **Sorular:**
@@ -104,7 +104,7 @@
 * **Sorular:**
   * Yıl sonu ve ara sayımlarda saha ekipleri USB/Bluetooth barkod okuyucu el terminali mi kullanacak, yoksa cep telefonu/tablet kamerasıyla QR/barkod okutma özelliği de açılmalı mı?
 * **Neden soruyoruz?**
-  * El terminali (klavye emülasyonu) şu an %100 çalışmaktadır ve güvenlik için tarayıcı kamera izni (`Permissions-Policy: camera=()`) kapalıdır. Kamera ile okutma istenirse `SecurityConfig.java` içinde `camera=(self)` izni açılacak ve kamera barkod çözümleyici (`BarcodeDetector` / `html5-qrcode`) etkinleştirilecektir.
+  * El terminali (klavye emülasyonu) şu an eksiksiz çalışmaktadır ve güvenlik için tarayıcı kamera izni (`Permissions-Policy: camera=()`) kapalıdır. Kamera ile okutma istenirse `SecurityConfig.java` içinde `camera=(self)` izni açılacak ve kamera barkod çözümleyici (`BarcodeDetector` / `html5-qrcode`) etkinleştirilecektir.
 
 ---
 

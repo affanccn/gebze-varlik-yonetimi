@@ -228,11 +228,11 @@ gebze-varlik-yonetimi/
   - Kapatılamayan Zorunlu Şifre Değiştirme Modalı (`mustChangePassword = true`).
   - Layout: Üst bar (kullanıcı bilgisi, rol rozeti, çıkış), eski arayüz gruplamasına sahip daraltılabilir ve mobil çekmeceli sol menü.
   - 23 Ekran Rota İskeleti: "Yakında" yer tutucu sayfalar; rol korumalı rotalarda (`/users`, `/audit` vb.) yetkisiz erişimde ana ekrana yönlendirme ve toast uyarısı.
-  - **Playwright R1 Duman Testi:** 8 duman testi (%100 başarılı).
+  - **Playwright R1 Duman Testi:** 8 duman testi (tamamı başarılı).
 
 #### R2: Temel Okuma Ekranları (TAMAMLANDI - Commit: `a7cd649`)
 - Dashboard, Kurumsal Ağaç, Binalar & Katlar & Odalar, 30 Müdürlük, Personel, 16 Kategori, Hareketler, Belgeler, Raporlar (CSV/Yazdır), QR Etiketler.
-- 12 Playwright E2E testi (%100 başarılı).
+- 12 Playwright E2E testi (tamamı başarılı).
 
 #### R3a: Varlık Çekirdek Yönetimi (TAMAMLANDI - Commit: `8243a0b`)
 - TanStack Table v8 ile Varlık Listesi (arama, kategori/müdürlük/durum filtreleme, sıralama, sayfalama).
@@ -241,14 +241,14 @@ gebze-varlik-yonetimi/
 - Konum & Birim Transfer Modalı (bina, kat, oda ve müdürlük transferi, Oracle ORA-00932 tipi güvenliği uyumlu).
 - 11 Durumlu Yaşam Döngüsü Geçiş Modalı (FSM kuralları, terminal durum uyarıları, zorunlu gerekçe girişi).
 - Güvenli Silme (Soft-delete) Onay Modalı (ADMIN yetkisiyle).
-- 7 Playwright E2E testi (%100 başarılı, toplamda 27/27 test geçmektedir).
+- 7 Playwright E2E testi (tamamı başarılı, toplamda 27/27 test geçmektedir).
 
 #### R3b: Operasyonel Akışlar (TAMAMLANDI - Commit: `bdcd389`)
 - Zimmet Yönetimi (`/assignments`): TanStack Table, KPI kartları, arama/durum filtreleri, "Yeni Zimmet Fişi Düzenle" modalı (varlık ve personel seçimi), "Zimmet İade Al" kabul modalı.
 - Bakım & Onarım Yönetimi (`/maintenances`): TanStack Table, KPI kartları, öncelik/durum filtreleri, "Yeni Bakım Talebi Aç" modalı, "Bakımı Tamamla ve Kapat" onarım sonuç modalı.
 - Depo & Stok Yönetimi (`/stock`): 2 sekmeli arayüz (Depo Envanteri ve Geçmiş Hareketler), KPI kartları (Kritik/Tükenen stok uyarıları), "Stok Hareketi Yap" modalı (Giriş/İkmal & Çıkış/Tahsis).
 - Excel Toplu İçe Aktarım (`/excel-import` ve `AssetsView` modalı): Şablon indirme (.xlsx), drag & drop/dosya seçimi, ön doğrulama (validate), satır hataları tablosu, kısmi içe aktarım seçeneği ve tamamlama (commit).
-- 7 Playwright E2E testi (%100 başarılı, toplamda 34/34 test geçmektedir).
+- 7 Playwright E2E testi (tamamı başarılı, toplamda 34/34 test geçmektedir).
 
 #### R4: Yönetim, Denetim ve Kalan Modüller (TAMAMLANDI)
 - Kullanıcı Yönetimi (`/users`): TanStack Table, KPI kartları, rol/durum filtreleri, kullanıcı arama, "Yeni Kullanıcı Ekle" modalı (otomatik geçici şifre üretimi ve güvenli kopyalama ekranı), kullanıcı düzenleme, pasife alma ve tek tıklamayla geçici şifre sıfırlama akışı (`ResetPasswordModal`).
@@ -258,7 +258,7 @@ gebze-varlik-yonetimi/
 - Sistem Denetim ve Güvenlik Günlüğü (`/audit`): Olay günlüğü tablosu (Zaman damgası, renkli eylem rozetleri, aktör, IP adresi, modül, detaylar), KPI kartları (Toplam Olay, Güvenlik İhlalleri, Başarılı Girişler, Veri Mutasyonları), arama ve eylem türü filtreleri.
 - Sistem Ayarları & Yetki Matrisi (`/settings`): Genel sistem parametreleri kartı, inline düzenleme/kaydetme, 5 rollü kurumsal RBAC yetki tablosu.
 - Rol Yetkilendirme Matrisi & Kısıtlamaları: STAFF kullanıcısının `/users`, `/audit`, `/fleet`, `/procurement`, `/counting` rotalarına erişiminin Dashboard'a yönlendirilmesi; AUDITOR rolünün `/audit` erişiminin sağlanması fakat `/users` yönetiminden engellenmesi.
-- 8 Playwright E2E testi (%100 başarılı, tüm sistem genelinde 42/42 E2E test sıfır hata ile geçmektedir).
+- 8 Playwright E2E testi (tamamı başarılı, tüm sistem genelinde 42/42 E2E test sıfır hata ile geçmektedir).
 
 #### R5: Doğrulama, SPA Fallback, Paketleme ve Eski Ön Yüzün Kaldırılması (TAMAMLANDI)
 - **Ön Denetim ve Düzeltmeler:**
@@ -276,7 +276,7 @@ gebze-varlik-yonetimi/
   - `SecurityConfig.java`: Statik varlıklar ve giriş ekranı kimlik doğrulamasız erişime açıldı; bilinmeyen `/api/**` rotaları için `GlobalExceptionHandler` üzerinden JSON 404 dönmesi güvenceye alındı.
 - **Doğrulama ve E2E Testleri:**
   - Vite geliştirme sunucusu (5173) kapatıldı; tüm testler doğrudan `http://localhost:8080/` üzerinden yürütüldü.
-  - Playwright E2E: 49 testin tamamı (%100) başarıyla geçti (R1 duman, R2 okuma, R3a varlık CRUD, R3b operasyonlar, R4 yönetim, R5 SPA/F5/404).
+  - Playwright E2E: 49 testin tamamı başarıyla geçti (R1 duman, R2 okuma, R3a varlık CRUD, R3b operasyonlar, R4 yönetim, R5 SPA/F5/404).
   - Backend Regresyon Testleri: `test_menu_endpoints.js`, `test_faz1b1.js`, `test_faz1b2.js`, `test_1b2_gaps.js`, `test_faz1c.js`, `test_faz1d.js`, `test_faz1e1.js` ve `verify_snapshot.js` (74 varlık, 48.298.300 TL, 0 fark) eksiksiz çalıştı.
   - `APP_ADMIN_PASSWORD` ile üretim profilinde başlangıç testi yapıldı, `DevUserSeeder`'ın çalışmadığı ve admin hesabının sağlıklı giriş yaptığı kanıtlandı.
 

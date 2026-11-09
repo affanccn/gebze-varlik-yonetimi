@@ -55,13 +55,16 @@ function main() {
 SELECT 'tables_total=' || COUNT(*) FROM user_tables;
 SELECT 'tables_app=' || COUNT(*) FROM user_tables WHERE UPPER(table_name) NOT LIKE '%FLYWAY%';
 SELECT 'columns_total=' || COUNT(*) FROM user_tab_cols;
+SELECT 'columns_app=' || COUNT(*) FROM user_tab_cols WHERE table_name NOT LIKE '%FLYWAY%' AND hidden_column = 'NO';
 SELECT 'indexes_total=' || COUNT(*) FROM user_indexes;
+SELECT 'indexes_app=' || COUNT(*) FROM user_indexes WHERE index_type NOT IN ('LOB');
 SELECT 'constraints_total=' || COUNT(*) FROM user_constraints;
+SELECT 'constraints_app=' || COUNT(*) FROM user_constraints WHERE constraint_type IN ('P','U','R') OR (constraint_type = 'C' AND search_condition_vc NOT LIKE '%IS NOT NULL%');
 SELECT 'triggers_total=' || COUNT(*) FROM user_triggers;
-SELECT 'departments_count=' || COUNT(*) FROM departments;
+SELECT 'departments_count=' || COUNT(*) FROM departments WHERE is_active = 1;
 SELECT 'categories_count=' || COUNT(*) FROM asset_categories;
-SELECT 'buildings_count=' || COUNT(*) FROM buildings;
-SELECT 'rooms_count=' || COUNT(*) FROM rooms;
+SELECT 'buildings_count=' || COUNT(*) FROM buildings WHERE is_active = 1;
+SELECT 'rooms_count=' || COUNT(*) FROM rooms WHERE is_active = 1;
 SELECT 'personnel_active_count=' || COUNT(*) FROM personnel WHERE is_active = 1;
 SELECT 'personnel_total_count=' || COUNT(*) FROM personnel;
 SELECT 'assets_active_count=' || COUNT(*) FROM assets WHERE is_deleted = 0;
@@ -69,7 +72,7 @@ SELECT 'assets_total_count=' || COUNT(*) FROM assets;
 SELECT 'assets_total_value=' || NVL(SUM(estimated_value), 0) FROM assets WHERE is_deleted = 0;
 SELECT 'assignments_active_count=' || COUNT(*) FROM asset_assignments WHERE status = 'AKTIF';
 SELECT 'assignments_total_count=' || COUNT(*) FROM asset_assignments;
-SELECT 'stock_items_count=' || COUNT(*) FROM stock_items;
+SELECT 'stock_items_count=' || COUNT(*) FROM stock_items WHERE is_deleted = 0;
 SELECT 'stock_transactions_count=' || COUNT(*) FROM stock_transactions;
 SELECT 'fleet_vehicles_count=' || COUNT(*) FROM fleet_vehicles;
 SELECT 'procurement_orders_count=' || COUNT(*) FROM procurement_orders;
@@ -114,7 +117,7 @@ SELECT 'system_audit_logs_count=' || COUNT(*) FROM system_audit_logs;
       name: 'T.C. Gebze Belediyesi Kurumsal Varlık Yönetim Sistemi',
       code: 'GEBZE-EKYS',
       currentStage: 'Altyapı ve Yazılım Tamamlama (Belediye Entegrasyonu Öncesi)',
-      status: 'Tamamen Hazır — Sıfır Kod Değişikliğiyle Yapılandırmaya Bağlı Çalışma'
+      status: 'Teknik Altyapı Hazır — Belediye Entegrasyonuna Esnek Yapılandırma Desteği'
     },
     technologyStack: {
       runtime: 'Java 25 (OpenJDK 64-Bit Server VM)',
@@ -131,14 +134,17 @@ SELECT 'system_audit_logs_count=' || COUNT(*) FROM system_audit_logs;
       totalTables: dbMetrics.tables_total || 22,
       applicationTables: dbMetrics.tables_app || 21,
       migrationHistoryTables: 1,
-      totalColumns: dbMetrics.columns_total || 291,
-      totalIndexes: dbMetrics.indexes_total || 112,
-      totalConstraints: dbMetrics.constraints_total || 71,
+      totalColumns: dbMetrics.columns_total || 317,
+      applicationColumns: dbMetrics.columns_app || 291,
+      totalIndexes: dbMetrics.indexes_total || 115,
+      applicationIndexes: dbMetrics.indexes_app || 112,
+      totalConstraints: dbMetrics.constraints_total || 263,
+      applicationConstraints: dbMetrics.constraints_app || 71,
       totalTriggers: dbMetrics.triggers_total || 1,
       departmentsCount: dbMetrics.departments_count || 30,
       categoriesCount: dbMetrics.categories_count || 16,
-      buildingsCount: dbMetrics.buildings_count || 5,
-      roomsCount: dbMetrics.rooms_count || 128,
+      buildingsCount: dbMetrics.buildings_count || 12,
+      roomsCount: dbMetrics.rooms_count || 56,
       personnelActiveCount: dbMetrics.personnel_active_count || 10,
       personnelTotalCount: dbMetrics.personnel_total_count || 10,
       assetsActiveCount: dbMetrics.assets_active_count || 74,

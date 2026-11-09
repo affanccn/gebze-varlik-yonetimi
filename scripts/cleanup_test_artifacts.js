@@ -27,11 +27,11 @@ UPDATE personnel
  WHERE (registration_number LIKE 'TEST-%' OR registration_number LIKE 'SCL-IK-2026-%' OR registration_number LIKE 'STF-%')
    AND (is_deleted = 0 OR is_active = 1);
 
-UPDATE departments SET is_active = 0 WHERE (code LIKE 'TEST-%' OR code LIKE 'CSRF-%' OR code LIKE 'STF-%') AND is_active = 1;
-UPDATE sub_units   SET is_active = 0 WHERE (code LIKE 'TEST-%' OR code LIKE 'CSRF-%' OR code LIKE 'STF-%') AND is_active = 1;
-UPDATE buildings   SET is_active = 0 WHERE (code LIKE 'TEST-%' OR code LIKE 'CSRF-%') AND is_active = 1;
-UPDATE floors      SET is_active = 0 WHERE (floor_code LIKE 'TEST-%' OR floor_code LIKE 'CSRF-%') AND is_active = 1;
-UPDATE rooms       SET is_active = 0 WHERE (room_number LIKE 'TEST-%' OR room_number LIKE '%SEC%' OR room_number LIKE '999%' OR qr_code LIKE '%TEST%') AND is_active = 1;
+DELETE FROM rooms WHERE (room_number LIKE 'TEST-%' OR room_number LIKE '%SEC%' OR room_number LIKE '999%' OR qr_code LIKE '%TEST%');
+DELETE FROM floors WHERE (floor_code LIKE 'TEST-%' OR floor_code LIKE 'CSRF-%');
+DELETE FROM buildings WHERE (code LIKE 'TEST-%' OR code LIKE 'CSRF-%');
+DELETE FROM sub_units WHERE (code LIKE 'TEST-%' OR code LIKE 'CSRF-%' OR code LIKE 'STF-%');
+DELETE FROM departments WHERE (code LIKE 'TEST-%' OR code LIKE 'CSRF-%' OR code LIKE 'STF-%');
 DELETE FROM system_users WHERE username LIKE 'e2e_%' OR username LIKE 'test_%';
 
 COMMIT;

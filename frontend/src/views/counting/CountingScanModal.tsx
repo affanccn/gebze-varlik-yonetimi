@@ -88,6 +88,7 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraStarting, setIsCameraStarting] = useState(false);
   const [isSecureContext, setIsSecureContext] = useState(true);
+  const [hasBarcodeDetectorApi, setHasBarcodeDetectorApi] = useState(true);
 
   const isCameraFlagEnabled =
     import.meta.env.VITE_ENABLE_CAMERA_SCAN === 'true' ||
@@ -137,6 +138,7 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
         window.location.hostname === 'localhost' ||
         window.location.hostname === '127.0.0.1'
       );
+      setHasBarcodeDetectorApi('BarcodeDetector' in window);
     }
 
     if (isOpen && activeTab === 'CAMERA') {
@@ -396,6 +398,25 @@ export const CountingScanModal: React.FC<CountingScanModalProps> = ({
                     Barkod veya QR kodu yeşil çerçeveye hizalayınız
                   </span>
                 </div>
+
+                {!hasBarcodeDetectorApi && (
+                  <div className="p-3 bg-slate-800/90 border border-slate-600 rounded-lg text-left text-xs text-slate-300 flex items-start gap-2.5 max-w-md mx-auto mt-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-semibold text-amber-300">Yerel Barkod Çözücü Algılanmadı (Masaüstü Ortamı)</div>
+                      <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
+                        Tarayıcınızda yerel <code>BarcodeDetector</code> API'si devre dışıdır. Sahada en hızlı ve kesintisiz sayım için doğrudan <strong>USB / Bluetooth el terminali</strong> veya <strong>barkod tabancası</strong> (klavye emülasyonu) önerilir. Kamera ile okutma Android / iOS mobil cihazlarda ve HTTPS altında otomatik devreye girer.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('MANUAL')}
+                        className="mt-2 px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-xs font-semibold"
+                      >
+                        El Terminali Moduna Geç
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

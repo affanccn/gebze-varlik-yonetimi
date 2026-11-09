@@ -49,7 +49,7 @@ Faz 2 ve sonrasında arka uç API (`asset` modülü) ile Oracle veritabanı tabl
 | Alan / Konu | Netleştirilecek Sorular |
 | :--- | :--- |
 | **Varlık Kodu (`Kod`)** | Kod formatı Taşınır Mal Yönetmeliği (TİF) kodlamasına mı dayanacak, yoksa kurum içi barkod/seri numarası standardı mı kullanılacak? Otomatik mi üretilecek? |
-| **Varlık Adı ve Detay Alanlar** | Marka, model, seri numarası, edinme tarihi, garanti bitiş tarihi veya demirbaş ekonomik ömrü gibi ek sütunlar listeye veya detay ekranına eklenecek mi? |
+| **Varlık Adı ve Detay Alanlar** | Marka, model, seri numarası, edinme tarihi, sözleşme/güvence bitiş tarihi veya demirbaş ekonomik ömrü gibi ek sütunlar listeye veya detay ekranına eklenecek mi? |
 | **Kategori Hiyerarşisi (`Kategori`)** | Kategoriler tek seviyeli sabit bir liste mi olacak, yoksa üst-alt grup (Ana Grup -> Alt Grup) ağacı şeklinde mi tutulacak? |
 | **Birim Yapısı (`Birim`)** | Birim listesi belediyenin resmi organizasyon şemasından (Müdürlük / Şeflik) mı beslenecek? |
 | **Konum Bilgisi (`Konum`)** | Konum serbest metin mi olacak, yoksa `Yerleşke -> Bina -> Kat -> Oda` şeklinde yapılandırılmış bir sözlükten mi seçilecek? |

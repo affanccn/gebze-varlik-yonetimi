@@ -33,7 +33,7 @@ export const TifVoucherModal: React.FC<TifVoucherModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-800">Taşınır İşlem Fişi (TİF) Önizleme</h2>
-              <p className="text-xs text-slate-500">Resmi A4 döküm ve ambar çıkış tutanağı.</p>
+              <p className="text-xs text-slate-500">Taslak şablon; format ve hesap kodları Taşınır Kayıt Yetkilisi onayına tabidir.</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -118,25 +118,30 @@ export const TifVoucherModal: React.FC<TifVoucherModalProps> = ({
           )}
 
           {/* Declaration Text */}
-          <p className="text-[10px] text-slate-500 leading-relaxed mb-10 text-justify">
-            Yukarıda dökümü yapılan sarf malzemeleri Taşınır Mal Yönetmeliği hükümleri uyarınca ilgili birimin hizmet ve faaliyetlerinde kullanılmak üzere eksiksiz ve sağlam olarak teslim edilmiş ve teslim alınmıştır.
+          <p className="text-[10px] text-slate-500 leading-relaxed mb-6 text-justify">
+            Yukarıda dökümü yapılan sarf malzemeleri kurum içi sarf malzeme prosedürleri ve yönergeleri uyarınca ilgili birimin hizmet ve faaliyetlerinde kullanılmak üzere eksiksiz ve sağlam olarak teslim edilmiş ve teslim alınmıştır.
           </p>
 
           {/* Signatures */}
-          <div className="grid grid-cols-2 gap-8 text-center text-xs mt-12 pt-6">
+          <div className="grid grid-cols-2 gap-8 text-center text-xs mt-6 pt-4">
             <div className="border-t border-slate-400 pt-3">
               <div className="font-bold text-slate-900">TESLİM EDEN</div>
               <div className="text-slate-600 mt-1">{transaction.performedBy || 'Taşınır Kayıt ve Kontrol Yetkilisi'}</div>
               <div className="text-[10px] text-slate-400 mt-1">İmza / Kaşe</div>
-              <div className="h-14"></div>
+              <div className="h-12"></div>
             </div>
 
             <div className="border-t border-slate-400 pt-3">
               <div className="font-bold text-slate-900">TESLİM ALAN</div>
               <div className="text-slate-600 mt-1">{transaction.recipientName || 'Birim Yetkilisi'}</div>
               <div className="text-[10px] text-slate-400 mt-1">İmza</div>
-              <div className="h-14"></div>
+              <div className="h-12"></div>
             </div>
+          </div>
+
+          {/* Footnote */}
+          <div className="text-[9px] text-slate-500 text-center italic mt-4 border-t border-slate-100 pt-2">
+            * Taslak şablon; format ve hesap kodları Taşınır Kayıt Yetkilisi onayına tabidir.
           </div>
         </div>
       </div>

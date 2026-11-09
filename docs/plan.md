@@ -818,7 +818,7 @@ Modern tek sayfa uygulamalarında (Vanilla JS SPA) CSRF token senkronizasyonunun
 
 ## BÖLÜM 3: Faz 1 Alt Adımları ve Faz 0 Durumu
 
-### FAZ 0: UI Hazırlığı — Kurumsal Sol Menü (Sidebar) & %100 Tablo Sığdırma
+### FAZ 0: UI Hazırlığı — Kurumsal Sol Menü (Sidebar) & Tam Genişlik Tablo Sığdırma
 *(TAMAMLANDI - Commit: `b9c5f21`)*
 
 ---
@@ -1415,7 +1415,7 @@ Kullanıcının belirlediği öncelik sıralaması doğrultusunda Faz 2 gelişti
      - Müdürlükler arası bütçe ve demirbaş değeri dağılımı.
      - Kategori bazlı değer ve adet analizi.
      - Zaman serisi / Trend analizi: Yıllara göre edinim bedeli ve varlık giriş eğrisi.
-     - Kritik bakım, garanti ve amortisman uyarı listeleri.
+     - Kritik bakım, bakım sözleşmesi ve amortisman uyarı listeleri.
      - `TenantQueryScope` entegrasyonu (Müdürlük yöneticisi sadece kendi kapsamını görür).
    - **Taşınır Mal Yönetmeliği Resmi Raporları (`/api/reports`):**
      - **Form 13: Taşınır Sayım ve Döküm Cetveli** (`GET /api/reports/form13`, resmi mevzuat formatı, 253/254/255 hesap kodları, ambar, miktar, birim fiyat, tutar).

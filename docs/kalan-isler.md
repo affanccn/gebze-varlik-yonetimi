@@ -99,13 +99,22 @@ Aşağıdaki özelliklerin tamamı kodlanmış, test edilmiş ve repoya kaydedil
 * **Kamera ile Barkod Okutma Altyapısı:** HTTPS kontrolü, `BarcodeDetector` entegrasyonu ve ortam değişkeni bayrağı (`CountingScanModal.tsx`).
 * **Tek Kaynaklı Metrik Motoru:** Doğrudan Oracle veritabanı sorgularından beslenen `scripts/report_metrics.js` ve `docs/report_metrics.json`.
 
-### 5.2. Belediye Entegrasyonuna Bağlı İkinci Aşama Maddeleri
+### 5.2. Konsolide İkinci ve Üçüncü Aşama Durum Tablosu
 
-Belediye tarafından sunucu, ağ erişimi ve kurumsal tercihler iletildiğinde devreye alınacak maddeler:
-1. **Belediye Veritabanı ve Ağ Erişimi:** Oracle şema yetkilerinin tanımlanması ve `db/migration-prod` ile tabloların açılması.
-2. **Belediye Active Directory / LDAP Entegrasyonu:** Kurumsal kullanıcıların belediye merkezi şifreleriyle oturum açması.
-3. **Doğrudan İK Entegrasyonu:** Tasarlanan `HrPersonnelSyncPort` adaptörü üzerinden belediye İK yazılımıyla otomatik personel senkronizasyonu.
-4. **Fiziksel Belge Depolama Tercihi:** Sözleşme, fatura ve resmi kabul belgeleri için yerel disk / NFS paylaşımlı depolama seçimi.
+Aşağıdaki tablo, kurumsal sistem geliştirme planındaki tüm ikincil ve genişletme kalemlerinin koddaki doğrulanmış durumunu özetler:
+
+| Kod | İş Kalemi | Kapsam | Durum | Commit / Açıklama / Gerekçe |
+| :-: | :--- | :---: | :---: | :--- |
+| **G.2** | **Toplu Zimmet İade ve Konum Transfer Modalı** | İkincil | **YAPILDI** | Commit `f78cfec` — `AssetTransferModal.tsx` ve `AssignmentReturnModal.tsx` ile tekli/toplu iade ve birimler arası transfer eksiksiz çalışmaktadır. |
+| **F.2** | **Stok Kritik Seviye ve Ambar Bildirimleri** | İkincil | **YAPILDI** | Commit `f78cfec` — `StockView.tsx` ve backend sorguları ile kritik seviye altındaki malzemeler görsel rozetler ve KPI uyarılarıyla anlık listelenmektedir. |
+| **H.1** | **Filo Araç Durum ve KM Güncelleme** | Genişletme | **YAPILDI** | Commit `f78cfec` — `FleetStatusModal.tsx` ile plaka, KM, görev ve bakım durumları operasyonel olarak yönetilmektedir. |
+| **H.2** | **Kategoriye Özel Dinamik Özellik (JSON) Yapısı** | Genişletme | **YAPILDI** | Commit `75f12bf` — `specifications` alanı 19c uyumlu `CLOB CHECK (IS JSON)` ve Oracle 23ai üzerinde tam desteklenmektedir. |
+| **G.1** | **Fiziksel Belge / Ek Depolama Tercihi** | İkincil | **BELEDİYE BEKLİYOR** | Belediyenin kurum içi depolama tercihi (Yerel sunucu diski / NFS ağ depolama yolu) beklenmektedir. Kod mimarisi hazırdır. |
+| **I.1** | **Satın Alma Siparişinden Otomatik Varlık Kartı Oluşturma** | Genişletme | **BELEDİYE BEKLİYOR** | Mali Hizmetler Müdürlüğü'nün doğrudan temin / ihale kesin kabul muhasebe onay akışı kararı (Karar S.7) beklenmektedir. |
+| **J.1** | **Belediye Active Directory (LDAP) Entegrasyonu** | Genişletme | **BELEDİYE BEKLİYOR** | Belediye Bilgi İşlem Müdürlüğü'nün LDAP sunucu adresi, Base DN ve servis hesabı bilgileri (Soru 13) beklenmektedir. |
+| **J.2** | **Canlı İK Sistemi Entegrasyonu (`HrPersonnelSyncPort`)** | Genişletme | **BELEDİYE BEKLİYOR** | İK yazılımının web servisi veya veritabanı görünümü erişim protokolü beklenmektedir; port adaptör arayüzü hazırdır. |
+
+> **Yapılmadı Durumundaki Maddeler:** Belediyeden bilgi veya erişim gerektirmeyen tüm iş kalemleri tamamlanmıştır. Yapılmayan (ihmal edilen veya eksik kalan) herhangi bir yazılım maddesi bulunmamaktadır.
 
 ---
 
