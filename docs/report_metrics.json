@@ -1,0 +1,87 @@
+{
+  "generatedAt": "2026-11-09T12:04:42.975Z",
+  "system": {
+    "name": "T.C. Gebze Belediyesi Kurumsal Varlık Yönetim Sistemi",
+    "code": "GEBZE-EKYS",
+    "currentStage": "Altyapı ve Yazılım Tamamlama (Belediye Entegrasyonu Öncesi)",
+    "status": "Tamamen Hazır — Sıfır Kod Değişikliğiyle Yapılandırmaya Bağlı Çalışma"
+  },
+  "technologyStack": {
+    "runtime": "Java 25 (OpenJDK 64-Bit Server VM)",
+    "framework": "Spring Boot 3.4.3",
+    "dataAccess": "Spring Data JDBC / modern JdbcClient (parametreize edilmiş saf Oracle SQL)",
+    "webServer": "Gömülü Apache Tomcat 10.1 (NIO çalışan iş parçacığı havuzu)",
+    "migrationTool": "Flyway Community 11.3 (V1-V17 dev, V1-V2 prod şemaları)",
+    "databaseTarget": "Oracle Database 23ai Free / Oracle 19c Enterprise hazır",
+    "frontendStack": "React 18.3.1 + TypeScript 5.7.3 + Vite 6.2.0 + Tailwind CSS 3.4.17",
+    "tableComponent": "TanStack React Table 8.21.2 (sayfalamalı ve sıralamalı veri tablosu)",
+    "stateManagement": "TanStack React Query 5.66.9 (önbellek ve arka plan veri eşitleme)"
+  },
+  "databaseMetrics": {
+    "totalTables": 22,
+    "applicationTables": 21,
+    "migrationHistoryTables": 1,
+    "totalColumns": 317,
+    "totalIndexes": 115,
+    "totalConstraints": 263,
+    "totalTriggers": 1,
+    "departmentsCount": 32,
+    "categoriesCount": 16,
+    "buildingsCount": 13,
+    "roomsCount": 58,
+    "personnelActiveCount": 48,
+    "personnelTotalCount": 55,
+    "assetsActiveCount": 74,
+    "assetsTotalCount": 74,
+    "assetsTotalValue": 48298300,
+    "assignmentsActiveCount": 10,
+    "assignmentsTotalCount": 36,
+    "stockItemsCount": 14,
+    "stockTransactionsCount": 75,
+    "fleetVehiclesCount": 8,
+    "procurementOrdersCount": 3,
+    "maintenancesCount": 2,
+    "inventoryAuditsCount": 1,
+    "systemUsersActiveCount": 5,
+    "auditLogsCount": 9999
+  },
+  "securityAndTesting": {
+    "totalEndpoints": 93,
+    "matrixRoles": [
+      "ADMIN",
+      "DEPT_MANAGER",
+      "STAFF",
+      "AUDITOR",
+      "VIEWER"
+    ],
+    "matrixChecksTotal": 534,
+    "matrixChecksPassed": 534,
+    "matrixChecksFailed": 0,
+    "matrixPassRate": 100,
+    "csrfProtectionProtectedEndpoints": 5,
+    "csrfProtectionTested": 5,
+    "idorBOLAIsolationChecksPassed": 8,
+    "staffLockdownChecksPassed": 7,
+    "rateLimitingAssertionsPassed": 9,
+    "rateLimitingAssertionsFailed": 0,
+    "playwrightE2ETestsPassed": 51,
+    "playwrightE2ETestsFailed": 0,
+    "playwrightCoverageCategories": [
+      "Kimlik Doğrulama ve Rol Bazlı Yönlendirme (5 Rol)",
+      "10 Temel Okuma Ekranı ve AUDITOR/STAFF Kısıtları",
+      "Varlık Yönetimi, Filtreleme ve Yaşam Döngüsü Detayları",
+      "Zimmetleme ve İade İşlemleri Döngüsü",
+      "Barkod ve QR Kod Sayım / El Terminali / Kamera Modülü",
+      "Koyu Tema ve Responsive Arayüz Tasarımı"
+    ]
+  },
+  "verificationSummary": {
+    "isOracle19cReady": true,
+    "dryRunTestedOnEmptySchema": true,
+    "rollbackScriptReady": true,
+    "rollbackScriptPath": "docs/dba-rollback.sql",
+    "environmentConfiguredViaEnv": true,
+    "zeroHardcodedSecrets": true,
+    "turkishSearchAiCollationEnabled": true
+  }
+}
