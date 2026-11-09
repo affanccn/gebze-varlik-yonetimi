@@ -25,10 +25,10 @@ public class SecurityAuditService {
         try {
             if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attrs) {
                 HttpServletRequest req = attrs.getRequest();
-                String xff = req.getHeader("X-Forwarded-For");
-                if (xff != null && !xff.isBlank()) {
-                    return xff.split(",")[0].trim();
-                }
+                // X-Forwarded-For başlığı burada doğrudan OKUNMAZ: istemci tarafından sahtelenebilir.
+                // Üretimde server.forward-headers-strategy=native sayesinde Tomcat RemoteIpValve,
+                // yalnızca güvenilen iç proxy'lerden (10/8, 172.16/12, 192.168/16, 127/8) gelen
+                // X-Forwarded-For değerini getRemoteAddr() içine yansıtır.
                 String remoteAddr = req.getRemoteAddr();
                 if (remoteAddr != null && !remoteAddr.isBlank()) {
                     return remoteAddr;
