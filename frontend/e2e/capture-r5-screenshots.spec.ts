@@ -23,10 +23,34 @@ test.describe('Faz R5: Üretim Ekran Görüntüleri Yakalama (Port 8080)', () =>
     // Login as Admin
     await loginAsAdmin(page);
 
-    // 2. Dashboard View
+    // 2. Dashboard View (Light Theme)
     await page.waitForSelector('h1:has-text("Yönetici Gösterge Paneli")');
     await page.waitForTimeout(500);
     await page.screenshot({ path: path.join(artifactDir, '28-r5-dashboard.png'), fullPage: true });
+
+    // 2b. Dashboard View (Dark Theme via #btn-theme-toggle)
+    const themeToggle = page.locator('#btn-theme-toggle');
+    if (await themeToggle.isVisible()) {
+      await themeToggle.click();
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: path.join(artifactDir, '37-asama2-dashboard-dark.png'), fullPage: true });
+      await themeToggle.click();
+      await page.waitForTimeout(300);
+    }
+
+    // 2c. Personnel View + Specific Personnel Assignments Modal
+    await page.goto('/personnel');
+    await page.waitForSelector('table tbody tr');
+    await page.waitForTimeout(400);
+    const kemalRow = page.locator('table tbody tr').filter({ hasText: 'SCL-0401' });
+    if ((await kemalRow.count()) > 0) {
+      await kemalRow.locator('button[title="Personelin Zimmetlerini Gör"]').click();
+      await page.waitForSelector('text=Zimmetli Varlıklar:', { timeout: 5000 });
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: path.join(artifactDir, '38-asama2-personnel-assignments.png'), fullPage: true });
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(200);
+    }
 
     // 3. Asset Detail Modal
     await page.goto('/assets');
