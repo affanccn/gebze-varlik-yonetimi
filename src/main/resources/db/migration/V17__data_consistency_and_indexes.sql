@@ -91,9 +91,10 @@ USING (
     FROM personnel
     WHERE is_deleted = 0
 ) p
-ON (aa.personnel_id IS NULL AND TRIM(LOWER(aa.assignee_name)) = p.norm_name)
+ON (TRIM(LOWER(aa.assignee_name)) = p.norm_name)
 WHEN MATCHED THEN
-    UPDATE SET aa.personnel_id = p.id;
+    UPDATE SET aa.personnel_id = p.id
+    WHERE aa.personnel_id IS NULL;
 
 -- 7. Eksik Yabancı Anahtar ve Sorgu Performans İndeksleri
 CREATE INDEX idx_inv_audits_scope ON inventory_audits (department_id, building_id, floor_id);
