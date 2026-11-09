@@ -15,20 +15,21 @@ public class SecurityAuditService {
 
     private static final Logger logger = LoggerFactory.getLogger(SecurityAuditService.class);
 
+    private static volatile ClientIpResolver staticIpResolver;
     private final JdbcClient jdbcClient;
 
-    public SecurityAuditService(JdbcClient jdbcClient) {
+    public SecurityAuditService(JdbcClient jdbcClient, ClientIpResolver clientIpResolver) {
         this.jdbcClient = jdbcClient;
+        staticIpResolver = clientIpResolver;
     }
 
     public static String resolveCurrentClientIp() {
         try {
             if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attrs) {
                 HttpServletRequest req = attrs.getRequest();
-                // X-Forwarded-For başlığı burada doğrudan OKUNMAZ: istemci tarafından sahtelenebilir.
-                // Üretimde server.forward-headers-strategy=native sayesinde Tomcat RemoteIpValve,
-                // yalnızca güvenilen iç proxy'lerden (10/8, 172.16/12, 192.168/16, 127/8) gelen
-                // X-Forwarded-For değerini getRemoteAddr() içine yansıtır.
+                if (staticIpResolver != null) {
+                    return staticIpResolver.resolveClientIp(req);
+                }
                 String remoteAddr = req.getRemoteAddr();
                 if (remoteAddr != null && !remoteAddr.isBlank()) {
                     return remoteAddr;

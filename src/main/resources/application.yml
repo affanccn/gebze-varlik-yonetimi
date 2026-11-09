@@ -45,6 +45,7 @@ spring:
 
 server:
   port: ${SERVER_PORT:8080}
+  forward-headers-strategy: native
   servlet:
     session:
       timeout: 30m
@@ -67,6 +68,7 @@ app:
     username: ${APP_ADMIN_USERNAME:admin}
     email: ${APP_ADMIN_EMAIL:admin@gebze.bel.tr}
   security:
+    trusted-proxies: ${TRUSTED_PROXIES:127.0.0.1,::1,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
     hsts:
       enabled: ${SECURITY_HSTS_ENABLED:false}
     cookie:

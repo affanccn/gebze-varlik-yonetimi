@@ -42,18 +42,24 @@ public class AuthController {
     private final SecurityAuditService securityAuditService;
     private final PasswordEncoder passwordEncoder;
     private final JdbcClient jdbcClient;
+    private final tr.gov.gebze.varlik.security.ClientIpResolver clientIpResolver;
+    private final tr.gov.gebze.varlik.security.LoginRateLimiter loginRateLimiter;
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     public AuthController(AuthenticationManager authenticationManager,
                           AuthService authService,
                           SecurityAuditService securityAuditService,
                           PasswordEncoder passwordEncoder,
-                          JdbcClient jdbcClient) {
+                          JdbcClient jdbcClient,
+                          tr.gov.gebze.varlik.security.ClientIpResolver clientIpResolver,
+                          tr.gov.gebze.varlik.security.LoginRateLimiter loginRateLimiter) {
         this.authenticationManager = authenticationManager;
         this.authService = authService;
         this.securityAuditService = securityAuditService;
         this.passwordEncoder = passwordEncoder;
         this.jdbcClient = jdbcClient;
+        this.clientIpResolver = clientIpResolver;
+        this.loginRateLimiter = loginRateLimiter;
     }
 
     @GetMapping("/demo-users")
@@ -71,7 +77,13 @@ public class AuthController {
         }
 
         String username = request.username().trim().toLowerCase();
-        String clientIp = httpRequest.getRemoteAddr();
+        String clientIp = clientIpResolver.resolveClientIp(httpRequest);
+
+        // 0. Hız Sınırlaması (Rate Limiting) Kontrolü (IP + Kullanıcı Adı bazlı)
+        if (!loginRateLimiter.isAllowed(clientIp, username)) {
+            securityAuditService.logFailedLogin(username, clientIp, "Hız sınırı aşıldı (Rate Limit Blocked)");
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "Çok fazla giriş denemesi yapıldı. Lütfen 1 dakika sonra tekrar deneyiniz.");
+        }
 
         // 1. Kullanıcıyı veritabanından sorgula
         Optional<SystemUser> userOpt = jdbcClient.sql("""
@@ -111,6 +123,7 @@ public class AuthController {
         .optional();
 
         if (userOpt.isEmpty()) {
+            loginRateLimiter.recordFailedAttempt(clientIp, username);
             securityAuditService.logFailedLogin(username, clientIp, "Tanımsız kullanıcı adı");
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Kullanıcı adı veya şifre hatalı. Kalan deneme hakkınız: 5.");
         }
@@ -119,12 +132,14 @@ public class AuthController {
 
         // 2. Pasiflik kontrolü
         if (!user.isActive()) {
+            loginRateLimiter.recordFailedAttempt(clientIp, username);
             securityAuditService.logFailedLogin(username, clientIp, "Pasif hesap ile giriş teşebbüsü");
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Kullanıcı hesabı devre dışı bırakılmıştır. Lütfen sistem yöneticisi ile iletişime geçiniz.");
         }
 
         // 3. Hesap kilitleme kontrolü
         if (user.isAccountLocked()) {
+            loginRateLimiter.recordFailedAttempt(clientIp, username);
             LocalDateTime now = LocalDateTime.now();
             long minutesLeft = Duration.between(now, user.getLockedUntil()).toMinutes() + 1;
             if (minutesLeft < 1) minutesLeft = 1;
@@ -139,7 +154,8 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(username, request.password())
             );
 
-            // Başarılı girişte sayaç ve kilit sıfırlanır
+            // Başarılı girişte hız sınırı sayacı, veritabanı sayacı ve kilit sıfırlanır
+            loginRateLimiter.recordSuccess(clientIp, username);
             jdbcClient.sql("""
                 UPDATE system_users
                 SET failed_attempts = 0, locked_until = NULL
@@ -162,6 +178,7 @@ public class AuthController {
             return authService.toUserSession(userDetails, sessionId);
 
         } catch (AuthenticationException ex) {
+            loginRateLimiter.recordFailedAttempt(clientIp, username);
             int newFailedAttempts = user.getFailedAttempts() + 1;
             if (newFailedAttempts >= 5) {
                 jdbcClient.sql("""

@@ -90,12 +90,15 @@
 * **Neden soruyoruz?**
   * Dağıtım paketini (Docker imajı veya doğrudan çalıştırılabilir `varlik-yonetimi-0.1.0-SNAPSHOT.jar` + servis dosyası) sunucu ortamına uygun teslim etmek için gereklidir.
 
-### 11. Alan Adı (DNS), Ters Vekil (Reverse Proxy) ve SSL/TLS Sertifikası Hazır mı?
+### 11. Alan Adı (DNS), Ters Vekil (Reverse Proxy / WAF) ve İstemci IP Başlığı Nedir?
 * **Sorular:**
   * Uygulamanın kurum içi/dışı erişim adresi ne olacak? (Örn. `https://varlik.gebze.bel.tr` veya `https://ekys.gebze.bel.tr`)
-  * Uygulama önünde Nginx, Windows IIS, F5 veya Fortigate Web Application Firewall (WAF) kullanılacak mı? Bu sunucu için geçerli bir SSL/TLS sertifikası (`*.gebze.bel.tr`) mevcut mu?
+  * Uygulama önünde Nginx, Windows IIS, F5, HAProxy veya Fortigate Web Application Firewall (WAF) kullanılacak mı?
+  * Bu ters vekil / WAF sunucularının yerel IP adresi veya ağ aralığı (CIDR) nedir?
+  * Ters vekil tarafından iletilen gerçek istemci IP başlığının adı nedir? (`X-Forwarded-For`, `X-Real-IP` veya özel bir başlık?)
+  * Bu sunucu için geçerli bir SSL/TLS sertifikası (`*.gebze.bel.tr`) mevcut mu?
 * **Neden soruyoruz?**
-  * Üretim profilinde (`prod`) güvenlik gereği `SESSION_COOKIE_SECURE=true` ve `CSRF_COOKIE_SECURE=true` aktiftir; tarayıcılar bu çerezleri yalnızca `HTTPS` üzerinden gönderir. Ayrıca telefon/tablet kamerasıyla barkod okutma (`S.8`) tarayıcı güvenlik standardı gereği yalnızca `HTTPS` üzerinde çalışır.
+  * Uygulamamız sahte IP enjeksiyonlarını önlemek amacıyla yalnızca `TRUSTED_PROXIES` ortam değişkeninde tanımlanan IP'lerden gelen `X-Forwarded-For` başlıklarına güvenir; doğrudan gelen veya güvenilmeyen istemcilerin başlıklarını yok sayar. Ayrıca üretim profilinde (`prod`) güvenlik gereği `SESSION_COOKIE_SECURE=true` ve `CSRF_COOKIE_SECURE=true` aktiftir; tarayıcılar bu çerezleri yalnızca `HTTPS` üzerinden gönderir. Telefon/tablet kamerasıyla barkod okutma (`S.8`) da tarayıcı güvenlik standardı gereği yalnızca `HTTPS` üzerinde çalışır.
 
 ### 12. Saha Sayımında El Terminali mi, Telefon/Tablet Kamerası mı Kullanılacak? (`S.8`)
 * **Sorular:**
