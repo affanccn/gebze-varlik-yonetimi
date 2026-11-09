@@ -13,9 +13,9 @@
   powershell -ExecutionPolicy Bypass -File scripts/test_migration_equivalence.ps1
 #>
 param(
-    [string]$Container = "gebze-varlik-oracle23ai",
-    [string]$Pdb = "FREEPDB1",
-    [string]$JdbcUrl = "jdbc:oracle:thin:@//localhost:1521/FREEPDB1"
+  [string]$Container = "gebze-varlik-oracle23ai",
+  [string]$Pdb = "FREEPDB1",
+  [string]$JdbcUrl = "jdbc:oracle:thin:@//localhost:1521/FREEPDB1"
 )
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
@@ -24,16 +24,17 @@ Set-Location $root
 $pw = "EqTest123456X9"
 
 function Invoke-Sys([string]$sql) {
-    $tempFile = [System.IO.Path]::GetTempFileName()
-    $header = "WHENEVER SQLERROR EXIT SQL.SQLCODE`r`nALTER SESSION SET CONTAINER=$Pdb;`r`n"
-    $footer = "`r`nexit`r`n"
-    [System.IO.File]::WriteAllText($tempFile, $header + $sql + $footer)
-    try {
-        $out = Get-Content $tempFile -Raw | docker exec -i $Container sqlplus -s / as sysdba
-        if ($LASTEXITCODE -ne 0) { throw "sqlplus hatasi (kod $LASTEXITCODE)" }
-    } finally {
-        if (Test-Path $tempFile) { Remove-Item $tempFile -Force }
-    }
+  $tempFile = [System.IO.Path]::GetTempFileName()
+  $header = "WHENEVER SQLERROR EXIT SQL.SQLCODE`r`nALTER SESSION SET CONTAINER=$Pdb;`r`n"
+  $footer = "`r`nexit`r`n"
+  [System.IO.File]::WriteAllText($tempFile, $header + $sql + $footer)
+  try {
+    $out = Get-Content $tempFile -Raw | docker exec -i $Container sqlplus -s / as sysdba
+    if ($LASTEXITCODE -ne 0) { throw "sqlplus hatasi (kod $LASTEXITCODE)" }
+  }
+  finally {
+    if (Test-Path $tempFile) { Remove-Item $tempFile -Force }
+  }
 }
 
 $drop = @'
@@ -49,24 +50,24 @@ $pw = "GebzeEq2026Pass"
 $create = "CREATE USER VARLIK_EQ_PROD IDENTIFIED BY $pw QUOTA UNLIMITED ON USERS;`r`nGRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE, CREATE TRIGGER, CREATE VIEW, CREATE PROCEDURE TO VARLIK_EQ_PROD;"
 
 try {
-    Write-Host "== Gecici bos semalar olusturuluyor (VARLIK_EQ_PROD) =="
-    Invoke-Sys ($drop + "`r`n" + $create) | Out-Null
+  Write-Host "== Gecici bos semalar olusturuluyor (VARLIK_EQ_PROD) =="
+  Invoke-Sys ($drop + "`r`n" + $create) | Out-Null
 
-    if (-not (Test-Path target/cp.txt)) {
-        & .\mvnw.cmd -q dependency:build-classpath "-Dmdep.outputFile=target/cp.txt" "-Dmdep.includeScope=runtime"
-    }
-    $cp = (Get-Content target/cp.txt -Raw).Trim()
+  if (-not (Test-Path target/cp.txt)) {
+    & .\mvnw.cmd -q dependency:build-classpath "-Dmdep.outputFile=target/cp.txt" "-Dmdep.includeScope=runtime"
+  }
+  $cp = (Get-Content target/cp.txt -Raw).Trim()
 
-    Write-Host "== MigrationEquivalence derleniyor =="
-    & javac -cp $cp -d scripts scripts/MigrationEquivalence.java
+  Write-Host "== MigrationEquivalence derleniyor =="
+  & javac -cp $cp -d scripts scripts/MigrationEquivalence.java
 
-    Write-Host "== Migrasyonlar uygulanip veri sozlukleri karsilastiriliyor =="
-    $cp = "target/classes;scripts;" + $cp
-    & java -cp $cp MigrationEquivalence $JdbcUrl varlik_app 'GebzeVarlik2026' VARLIK_EQ_PROD $pw
-    $code = $LASTEXITCODE
+  Write-Host "== Migrasyonlar uygulanip veri sozlukleri karsilastiriliyor =="
+  $cp = "target/classes;scripts;" + $cp
+  & java -cp $cp MigrationEquivalence $JdbcUrl varlik_app 'GebzeVarlik2026' VARLIK_EQ_PROD $pw
+  $code = $LASTEXITCODE
 }
 finally {
-    Write-Host "`n== Gecici semalar kaldiriliyor =="
-    Invoke-Sys $drop | Out-Null
+  Write-Host "`n== Gecici semalar kaldiriliyor =="
+  Invoke-Sys $drop | Out-Null
 }
 exit $code
