@@ -78,14 +78,43 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Sayfa Başlığı */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-          Yönetici Gösterge Paneli
-        </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          T.C. Gebze Belediyesi Kurumsal Varlık, Yerleşke ve Taşınır Envanteri Gerçek Zamanlı Özeti
-        </p>
+      {/* Sayfa Başlığı ve Hızlı Erişim Kısayolları */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            Yönetici Gösterge Paneli
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            T.C. Gebze Belediyesi Kurumsal Varlık, Yerleşke ve Taşınır Envanteri Gerçek Zamanlı Özeti
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => navigate('/assets')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-xs font-semibold shadow-xs transition-all"
+          >
+            <Package className="w-3.5 h-3.5 text-teal-400" />
+            Demirbaş Envanteri
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/assignments')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition-all"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Zimmet İşlemleri
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/reports')}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition-all"
+          >
+            <Coins className="w-3.5 h-3.5 text-emerald-600" />
+            Amortisman Raporu
+          </button>
+        </div>
       </div>
 
       {/* 8 Temel KPI Kartı */}
@@ -128,7 +157,7 @@ export const DashboardView: React.FC = () => {
         <StatCard
           title="Müdürlük Sayısı"
           value={dashboard.totalDepartments}
-          subtitle="30 Kurumsal Birim"
+          subtitle="Kurumsal Birim ve Müdürlükler"
           color="blue"
           icon={<Users className="w-6 h-6" />}
         />
@@ -443,9 +472,9 @@ export const DashboardView: React.FC = () => {
         </Card>
       </div>
 
-      {/* 16 Kategori Grid */}
+      {/* Ana Varlık Kategorileri Grid */}
       <Card
-        title="16 Ana Varlık Kategorisi"
+        title="Ana Varlık Kategorileri"
         subtitle="Belediye demirbaş envanterinin kategorik dağılımı"
         action={
           <button
