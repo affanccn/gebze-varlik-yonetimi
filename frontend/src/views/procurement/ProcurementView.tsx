@@ -54,7 +54,7 @@ export const ProcurementView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <ShoppingCart className="w-6 h-6 text-indigo-600" />
@@ -69,7 +69,7 @@ export const ProcurementView: React.FC = () => {
           type="button"
           onClick={() => refetch()}
           disabled={isRefetching}
-          className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors self-start sm:self-auto"
+          className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-xl transition-colors self-start sm:self-auto"
           title="Yenile"
         >
           <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />
@@ -78,25 +78,25 @@ export const ProcurementView: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-blue-600 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Toplam Tedarik</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{kpis.total} Sipariş</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-amber-500 shadow-xs">
           <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-amber-500" />
             Süreç Devam Eden
           </div>
           <div className="text-2xl font-bold text-amber-700 mt-1">{kpis.pending}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-emerald-500 shadow-xs">
           <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
             Teslim Alınanlar
           </div>
           <div className="text-2xl font-bold text-emerald-700 mt-1">{kpis.delivered}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-indigo-500 shadow-xs">
           <div className="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Toplam Tedarik Bütçesi</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(kpis.totalBudget)}</div>
         </div>

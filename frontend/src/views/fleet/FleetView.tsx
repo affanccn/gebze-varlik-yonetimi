@@ -75,7 +75,7 @@ export const FleetView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Truck className="w-6 h-6 text-blue-600" />
@@ -90,7 +90,7 @@ export const FleetView: React.FC = () => {
           type="button"
           onClick={() => refetch()}
           disabled={isRefetching}
-          className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors self-start sm:self-auto"
+          className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-xl transition-colors self-start sm:self-auto"
           title="Yenile"
         >
           <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />
@@ -99,25 +99,25 @@ export const FleetView: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-blue-600 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Toplam Filo</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{kpis.total} Araç</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-emerald-500 shadow-xs">
           <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
             Görevde (Sahada)
           </div>
           <div className="text-2xl font-bold text-emerald-700 mt-1">{kpis.active}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-sky-500 shadow-xs">
           <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-blue-500" />
             Garajda (Beklemede)
           </div>
           <div className="text-2xl font-bold text-blue-700 mt-1">{kpis.garage}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-amber-500 shadow-xs">
           <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider flex items-center gap-1">
             <Wrench className="w-3.5 h-3.5 text-amber-500" />
             Bakım & Arızada

@@ -279,7 +279,7 @@ export const UsersView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Users className="w-6 h-6 text-blue-600" />
@@ -295,7 +295,7 @@ export const UsersView: React.FC = () => {
             type="button"
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors"
+            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-xl transition-colors"
             title="Yenile"
           >
             <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />
@@ -309,7 +309,7 @@ export const UsersView: React.FC = () => {
               setUserToEdit(null);
               setIsFormOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition-all hover:shadow"
           >
             <Plus className="w-4 h-4" />
             Yeni Kullanıcı Ekle
@@ -319,19 +319,19 @@ export const UsersView: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-blue-600 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Toplam Hesap</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{kpis.total}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-emerald-500 shadow-xs">
           <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Aktif Kullanıcı</div>
           <div className="text-2xl font-bold text-emerald-700 mt-1">{kpis.active}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-slate-400 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pasif Hesap</div>
           <div className="text-2xl font-bold text-slate-700 mt-1">{kpis.passive}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-rose-500 shadow-xs">
           <div className="text-xs font-semibold text-rose-600 uppercase tracking-wider">Kilitli Hesap</div>
           <div className="text-2xl font-bold text-rose-700 mt-1">{kpis.locked}</div>
         </div>

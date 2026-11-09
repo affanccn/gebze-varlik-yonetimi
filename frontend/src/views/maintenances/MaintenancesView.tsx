@@ -260,7 +260,7 @@ export const MaintenancesView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Wrench className="w-6 h-6 text-amber-600" />
@@ -276,7 +276,7 @@ export const MaintenancesView: React.FC = () => {
             type="button"
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors"
+            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-xl transition-colors"
             title="Yenile"
           >
             <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />
@@ -287,7 +287,7 @@ export const MaintenancesView: React.FC = () => {
               type="button"
               data-action="new-maintenance"
               onClick={() => setIsFormOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs transition-all hover:shadow"
             >
               <Plus className="w-4 h-4" />
               Yeni Bakım Talebi Aç
@@ -298,19 +298,19 @@ export const MaintenancesView: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-blue-600 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Toplam İş Emri</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{kpis.total}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-amber-500 shadow-xs">
           <div className="text-xs font-semibold text-amber-600 uppercase tracking-wider">Açık / Devam Eden</div>
           <div className="text-2xl font-bold text-amber-700 mt-1">{kpis.open}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-emerald-500 shadow-xs">
           <div className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">Tamamlanan Bakımlar</div>
           <div className="text-2xl font-bold text-emerald-700 mt-1">{kpis.completed}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-slate-400 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Toplam Harcama</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(kpis.totalCost)}</div>
         </div>

@@ -108,7 +108,7 @@ export const StockView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <Boxes className="w-6 h-6 text-teal-600" />
@@ -124,7 +124,7 @@ export const StockView: React.FC = () => {
             type="button"
             onClick={handleRefresh}
             disabled={isRefetchingItems}
-            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors"
+            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-xl transition-colors"
             title="Yenile"
           >
             <RefreshCw className={`w-4 h-4 ${isRefetchingItems ? 'animate-spin' : ''}`} />
@@ -138,7 +138,7 @@ export const StockView: React.FC = () => {
                 setPreselectedItem(null);
                 setIsTxModalOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-xs transition-all hover:shadow"
             >
               <Plus className="w-4 h-4" />
               Stok Hareketi Yap
@@ -149,22 +149,22 @@ export const StockView: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-blue-600 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Toplam Stok Kalemi</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{kpis.total}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-rose-500 shadow-xs">
           <div className="text-xs font-semibold text-rose-600 uppercase tracking-wider flex items-center gap-1">
             <AlertOctagon className="w-3.5 h-3.5 text-rose-500" />
             Kritik & Tükenen
           </div>
           <div className="text-2xl font-bold text-rose-700 mt-1">{kpis.critical}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-emerald-500 shadow-xs">
           <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Toplam Stok Değeri</div>
           <div className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(kpis.totalVal)}</div>
         </div>
-        <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 border-t-4 border-t-teal-500 shadow-xs">
           <div className="text-xs font-semibold text-teal-600 uppercase tracking-wider flex items-center gap-1">
             <Warehouse className="w-3.5 h-3.5 text-teal-500" />
             Aktif Ambar / Depo

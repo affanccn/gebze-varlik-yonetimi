@@ -159,7 +159,7 @@ export const ReportsView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Başlık ve Butonlar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs print:hidden">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Raporlama ve Amortisman Analizi
@@ -173,7 +173,7 @@ export const ReportsView: React.FC = () => {
           <button
             type="button"
             onClick={handleExportCsv}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-xs"
             title="Excel uyumlu UTF-8 CSV İndir"
           >
             <Download className="w-4 h-4" />
@@ -182,7 +182,7 @@ export const ReportsView: React.FC = () => {
           <button
             type="button"
             onClick={handlePrint}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-lg bg-slate-800 text-white hover:bg-slate-900 transition-colors shadow-xs"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-slate-800 text-white hover:bg-slate-900 transition-all shadow-xs"
             title="Resmi Şablonda Yazdır veya PDF Kaydet"
           >
             <Printer className="w-4 h-4" />

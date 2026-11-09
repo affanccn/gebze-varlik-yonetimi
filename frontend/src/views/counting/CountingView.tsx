@@ -88,7 +88,7 @@ export const CountingView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
             <ClipboardCheck className="w-6 h-6 text-emerald-600" />
@@ -104,7 +104,7 @@ export const CountingView: React.FC = () => {
             type="button"
             onClick={handleRefresh}
             disabled={isRefetchingAudits}
-            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors"
+            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 rounded-xl transition-colors"
             title="Yenile"
           >
             <RefreshCw className={`w-4 h-4 ${isRefetchingAudits ? 'animate-spin' : ''}`} />
@@ -116,7 +116,7 @@ export const CountingView: React.FC = () => {
               id="btn-open-audit-scan"
               data-action="new-audit-scan"
               onClick={() => setIsScanModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all hover:shadow"
             >
               <ScanLine className="w-4 h-4" />
               Barkod / QR Okut
