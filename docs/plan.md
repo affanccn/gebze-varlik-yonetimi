@@ -719,7 +719,7 @@ Canlı veritabanından çalıştırılan doğrulama sorguları neticesinde aşa�
 
 #### 7. VIEWER Rolü Kapsamı ve Mimari Karar:
 - **Karar ve Gerekçe:** `VIEWER` rolünün kapsamı `system_users.department_id` sütununa dinamik olarak bağlanmıştır:
-  - Eğer `system_users.department_id IS NULL` ise: Kurum geneli izleyici kabul edilir ve tüm belediye varlıklarını salt okunur görür (Örn: `kurum_izleyici`, Başkanlık Danışmanı, Teftiş Gözlemcisi).
+  - Eğer `system_users.department_id IS NULL` ise: Kurum geneli izleyici kabul edilir ve tüm belediye varlıklarını salt okunur görür (Örn: `kurum_izleyici`, Üst Yönetim Danışmanı, Teftiş Gözlemcisi).
   - Eğer `system_users.department_id IS NOT NULL` ise: Birim izleyicisi kabul edilir ve yalnızca bağlı olduğu müdürlüğün kayıtlarını salt okunur görür (Örn: Fen İşleri Stajyeri/İzleyicisi).
   - *Gerekçe:* Belediyelerde hem kurum genelini denetleyen bağımsız gözlemciler hem de yalnızca bir müdürlüğün işlemlerini takip etmesi gereken birim izleyicileri bulunur. Bu esnek tasarım sayesinde iki senaryo da tek bir rol ve sıfır kod değişikliği ile yönetilir.
 - **Varsayılan Reddet Kuralı (Deny-by-Default):** `department_id = NULL` olduğunda global görme kuralı YALNIZCA `ADMIN`, `AUDITOR` ve `VIEWER` için geçerlidir. Eğer `DEPT_MANAGER` kullanıcısının `department_id` değeri `NULL` ise veya `STAFF` kullanıcısının `personnel_id` değeri `NULL` ise, sisteme hiçbir kayıt dönmez (`1=0` şartı uygulanır). Böylece profildeki eksik bir alan asla belediye kayıtlarının ifşasına yol açamaz.

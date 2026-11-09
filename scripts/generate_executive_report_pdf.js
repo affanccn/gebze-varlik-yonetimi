@@ -1,7 +1,7 @@
 /**
  * scripts/generate_executive_report_pdf.js
  * Gebze Belediyesi Kurumsal Varlık Yönetimi Sistemi (EKYS)
- * Aşama 4: Yönetici Sunum Raporu (PDF) Üretici
+ * Yönetici Sunum Raporu (PDF) Üretici
  */
 
 const fs = require('fs');
@@ -36,7 +36,7 @@ const htmlContent = `<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>Gebze Belediyesi Varlık Yönetimi Sistemi - Yönetici Raporu</title>
+<title>Gebze Belediyesi Varlık Yönetimi Sistemi: Yönetici Sunum Raporu</title>
 <style>
   @page {
     size: A4 portrait;
@@ -120,8 +120,8 @@ const htmlContent = `<!DOCTYPE html>
   }
 
   /* Typography */
-  h1 { font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 6px; line-height: 1.2; }
-  h2 { font-size: 14px; font-weight: 700; color: #0369a1; margin-bottom: 6px; }
+  h1 { font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 5px; line-height: 1.2; }
+  h2 { font-size: 13.5px; font-weight: 700; color: #0369a1; margin-bottom: 6px; }
   h3 { font-size: 11.5px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
   p { font-size: 9.5px; line-height: 1.45; color: #334155; margin-bottom: 6px; }
 
@@ -162,7 +162,7 @@ const htmlContent = `<!DOCTYPE html>
     padding: 8px 10px;
     text-align: center;
   }
-  .kpi-val { font-size: 16px; font-weight: 800; color: #0369a1; }
+  .kpi-val { font-size: 15px; font-weight: 800; color: #0369a1; }
   .kpi-label { font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-top: 2px; }
 
   /* Tables */
@@ -239,33 +239,33 @@ const htmlContent = `<!DOCTYPE html>
 <body>
 
 <!-- ==================================================================== -->
-<!-- SAYFA 1: YÖNETİCİ ÖZETİ (CHIEF / BAŞKANLIK BRİFİNGİ) -->
+<!-- SAYFA 1: YÖNETİCİ ÖZETİ VE MEVCUT DURUM -->
 <!-- ==================================================================== -->
 <div class="page">
   <div>
     <div class="page-header">
       <div class="header-left">
         <div class="gov-title">T.C. GEBZE BELEDİYESİ</div>
-        <div class="sub-title">BİLGİ İŞLEM MÜDÜRLÜĞÜ & MALİ HİZMETLER MÜDÜRLÜĞÜ</div>
+        <div class="sub-title">KURUMSAL VARLIK YÖNETİMİ SİSTEMİ (EKYS)</div>
       </div>
       <div class="header-right">
-        <span class="badge">YÖNETİCİ BRİFİNG RAPORU</span>
+        <span class="badge">YÖNETİCİ SUNUM RAPORU</span>
       </div>
     </div>
 
     <div style="margin-bottom: 12px; text-align: center; padding: 10px 0; background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: #ffffff; border-radius: 6px;">
-      <h1 style="color: #ffffff; font-size: 19px; margin-bottom: 4px;">KURUMSAL TAŞINIR VE VARLIK YÖNETİMİ SİSTEMİ (EKYS)</h1>
-      <div style="font-size: 10.5px; color: #93c5fd; font-weight: 600;">Sistem Olgunluk Düzeyi, Güvenlik Doğrulaması ve Canlıya Geçiş Hazırlık Durumu</div>
-      <div style="font-size: 9px; color: #cbd5e1; margin-top: 4px;">Hedef: Yaklaşık 1 Ay Sonraki Belediye Oracle Veritabanı ve İK Entegrasyon Günü</div>
+      <h1 style="color: #ffffff; font-size: 18px; margin-bottom: 3px;">GEBZE BELEDİYESİ VARLIK YÖNETİMİ SİSTEMİ: YÖNETİCİ SUNUM RAPORU</h1>
+      <div style="font-size: 10px; color: #93c5fd; font-weight: 600;">Sistem Durum Analizi, Güvenlik Doğrulaması ve Entegrasyon Hazırlık Durumu</div>
+      <div style="font-size: 8.5px; color: #cbd5e1; margin-top: 3px;">Belediye Oracle Veritabanı ve İK Entegrasyon Süreci Ön Değerlendirmesi</div>
     </div>
 
     <div class="grid-4" style="margin-bottom: 10px;">
       <div class="kpi-box">
-        <div class="kpi-val" style="color: #16a34a;">%100</div>
-        <div class="kpi-label">Canlıya Geçiş Hazır</div>
+        <div class="kpi-val" style="color: #0284c7;">Büyük Ölçüde Hazır</div>
+        <div class="kpi-label">Teknik Altyapı Durumu</div>
       </div>
       <div class="kpi-box">
-        <div class="kpi-val" style="color: #0284c7;">528 / 528</div>
+        <div class="kpi-val" style="color: #16a34a;">528 / 528</div>
         <div class="kpi-label">Güvenlik Testi Geçti</div>
       </div>
       <div class="kpi-box">
@@ -274,28 +274,28 @@ const htmlContent = `<!DOCTYPE html>
       </div>
       <div class="kpi-box">
         <div class="kpi-val" style="color: #0f172a;">19c / 21c / 23ai</div>
-        <div class="kpi-label">Oracle Evrensel Uyum</div>
+        <div class="kpi-label">Oracle Uyumlu Tasarım</div>
       </div>
     </div>
 
     <div class="card card-highlight">
-      <h2 style="font-size: 12px; margin-bottom: 4px;">Sayın Başkanım / Değerli Daire Başkanlarım,</h2>
-      <p style="font-size: 9.5px; text-align: justify; margin-bottom: 4px;">
-        Gebze Belediyesi bünyesinde yer alan tüm taşınır malların, araç ve iş makinelerinin, demirbaşların, sarf malzemelerinin ve bilişim donanımlarının tek bir merkezi platformdan güvenle yönetilmesi, sayılması, zimmetlenmesi ve denetlenmesi amacıyla geliştirilen <strong>Kurumsal Varlık Yönetimi Sistemi (EKYS)</strong> projesinde 4 aşamalı kapanış ve sertleştirme çalışmaları eksiksiz tamamlanmıştır.
+      <h2 style="font-size: 11.5px; margin-bottom: 4px;">Yönetici Özeti ve Mevcut Durum</h2>
+      <p style="font-size: 9.3px; text-align: justify; margin-bottom: 4px;">
+        Gebze Belediyesi bünyesinde yer alan tüm taşınır malların, araç ve iş makinelerinin, demirbaşların, sarf malzemelerinin ve bilişim donanımlarının tek bir merkezi platformdan yönetilmesi, sayılması, zimmetlenmesi ve denetlenmesi amacıyla geliştirilen <strong>Kurumsal Varlık Yönetimi Sistemi (EKYS)</strong>, teknik olarak büyük ölçüde hazır durumdadır.
       </p>
-      <p style="font-size: 9.5px; text-align: justify; margin-bottom: 0;">
-        Sistem, belediyemizin kurumsal ağında ve sunucularında çalıştırılmak üzere <strong>sıfır kod bağımlılığı prensibiyle</strong> mühürlenmiştir. Yaklaşık 1 ay sonra gerçekleştirilecek olan belediye veritabanı bağlantısı ve İK personel entegrasyonu gününde; <strong>hiçbir yazılım kodu derlenmeden ve değiştirilmeden</strong>, yalnızca çevre değişkenleri (<code>.env</code>) aracılığıyla canlıya alınabilecektir.
+      <p style="font-size: 9.3px; text-align: justify; margin-bottom: 0;">
+        Sistem; bağlantı günü kod değişikliği gerekmeden, yalnızca kurumsal ortam değişkenleri (<code>.env</code>) ve yapılandırma ile çalıştırılacak mimaride kurulmuştur. Canlıya geçiş öncesinde yaklaşık 4 iş günü efor gerektiren kalan P1 işleri (stok kartı açma modalı, TİF sarf fişi dökümü, resmi zimmet fişi A4 çıktısı ve giriş uç noktasında IP bazlı hız sınırlaması) ile belediyeden beklenen teknik parametreler ve erişim izinleri bulunmaktadır.
       </p>
     </div>
 
     <div class="grid-2" style="margin-bottom: 8px;">
       <div class="card" style="margin-bottom: 0;">
-        <h3 style="color: #0369a1;">Neler Tamamlandı ve Doğrulandı?</h3>
+        <h3 style="color: #0369a1;">Tamamlanan ve Doğrulanan Çekirdek Özellikler</h3>
         <ul>
-          <li><strong>Tam Kapsamlı Modüller:</strong> Varlık Kartları, Zimmet/Tutanak, Depo/Sarf Malzeme, Bakım/İş Emri, Araç/Filo, Satın Alma, Sayım/Uzlaştırma ve Değiştirilemez Denetim İzi.</li>
-          <li><strong>Çapraz Müdürlük İzolasyonu:</strong> Fen İşleri, Park Bahçeler vb. 30 müdürlüğün yetkilileri sadece kendi envanterini görebilmekte; başkasının verisine erişememektedir (BOLA/IDOR savunması).</li>
+          <li><strong>Gelişmiş Modül Kapsamı:</strong> Varlık Envanteri, Zimmet/Tutanak, Depo/Stok, Bakım/İş Emri, Araç/Filo, Satın Alma, Sayım ve Güvenlik Denetim İzi.</li>
+          <li><strong>Çapraz Müdürlük İzolasyonu:</strong> Fen İşleri vb. 30 müdürlüğün yetkilileri yalnızca kendi biriminin envanterini görebilmekte; başkasının verisine erişememektedir (BOLA/IDOR koruması).</li>
           <li><strong>Resmi Hiyerarşi & Kurumsal Ağaç:</strong> 30 Müdürlük, 5 Ana Bina, Katlar ve 128 Oda eksiksiz şemalandırılmıştır.</li>
-          <li><strong>Personel & Zimmet Bütünlüğü:</strong> Sicil numaralı personel yönetimi, zimmet oluştururken zorunlu sicil kontrolü ve zimmeti olan personelin sistemden silinememesi güvencesi.</li>
+          <li><strong>Personel & Zimmet Bütünlüğü:</strong> Sicil numaralı personel yönetimi, zimmette zorunlu personel eşleşmesi ve aktif zimmeti olan personelin silinememesi güvencesi.</li>
         </ul>
       </div>
 
@@ -310,10 +310,10 @@ const htmlContent = `<!DOCTYPE html>
       </div>
     </div>
 
-    <div class="card card-success" style="margin-bottom: 0;">
-      <h3 style="color: #166534; font-size: 11px; margin-bottom: 3px;">Canlıya Geçiş Hazırlık Bildirimi</h3>
-      <p style="font-size: 9px; margin-bottom: 0;">
-        Sistem; Oracle 19c, 21c ve 23ai sürümlerinin tamamında geriye dönük uyumlu çalışacak üretim migrasyon paketi (<code>db/migration-prod</code>) ile teyit edilmiştir. Belediye Bilgi İşlem ekibine iletilecek teknik sorular ve DBA kurulum betikleri hazırlanmış olup sistem canlı provaya hazırdır.
+    <div class="card card-warning" style="margin-bottom: 0;">
+      <h3 style="color: #92400e; font-size: 10.5px; margin-bottom: 3px;">Kalan İhtiyaçlar ve Entegrasyon Ön Koşulları</h3>
+      <p style="font-size: 8.8px; margin-bottom: 0;">
+        Sistem; Oracle 19c, 21c ve 23ai sürümlerinde çalışabilecek üretim migrasyon paketi (<code>db/migration-prod</code>) ile tasarlanmıştır. Belediye Bilgi İşlem ekibinden gerekli teknik bilgiler, test şeması ve ağ erişimi sağlandığında kuru prova icra edilecek ve kalan 4 iş günlük P1 geliştirmeleriyle canlıya geçiş tamamlanacaktır.
       </p>
     </div>
   </div>
@@ -325,7 +325,7 @@ const htmlContent = `<!DOCTYPE html>
 </div>
 
 <!-- ==================================================================== -->
-<!-- SAYFA 2: YÖNETİCİ EYLEM VE KARAR PLANI -->
+<!-- SAYFA 2: BELEDİYEDEN BİLGİLER GELDİĞİNDE YAPILACAKLAR -->
 <!-- ==================================================================== -->
 <div class="page">
   <div>
@@ -335,64 +335,70 @@ const htmlContent = `<!DOCTYPE html>
         <div class="sub-title">KURUMSAL VARLIK YÖNETİMİ SİSTEMİ (EKYS)</div>
       </div>
       <div class="header-right">
-        <span class="badge">STRATEJİK EYLEM PLANI</span>
+        <span class="badge">EYLEM VE KARAR PLANI</span>
       </div>
     </div>
 
-    <h2>Önümüzdeki 1 Aylık Canlıya Geçiş Takvimi ve Karar Başlıkları</h2>
-    <p>Bağlantı gününe kadar geçen sürede birimler arası yürütülecek iş adımları ve yönetici onayı bekleyen kararlar:</p>
+    <h2>Belediyeden Bilgiler Geldiğinde Yapılacaklar ve Karar Başlıkları</h2>
+    <p>Bağlantı ve entegrasyon süreci belediyeden gelecek teknik bilgilere ve erişim izinlerine bağlı olup, adımlar sıra ve bağımlılık esasına göre planlanmıştır:</p>
 
     <div class="card" style="margin-bottom: 8px;">
-      <h3 style="color: #0f172a;">1 Aylık Hazırlık Süreci Faz Dağılımı</h3>
+      <h3 style="color: #0f172a;">Sıra ve Bağımlılık Esaslı Eylem Planı</h3>
       <table>
         <thead>
           <tr>
-            <th style="width: 14%;">Dönem</th>
-            <th style="width: 32%;">Yapılacak Temel İşlemler</th>
-            <th style="width: 28%;">Sorumlu Birimler</th>
-            <th style="width: 26%;">Çıktı & Doğrulama</th>
+            <th style="width: 18%;">Aşama</th>
+            <th style="width: 32%;">Uygulanacak İşlem ve Kapsam</th>
+            <th style="width: 25%;">Ön Koşul & Bağımlılık</th>
+            <th style="width: 25%;">Beklenen Çıktı</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>1. Hafta</strong><br>(Teknik Uyum)</td>
-            <td><code>docs/belediye-bt-sorulari.md</code> listesinin Bilgi İşlem ve DBA ekibine iletilmesi; 19c test şemasının açılması ve kuru prova icrası.</td>
-            <td>Bilgi İşlem Müdürlüğü,<br>DBA Yetkilisi, Proje Ekibi</td>
-            <td>Kuru prova raporu:<br><span class="badge-tag tag-green">%100 Başarılı</span></td>
+            <td><strong>Ön Koşul: Belediye Bilgi Paylaşımı</strong></td>
+            <td><code>docs/belediye-bt-sorulari.md</code> listesindeki ağ erişimi, Oracle sürüm bilgisi ve test şemasının tahsis edilmesi.</td>
+            <td>Bilgi İşlem Müdürlüğü,<br>DBA Yetkilisi</td>
+            <td>Bağlantı parametreleri ve test şeması hazır.</td>
           </tr>
           <tr>
-            <td><strong>2. Hafta</strong><br>(Veri Temizliği)</td>
-            <td>İK personel listesinin (2.450 personel) ve mevcut taşınır listelerinin Excel formatında hazırlanıp konsolide edilmesi.</td>
-            <td>İnsan Kaynakları Müd.,<br>Mali Hizmetler (Taşınır Kayıt)</td>
-            <td>Doğrulanmış Excel Şablonları</td>
+            <td><strong>1. Aşama: 19c Kuru Prova</strong></td>
+            <td>Belediyenin açtığı test şemasında <code>docs/kuru-prova-19c.sql</code> betiği çalıştırılarak DDL, JSON ve NLS uyumunun test edilmesi.</td>
+            <td>Test şeması erişimi</td>
+            <td>19c şemasında sıfır hata doğrulama raporu.</td>
           </tr>
           <tr>
-            <td><strong>3. Hafta</strong><br>(Pilot & Eğitim)</td>
-            <td>Fen İşleri ve Temizlik İşleri müdürlüklerinde tablet ve el terminalleriyle pilot sayım denemesi; ambar görevlilerine zimmet eğitimi.</td>
-            <td>Müdürlük Taşınır Yetkilileri,<br>Ambar Sorumluları</td>
-            <td>Pilot Sayım Mutabakatı</td>
+            <td><strong>2. Aşama: Kalan P1 İşleri ve Veri</strong></td>
+            <td>Yaklaşık 4 iş günlük P1 geliştirmelerinin tamamlanması; İK personel ve taşınır Excel listelerinin konsolide edilmesi.</td>
+            <td>Proje Ekibi,<br>Mali Hizmetler & İK</td>
+            <td>TİF/Zimmet modalları hazır, doğrulanmış Excel şablonu.</td>
           </tr>
           <tr>
-            <td><strong>4. Hafta</strong><br>(Canlı Bağlantı)</td>
-            <td>Canlı Oracle DB bağlantısı, kullanıcı şifrelerinin tanımlanması, gerçek verilerin yüklenmesi ve kurum genelinde canlı kullanım.</td>
-            <td>Tüm İlgili Birimler,<br>Proje Ekibi</td>
-            <td><strong>Sistem Canlıda (Go-Live)</strong></td>
+            <td><strong>3. Aşama: Pilot Sayım ve Eğitim</strong></td>
+            <td>Fen İşleri ve Temizlik İşleri ambarlarında el terminaliyle pilot sayım yapılması; taşınır yetkililerine zimmet eğitimi verilmesi.</td>
+            <td>Müdürlük Taşınır Yetkilileri,<br>Ambar Görevlileri</td>
+            <td>Pilot sayım mutabakatı ve kullanıcı onayı.</td>
+          </tr>
+          <tr>
+            <td><strong>4. Aşama: Canlıya Geçiş (Go-Live)</strong></td>
+            <td>Kurumsal Oracle veritabanına bağlanılması, prod şemanın kurulması, kullanıcı şifrelerinin tanımlanması ve sistemin açılması.</td>
+            <td>Tüm İlgili Birimler</td>
+            <td><strong>Sistem Canlı Kullanımda</strong></td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <div class="card card-warning" style="margin-bottom: 8px;">
-      <h3 style="color: #92400e; font-size: 11px;">Yönetim Onayı Bekleyen 3 Temel Karar Başlığı</h3>
+      <h3 style="color: #92400e; font-size: 11px;">Kurumsal Karar Bekleyen 3 Temel Başlık</h3>
       <div style="font-size: 8.8px; line-height: 1.4; color: #78350f;">
-        <p style="margin-bottom: 4px;"><strong>1. Sayım Donanımı Tercihi (S.8):</strong> Mevcut durumda USB/Bluetooth barkod okuyucu el terminalleri ve klavye emülasyonu <strong>%100 çalışmaktadır</strong>. Sahada ek kamera tabanlı mobil okutma istenirse HTTPS sertifikasyonu zorunludur. <em>Tavsiyemiz:</em> Canlıya mevcut donanımlarla çıkılması; kamera özelliğinin 2. fazda devreye alınmasıdır.</p>
-        <p style="margin-bottom: 4px;"><strong>2. Personel Verisi Akışı (S.1):</strong> İK sisteminden otomatik veri aktarımı hazır olana dek, hazırladığımız Excel İçe Aktarım servisi (<code>PersonnelImportService</code>) ile anlık sicil güncellemesi sağlanmaktadır. <em>Tavsiyemiz:</em> 1. ayda Excel aktarımıyla başlanması, 2. ayda belediye İK görünümüne (View) otomatik bağlanılmasıdır.</p>
-        <p style="margin-bottom: 0;"><strong>3. Kimlik Doğrulama / Giriş Yöntemi (S.2):</strong> Sistemde zorunlu ilk şifre değişimi ve kaba kuvvet kilitli yerel kullanıcı yönetimi aktiftir. Kurumsal Active Directory / LDAP istenirse yapılandırma hazır tutulmuştur. <em>Tavsiyemiz:</em> İlk etapta güvenli yerel kimliklerle başlanmasıdır.</p>
+        <p style="margin-bottom: 4px;"><strong>1. Sayım Donanımı Tercihi (S.8):</strong> Mevcut durumda USB/Bluetooth barkod okuyucu el terminalleri ve klavye emülasyonu <strong>%100 çalışmaktadır</strong>. Sahada ek kamera tabanlı mobil okutma istenirse HTTPS sertifikasyonu zorunludur. <em>Tavsiyemiz:</em> Canlıya mevcut el terminalleriyle başlanması; mobil kamera özelliğinin ikinci aşamada devreye alınmasıdır.</p>
+        <p style="margin-bottom: 4px;"><strong>2. Personel Verisi Akışı (S.1):</strong> İK sisteminden otomatik doğrudan veri servisi sağlanana dek, hazırladığımız Excel İçe Aktarım servisi (<code>PersonnelImportService</code>) ile sicil bazlı toplu güncelleme sağlanmaktadır. <em>Tavsiyemiz:</em> Canlıya Excel aktarımıyla başlanması, erişim açıldığında İK veri tabanı görünümüne (View) bağlanılmasıdır.</p>
+        <p style="margin-bottom: 0;"><strong>3. Kimlik Doğrulama / Giriş Yöntemi (S.2):</strong> Sistemde zorunlu ilk şifre değişimi ve kaba kuvvet kilitli yerel kullanıcı yönetimi aktiftir. Kurumsal Active Directory / LDAP istendiğinde mimari buna hazır tutulmuştur. <em>Tavsiyemiz:</em> İlk etapta yerel şifre politikasıyla başlanmasıdır.</p>
       </div>
     </div>
 
     <div class="card" style="margin-bottom: 0;">
-      <h3 style="color: #0369a1;">Belediye Bilgi İşlem ve İdare Birimlerinden Beklenen 5 Talep</h3>
+      <h3 style="color: #0369a1;">Belediye Bilgi İşlem ve İlgili Birimlerden Beklenen Bilgi ve Erişimler</h3>
       <div class="grid-2">
         <ul style="margin-bottom: 0;">
           <li><strong>1. Oracle 19c Test Şeması:</strong> Kuru prova betiğimizin çalıştırılacağı geçici bir test şeması (örn: <code>VARLIK_TEST_DRYRUN</code>).</li>
@@ -401,7 +407,7 @@ const htmlContent = `<!DOCTYPE html>
         </ul>
         <ul style="margin-bottom: 0;">
           <li><strong>4. Güncel İK Personel Excel'i:</strong> Sicil No, Ad Soyad, Unvan, E-posta ve Müdürlük içeren personel dökümü.</li>
-          <li><strong>5. Pilot Birim Taşınır Sorumluları:</strong> 3. haftadaki pilot denemeyi yürütecek 2 ana ambar sorumlusu.</li>
+          <li><strong>5. Pilot Birim Taşınır Sorumluları:</strong> Pilot denemeyi yürütecek ambar sorumluları.</li>
         </ul>
       </div>
     </div>
@@ -429,7 +435,7 @@ const htmlContent = `<!DOCTYPE html>
     </div>
 
     <h2>Teknoloji Yığını ve Mimari Prensipler</h2>
-    <p>Uygulama; kurumsal kararlılık, yüksek eşzamanlı kullanıcı performansı ve sıfır dış bağımlılık ilkeleriyle inşa edilmiştir.</p>
+    <p>Uygulama; kurumsal kararlılık, yüksek eşzamanlı kullanıcı performansı ve yapılandırma odaklı işletim ilkeleriyle inşa edilmiştir.</p>
 
     <div class="card" style="margin-bottom: 8px;">
       <h3 style="color: #0f172a;">Doğrulanmış Teknoloji ve Kütüphane Sürümleri</h3>
@@ -489,18 +495,18 @@ const htmlContent = `<!DOCTYPE html>
             <td><strong>Veri Tabloları</strong></td>
             <td>TanStack React Table / Query</td>
             <td><code>8.21.2 / 5.66.9</code></td>
-            <td>Milyonlarca satırı dondurmadan filtreleyen, sıralayan sanal veri motoru.</td>
+            <td>Büyük veri setlerini dondurmadan filtreleyen, sıralayan sanal veri motoru.</td>
           </tr>
           <tr>
             <td><strong>Stil & Tasarım</strong></td>
             <td>Tailwind CSS / Lucide Icons</td>
-            <td><code>3.4.17 / 0.475</code></td>
+            <td><code>3.4.17 / 0.475.0</code></td>
             <td>Mobil ve tablet uyumlu (Responsive), kurumsal ve modern tasarım dili.</td>
           </tr>
           <tr>
             <td><strong>Test Otomasyonu</strong></td>
             <td>Playwright / Vitest / Node</td>
-            <td><code>1.50.1 / 3.0.7</code></td>
+            <td><code>1.50.1 / 3.0.7 / 24.21</code></td>
             <td>Uçtan uca E2E tarayıcı otomasyonu, regresyon ve güvenlik test paketi.</td>
           </tr>
         </tbody>
@@ -512,7 +518,7 @@ const htmlContent = `<!DOCTYPE html>
         <h3 style="color: #0369a1;">12-Factor Kurumsal Yapılandırma Modeli</h3>
         <p>Uygulama kodu içerisinde hiçbir sunucu IP adresi, port, kullanıcı adı veya şifre <strong>bulunmaz</strong>. Tüm yapılandırma işletim sistemi ortam değişkenleri veya <code>.env</code> dosyasından okunur.</p>
         <ul>
-          <li><strong>Bağlantı Dizgisi:</strong> Service Name (<code>DB_SERVICE</code>), SID veya TNS Alias desteklenir.</li>
+          <li><strong>Bağlantı Parametreleri:</strong> Service Name (<code>DB_SERVICE</code>), SID veya TNS Alias desteklenir.</li>
           <li><strong>TLS / Oracle Wallet:</strong> <code>ORACLE_NET_TNS_ADMIN</code> parametresi ile mTLS desteklenir.</li>
           <li><strong>HikariCP Havuzu:</strong> Maksimum bağlantı, keep-alive ve idle-timeout değişkenlerle yönetilir.</li>
         </ul>
@@ -558,21 +564,22 @@ const htmlContent = `<!DOCTYPE html>
       </div>
     </div>
 
-    <h2>Oracle 19c/21c/23ai Evrensel Uyumluluk ve Şema Eşdeğerliği</h2>
-    <p>Geliştirme ortamındaki Oracle 23ai ile belediyenin mevcut 19c altyapısı arasındaki sürüm farklılıkları sıfır riskle aşılmıştır.</p>
+    <h2>Oracle 19c/21c/23ai Uyumluluk ve Şema Eşdeğerliği</h2>
+    <p>19c için hazırlandı; 23ai üzerinde sıfır şemada kuru prova yapıldı, 19c'de doğrulama belediyenin test şemasında yapılacak.</p>
 
     <div class="card card-success" style="margin-bottom: 8px;">
       <div class="grid-2">
         <div>
           <h3 style="color: #166534; font-size: 11.5px;">Şema Eşdeğerliği: %100 Birebir Eşit</h3>
-          <p style="font-size: 9px; margin-bottom: 0;">
-            Geliştirme şeması (<code>V1..V17</code>) ile üretim için hazırlanan temiz şema paketi (<code>db/migration-prod/V1..V2</code>) arasında boş şema üzerinde çapraz eşdeğerlik testi çalıştırılmış ve <strong>hiçbir fark bulunamamıştır</strong>.
+          <p style="font-size: 8.8px; margin-bottom: 4px;">
+            Geliştirme şeması (<code>V1..V17</code>) ile üretim şema paketi (<code>db/migration-prod/V1..V2</code>) arasında boş şema üzerinde çapraz eşdeğerlik testi çalıştırılmış ve tam uyum sağlanmıştır.
           </p>
+          <div style="font-size: 7.8px; color: #15803d;">* Tablo sayısı: 21 uygulama tablosu + 1 Flyway şema geçmiş tablosudur.</div>
         </div>
         <div>
           <table>
             <tbody>
-              <tr><td><strong>Tablo Sayısı</strong></td><td><strong>22 Adet</strong> (%100 Eşit)</td></tr>
+              <tr><td><strong>Uygulama Tablo Sayısı</strong></td><td><strong>21 Tablo</strong> (+ 1 Flyway geçmiş tablosu)</td></tr>
               <tr><td><strong>Sütun Sayısı</strong></td><td><strong>291 Sütun</strong> (%100 Eşit)</td></tr>
               <tr><td><strong>İndeks Sayısı</strong></td><td><strong>112 İndeks</strong> (%100 Eşit)</td></tr>
               <tr><td><strong>Kısıt (Constraint)</strong></td><td><strong>71 Kısıt</strong> (%100 Eşit)</td></tr>
@@ -583,7 +590,7 @@ const htmlContent = `<!DOCTYPE html>
     </div>
 
     <div class="card" style="margin-bottom: 8px;">
-      <h3 style="color: #0f172a;">Oracle 19c Geriye Dönük Uyumluluk Tedbirleri</h3>
+      <h3 style="color: #0f172a;">Oracle 19c Geriye Dönük Uyumluluk Önlemleri</h3>
       <table>
         <thead>
           <tr>
@@ -640,9 +647,9 @@ const htmlContent = `<!DOCTYPE html>
     </div>
 
     <div class="card card-highlight" style="margin-bottom: 0;">
-      <h3 style="color: #0369a1; font-size: 11px;">19c Kuru Prova Paketi Hazır</h3>
+      <h3 style="color: #0369a1; font-size: 11px;">Doğrulama ve Kuru Prova Durumu</h3>
       <p style="font-size: 8.8px; margin-bottom: 0;">
-        Belediye DBA'sı tarafından tahsis edilecek test şemasında çalıştırılmak üzere hazırlanan <code>docs/kuru-prova-19c.sql</code> ve otomatik PowerShell koşturucusu (<code>scripts/dry_run_oracle19c.ps1</code>) sayesinde, bağlantı gününden önce canlı veritabanında 5 dakikalık tam prova gerçekleştirilecektir.
+        Üretim DDL paketi Oracle 23ai üzerinde boş şemada sıfır hata ile doğrulanmıştır. Belediye DBA'sı tarafından tahsis edilecek Oracle 19c test şemasında çalıştırılmak üzere <code>docs/kuru-prova-19c.sql</code> ve otomatik koşturucu (<code>scripts/dry_run_oracle19c.ps1</code>) hazır tutulmaktadır; canlı öncesi son doğrulama bu şemada yapılacaktır.
       </p>
     </div>
   </div>
@@ -703,7 +710,7 @@ const htmlContent = `<!DOCTYPE html>
         <tbody>
           <tr>
             <td><strong>Çapraz Müdürlük (IDOR/BOLA)</strong></td>
-            <td>Bir müdürlük amirinin başka müdürlüğe varlik, oda veya personel ataması engellendi; sorgularda sessiz filtre doğrulandı.</td>
+            <td>Bir müdürlük amirinin başka müdürlüğe varlık, oda veya personel ataması engellendi; sorgularda sessiz filtre doğrulandı.</td>
             <td>8 Senaryo</td>
             <td><span class="badge-tag tag-green">%100 İZOLASYON</span></td>
           </tr>
@@ -770,10 +777,10 @@ const htmlContent = `<!DOCTYPE html>
       </div>
     </div>
 
-    <div class="card card-success" style="margin-bottom: 0;">
-      <h3 style="color: #166534; font-size: 11px;">Sonuç: Sıfır Güvenlik Açığı</h3>
+    <div class="card card-highlight" style="margin-bottom: 0;">
+      <h3 style="color: #0369a1; font-size: 11px;">Kalan P1 Geliştirmeleri (Tahmini Efor: Yaklaşık 4 İş Günü)</h3>
       <p style="font-size: 8.8px; margin-bottom: 0;">
-        528 güvenlik kontrolü ve 51 uçtan uca tarayıcı testinin tamamı başarıyla geçmiş olup sistemde bilinen hiçbir açık veya yetki sapması bulunmamaktadır.
+        Çekirdek altyapısı ve kilit mekanizmaları tamamlanan sistemde canlı öncesi tamamlanacak kalan P1 kalemleri: yeni stok kartı açma modalı, TİF sarf fişi dökümü, resmi zimmet fişi ve ilişik kesme tutanağı A4 çıktısı ile giriş uç noktasında IP bazlı hız sınırlamasıdır.
       </p>
     </div>
   </div>
@@ -881,7 +888,7 @@ const htmlContent = `<!DOCTYPE html>
     </div>
 
     <h2>Kullanıcı Deneyimi: Operasyon ve Denetim</h2>
-    <p>Sahadaki zimmetleme, araç takip, sayım mutabakatı ve hukuki denetim izi ekranları:</p>
+    <p>El terminaliyle sayım çalışıyor, saha pilotu planlanıyor; zimmet, araç takip ve denetim izi modülleri:</p>
 
     <div class="grid-2" style="margin-bottom: 8px;">
       <div>
@@ -962,7 +969,7 @@ const htmlContent = `<!DOCTYPE html>
     </div>
 
     <h2>Bağlantı Günü Kesintisiz Geçiş Runbook'u ve Dokümantasyon İndeksi</h2>
-    <p>1 ay sonraki canlı Oracle bağlantısı gününde uygulanacak adım adım operasyonel zaman çizelgesi:</p>
+    <p>Belediyeden gerekli bilgiler ve erişim sağlandığında uygulanacak adım adım operasyonel zaman çizelgesi:</p>
 
     <div class="card" style="margin-bottom: 8px;">
       <h3 style="color: #0f172a;">Bağlantı Günü Saatlik Operasyon Çizelgesi (T-60 dk .. T+60 dk)</h3>
@@ -1024,14 +1031,15 @@ const htmlContent = `<!DOCTYPE html>
 
     <div class="grid-2" style="margin-bottom: 8px;">
       <div class="card card-warning" style="margin-bottom: 0;">
-        <h3 style="color: #92400e;">Geri Dönüş (Rollback) Güvencesi</h3>
+        <h3 style="color: #92400e;">Geri Dönüş (Rollback) Planı</h3>
         <p style="font-size: 8.8px; margin-bottom: 4px;">
           Bağlantı gününde ağ, şema veya veri kaynaklı beklenmeyen bir sorunla karşılaşılırsa:
         </p>
         <ul>
-          <li><strong>Eski Sisteme Dönüş Süresi:</strong> 10 dakikadan azdır.</li>
-          <li><strong>Mevcut Veriye Sıfır Zarar:</strong> Yeni şema izole tablespace'te açıldığından diğer belediye sistemlerine etki etmez.</li>
-          <li><strong>Rollback Tetikleyicisi:</strong> Ağ erişiminin sağlanamaması veya DBA izinlerinin gecikmesi durumunda kesintisiz dönüş.</li>
+          <li><strong>Veritabanı Geri Dönüşü:</strong> T-60 anında alınan Data Pump / dosya sistemi yedeği devreye alınır.</li>
+          <li><strong>İzolasyon Güvencesi:</strong> Yeni şema izole tablespace ve kullanıcıda açıldığından mevcut belediye sistemlerine veya diğer şemalara etki etmez.</li>
+          <li><strong>DNS ve Ağ Yönlendirmesi:</strong> DNS kaydı geri çekilerek trafik önceki sunucuya yönlendirilir.</li>
+          <li><strong>Rollback Tetikleyicisi:</strong> Ağ erişiminin sağlanamaması, DBA izinlerinin gecikmesi veya kritik bir veri hatasında geri dönüş protokolü işletilir.</li>
         </ul>
       </div>
 
@@ -1048,9 +1056,9 @@ const htmlContent = `<!DOCTYPE html>
     </div>
 
     <div class="card card-highlight" style="margin-bottom: 0; text-align: center; padding: 12px;">
-      <h2 style="font-size: 13px; margin-bottom: 4px; color: #0f172a;">Kapanış Değerlendirmesi</h2>
-      <p style="font-size: 9.5px; margin-bottom: 0; color: #334155;">
-        Gebze Belediyesi Varlık Yönetimi Sistemi (EKYS); yüksek güvenlik, tam şema uyumluluğu, modern tasarımı ve sıfır kod bağımlılığıyla canlıya geçişe %100 hazırdır. Bilgi İşlem ve Mali Hizmetler koordinasyonuyla 1 ay sonra kesintisiz olarak belediyemizin hizmetine sunulacaktır.
+      <h2 style="font-size: 12.5px; margin-bottom: 4px; color: #0f172a;">Sonuç Değerlendirmesi</h2>
+      <p style="font-size: 9.3px; text-align: justify; margin-bottom: 0; color: #334155;">
+        Gebze Belediyesi Varlık Yönetimi Sistemi (EKYS); teknik altyapı olarak büyük ölçüde hazır olup, belediyeden gerekli ağ erişimi, veritabanı parametreleri ve test şeması sağlandığında kuru prova ile teyit edilecektir. Kalan yaklaşık 4 iş günlük P1 geliştirmeleri (stok kartı, TİF ve zimmet tutanakları, login rate-limiting) tamamlanarak sistem kesintisiz devreye alınabilecektir.
       </p>
     </div>
   </div>

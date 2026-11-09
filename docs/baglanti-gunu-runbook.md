@@ -1,6 +1,6 @@
 # Gebze Belediyesi EKYS — Bağlantı Günü Runbook, Veri Geçiş Rehberi ve İK Adaptör Tasarımı
 
-> **Doküman Amacı:** Yaklaşık 1 ay sonra gerçekleşecek olan **Belediye Oracle Veritabanı Bağlantısı ve İK/Envanter Veri Geçişi Günü**nde, kaynak kodda **tek satır değişiklik yapmadan** yalnızca ortam değişkenleri (`.env`) ve yapılandırma ile sistemi sıfırdan ayağa kaldırmak, doğrulamak ve olası sorunlarda güvenle geri dönmek (rollback) için hazırlanmış adım adım uygulama kılavuzudur.
+> **Doküman Amacı:** Belediyeden gerekli bilgiler ve erişim sağlandığında gerçekleştirilecek olan **Belediye Oracle Veritabanı Bağlantısı ve İK/Envanter Veri Geçişi Günü**nde, kaynak kodda **tek satır değişiklik yapmadan** yalnızca ortam değişkenleri (`.env`) ve yapılandırma ile sistemi sıfırdan ayağa kaldırmak, doğrulamak ve olası sorunlarda güvenle geri dönmek (rollback) için hazırlanmış adım adım uygulama kılavuzudur.
 
 ---
 
@@ -10,7 +10,7 @@
 | :-: | :--- | :--- | :---: | :--- |
 | **Adım 0** | Ağ, Güvenlik Duvarı (`1521`/`2484`) ve Oracle Sürüm/NLS Ön Kontrolü | Belediye Ağ & DBA Ekibi | 15 dk | `Test-NetConnection` & NLS sorgusu başarılı |
 | **Adım 1** | Veritabanı Şeması, Tablespace ve En Az Yetkili Kullanıcıların (`VARLIK_OWNER`, `VARLIK_APP_RUNTIME`) Oluşturulması | Belediye Veritabanı Yöneticisi (DBA) | 15 dk | [`docs/dba-kurulum.sql`](file:///c:/Users/Asus/gebze-varlik-yonetimi/docs/dba-kurulum.sql) hatasız tamamlandı |
-| **Adım 2** | Ortam Değişkenlerinin (`.env`) Hazırlanması ve İlk Başlatma (`SPRING_PROFILES_ACTIVE=prod` + Flyway `db/migration-prod`) | Uygulama Sistem Yöneticisi (DevOps/BT) | 10 dk | Flyway `V1` + `V2` (19 tablo, 0 demo veri) uygulandı |
+| **Adım 2** | Ortam Değişkenlerinin (`.env`) Hazırlanması ve İlk Başlatma (`SPRING_PROFILES_ACTIVE=prod` + Flyway `db/migration-prod`) | Uygulama Sistem Yöneticisi (DevOps/BT) | 10 dk | Flyway `V1` + `V2` (21 uygulama tablosu, 0 demo veri) uygulandı |
 | **Adım 3** | Yetki Sıkılaştırma Prosedürünün (`PRC_GRANT_RUNTIME_PRIVS`) Çalıştırılması ve Sağlık Kontrolü (`/api/health`) | Belediye DBA & BT Uzmanı | 5 dk | `/api/health` -> `{"status":"ok","database":"UP"}` |
 | **Adım 4** | İlk Yönetici (`admin`) Girişi ve Zorunlu Şifre Değiştirme (`must_change_password = 1`) | BT Sistem Yöneticisi | 5 dk | Yeni kurumsal parola belirlendi, `LOGIN_SUCCESS` loglandı |
 | **Adım 5** | Gerçek Personel Listesinin Excel (`.xlsx`) İle İçe Aktarımı (`Upsert`) | İK & BT Sorumlusu | 20 dk | Personel kayıtları 0 hata ile aktarıldı |

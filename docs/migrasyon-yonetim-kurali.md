@@ -31,3 +31,4 @@ Bu betik:
 - Geliştirme veritabanı (`VARLIK_APP`) ile sıfırdan kurulan üretim şemasını (`VARLIK_EQ_PROD`) karşılaştırır.
 - Tablolar, sütunlar (tip/uzunluk/nullability), indeksler, kısıtlar (PK/FK/UK/CHECK), tetikleyiciler, görünümler, sequence'ler, resmi müdürlük kodları ve kategori adlarını denetler.
 - `SONUC: ESDEGER` çıktısı alınmadan commit atılamaz.
+

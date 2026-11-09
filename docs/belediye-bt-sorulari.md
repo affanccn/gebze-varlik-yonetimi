@@ -1,6 +1,6 @@
 # Gebze Belediyesi Bilgi İşlem, DBA ve İK Birimlerine Yöneltilecek Teknik Sorular Listesi
 
-> **Doküman Amacı:** Yaklaşık 1 ay sonra yapılacak olan **Belediye Oracle Veritabanı Bağlantısı ve İK/Envanter Veri Geçişi** öncesinde, belediyenin Bilgi İşlem (Ağ/Sunucu/DBA), İnsan Kaynakları ve Mali Hizmetler birimlerinden netleştirilmesi gereken teknik soruları içerir. Her sorunun altında, bu bilginin sistem yapılandırmasında (`.env` ve [`docs/dba-kurulum.sql`](file:///c:/Users/Asus/gebze-varlik-yonetimi/docs/dba-kurulum.sql)) nereyi etkilediğini açıklayan **"Neden soruyoruz?"** notu yer almaktadır.
+> **Doküman Amacı:** Belediyeden gerekli bilgiler ve erişim sağlandığında yapılacak olan **Belediye Oracle Veritabanı Bağlantısı ve İK/Envanter Veri Geçişi** öncesinde, belediyenin Bilgi İşlem (Ağ/Sunucu/DBA), İnsan Kaynakları ve Mali Hizmetler birimlerinden netleştirilmesi gereken teknik soruları içerir. Her sorunun altında, bu bilginin sistem yapılandırmasında (`.env` ve [`docs/dba-kurulum.sql`](file:///c:/Users/Asus/gebze-varlik-yonetimi/docs/dba-kurulum.sql)) nereyi etkilediğini açıklayan **"Neden soruyoruz?"** notu yer almaktadır.
 
 ---
 

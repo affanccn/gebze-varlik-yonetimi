@@ -1,0 +1,1 @@
+SET PAGESIZE 100 LINESIZE 200; SELECT table_name FROM all_tables WHERE owner = 'VARLIK_EQ_PROD' ORDER BY table_name; EXIT;

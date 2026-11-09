@@ -159,7 +159,7 @@ Belediyenin kurumsal Oracle veritabanı `19c` veya `21c` olabileceğinden, tüm 
 
 ---
 
-## 6. Bağlantı Günü Kontrol Listesi (1 Ay Sonraki DB & İK Bağlantı Günü)
+## 6. Bağlantı Günü Kontrol Listesi (Belediyeden Bilgiler ve Erişim Sağlandığında)
 
 > Detaylı komutlar ve sorumlular için bkz. [`docs/baglanti-gunu-runbook.md`](file:///c:/Users/Asus/gebze-varlik-yonetimi/docs/baglanti-gunu-runbook.md).
 
@@ -167,7 +167,7 @@ Belediyenin kurumsal Oracle veritabanı `19c` veya `21c` olabileceğinden, tüm 
 - [ ] **2. Ağ ve Port Erişimi Doğrulandı:** Uygulama sunucusundan belediye Oracle sunucusuna `Test-NetConnection -ComputerName <DB_HOST> -Port 1521` erişimi başarılı.
 - [ ] **3. DBA Kurulum Betiği Çalıştırıldı:** Belediye DBA tarafından [`docs/dba-kurulum.sql`](file:///c:/Users/Asus/gebze-varlik-yonetimi/docs/dba-kurulum.sql) çalıştırılarak `VARLIK_OWNER` (DDL) ve `VARLIK_APP_RUNTIME` (sadece DML) kullanıcıları ile `TRG_VARLIK_APP_LOGON` tetikleyicisi oluşturuldu.
 - [ ] **4. `.env` Dosyası Hazırlandı (Kod Değiştirilmedi):** [`.env.example`](file:///c:/Users/Asus/gebze-varlik-yonetimi/.env.example) kopyalanarak `SPRING_PROFILES_ACTIVE=prod`, `FLYWAY_LOCATIONS=classpath:db/migration-prod`, `DB_URL`, `DB_USER`, `DB_PASSWORD`, `FLYWAY_USER`, `FLYWAY_PASSWORD` ve `APP_ADMIN_PASSWORD` değerleri girildi.
-- [ ] **5. Prod Migrasyon (`V1`+`V2`) ve Yetki Sıkılaştırması Tamamlandı:** Uygulama başlatılarak 19 tablo ve resmi taksonominin (**0 demo veri** ile) oluştuğu görüldü; DBA tarafından `EXEC VARLIK_OWNER.PRC_GRANT_RUNTIME_PRIVS;` çalıştırıldı.
+- [ ] **5. Prod Migrasyon (`V1`+`V2`) ve Yetki Sıkılaştırması Tamamlandı:** Uygulama başlatılarak 21 uygulama tablosu ve resmi taksonominin (**0 demo veri** ile) oluştuğu görüldü; DBA tarafından `EXEC VARLIK_OWNER.PRC_GRANT_RUNTIME_PRIVS;` çalıştırıldı.
 - [ ] **6. `/api/health` ve Demo Kapatma Doğrulandı:** `GET /api/health` uç noktasının `{"status":"ok","database":"UP","schema":"VARLIK_OWNER"}` döndürdüğü ve `GET /api/auth/demo-users` uç noktasının boş (`[]`) döndüğü teyit edildi.
 - [ ] **7. İlk `admin` Şifre Değişimi Yapıldı:** Geçici `APP_ADMIN_PASSWORD` ile giriş yapılarak zorunlu şifre güncelleme ekranında kurumsal yönetici şifresi belirlendi.
 - [ ] **8. Pilot Personel ve Envanter Excel Aktarımı Doğrulandı:** Resmi `.xlsx` şablonlarıyla örnek personel ve demirbaş verisi önce `Doğrula (validate)`, ardından `İçe Aktar (commit)` adımlarıyla sıfır hatayla yüklendi.

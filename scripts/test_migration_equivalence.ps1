@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
   GEBZE-EKYS migrasyon seti eşdeğerlik testi (db/migration V1..Vn  <->  db/migration-prod V1..Vm).
 
