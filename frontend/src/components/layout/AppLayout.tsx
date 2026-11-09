@@ -48,16 +48,19 @@ export const AppLayout: React.FC = () => {
 
         <main className="flex-1 p-3 sm:p-5 lg:p-6 max-w-[1680px] w-full mx-auto">
           {/* Kurumsal Bilgilendirme Banner'ı */}
-          <div className="mb-6 p-4 bg-white border border-slate-200 rounded-xl shadow-sm text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <strong className="text-slate-800">Gebze Belediyesi Kurumsal Envanter Altyapısı:</strong> Kurumsal müdürlükler, hizmet binaları, şantiyeler, katlar, odalar ve varlık kategorileri Oracle 23ai veritabanında hiyerarşik olarak yönetilmektedir.
+          <div className="mb-6 p-3.5 sm:p-4 bg-white border border-slate-200/90 border-l-4 border-l-teal-600 rounded-xl shadow-sm text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="leading-relaxed">
+              <strong className="text-slate-900 font-bold">Gebze Belediyesi Kurumsal Envanter Altyapısı:</strong> Kurumsal müdürlükler, hizmet binaları, şantiyeler, katlar, odalar ve varlık kategorileri Oracle 23ai veritabanında hiyerarşik olarak yönetilmektedir.
             </div>
-            <span className="inline-block px-2.5 py-1 bg-teal-50 border border-teal-200 text-teal-800 font-semibold rounded text-[11px] whitespace-nowrap self-start sm:self-center">
-              React 18 + TS
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-teal-50 border border-teal-200 text-teal-800 font-semibold rounded-lg text-[11px] whitespace-nowrap self-start sm:self-center">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-600 animate-pulse" />
+              T.C. Gebze Belediyesi &bull; Resmi Envanter Platformu
             </span>
           </div>
 
-          <Outlet />
+          <div key={location.pathname} className="animate-page-enter">
+            <Outlet />
+          </div>
         </main>
       </div>
 

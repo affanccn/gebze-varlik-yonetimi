@@ -154,19 +154,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar Çekmecesi */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-navy-900 text-slate-200 flex flex-col transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:shrink-0 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-navy-950 via-navy-900 to-navy-900 text-slate-200 border-r border-navy-800/80 shadow-xl flex flex-col transition-transform duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:shrink-0 lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Başlık / Logo */}
-        <div className="flex items-center justify-between p-4 border-b border-navy-800">
+        <div className="flex items-center justify-between p-4 border-b border-navy-800/90 bg-navy-950/60">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-teal-600 rounded-lg flex items-center justify-center font-bold text-white shadow-inner">
+            <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-700 rounded-xl flex items-center justify-center font-extrabold text-white shadow-md ring-1 ring-teal-400/30">
               GB
             </div>
             <div>
-              <div className="text-sm font-bold text-white tracking-wide">GEBZE BELEDİYESİ</div>
-              <div className="text-[11px] font-medium text-teal-400">Varlık Yönetim Sistemi</div>
+              <div className="text-[10px] font-bold tracking-widest text-teal-400 uppercase">T.C. KOCAELİ</div>
+              <div className="text-sm font-extrabold text-white tracking-wide leading-tight">GEBZE BELEDİYESİ</div>
+              <div className="text-[11px] font-medium text-slate-300">Varlık Yönetim Sistemi</div>
             </div>
           </div>
           <button
@@ -180,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Navigasyon Grupları */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 pb-12 space-y-6 scrollbar-thin">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 pb-8 space-y-5 scrollbar-thin">
           {groups.map((group) => {
             const visibleItems = group.items.filter((item) => {
               if (item.allowedRoles && !item.allowedRoles.includes(role)) return false;
@@ -192,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
             return (
               <div key={group.label} className="space-y-1">
-                <div className="px-3 text-[11px] font-bold text-slate-400 tracking-wider">
+                <div className="px-3 text-[10px] font-extrabold text-slate-400/90 tracking-widest uppercase">
                   {group.label}
                 </div>
                 <div className="mt-1 space-y-0.5">
@@ -202,10 +203,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       to={item.path}
                       onClick={onClose}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                        `flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
                           isActive
-                            ? 'bg-teal-600 text-white font-semibold shadow-sm'
-                            : 'text-slate-300 hover:bg-navy-800 hover:text-white'
+                            ? 'bg-gradient-to-r from-teal-600 to-teal-500 text-white font-semibold shadow-md shadow-teal-950/40 ring-1 ring-teal-400/30'
+                            : 'text-slate-300 hover:bg-navy-800/80 hover:text-white hover:translate-x-0.5'
                         }`
                       }
                     >

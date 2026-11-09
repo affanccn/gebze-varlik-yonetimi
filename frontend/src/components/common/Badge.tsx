@@ -21,10 +21,20 @@ export const Badge: React.FC<BadgeProps> = ({
     neutral: 'bg-slate-100 text-slate-700 border-slate-200',
   };
 
+  const dotStyles = {
+    default: 'bg-blue-500',
+    success: 'bg-emerald-500',
+    warning: 'bg-amber-500',
+    danger: 'bg-rose-500',
+    info: 'bg-sky-500',
+    neutral: 'bg-slate-400',
+  };
+
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${variantStyles[variant]} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-2xs ${variantStyles[variant]} ${className}`}
     >
+      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotStyles[variant]}`} />
       {children}
     </span>
   );
