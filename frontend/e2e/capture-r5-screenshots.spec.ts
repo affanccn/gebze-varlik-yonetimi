@@ -41,12 +41,13 @@ test.describe('Faz R5: Üretim Ekran Görüntüleri Yakalama (Port 8080)', () =>
     // 2c. Personnel View + Specific Personnel Assignments Modal
     await page.goto('/personnel');
     await page.waitForSelector('table tbody tr');
-    await page.waitForTimeout(400);
-    const kemalRow = page.locator('table tbody tr').filter({ hasText: 'SCL-0401' });
-    if ((await kemalRow.count()) > 0) {
-      await kemalRow.locator('button[title="Personelin Zimmetlerini Gör"]').click();
-      await page.waitForSelector('text=Zimmetli Varlıklar:', { timeout: 5000 });
-      await page.waitForTimeout(400);
+    await page.fill('input[placeholder*="sicil no ara"]', 'SCL-0401');
+    await page.waitForTimeout(300);
+    const kemalRow = page.locator('tr:has-text("SCL-0401")').first();
+    if (await kemalRow.isVisible()) {
+      await kemalRow.locator('button:has-text("Zimmetleri Gör")').click();
+      await page.waitForSelector('text=Personele Zimmetli Varlıklar (1)', { timeout: 5000 });
+      await page.waitForTimeout(300);
       await page.screenshot({ path: path.join(artifactDir, '38-asama2-personnel-assignments.png'), fullPage: true });
       await page.keyboard.press('Escape');
       await page.waitForTimeout(200);
