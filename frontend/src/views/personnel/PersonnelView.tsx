@@ -13,6 +13,7 @@ import {
   Trash2,
   AlertTriangle,
   FileSpreadsheet,
+  Users,
 } from 'lucide-react';
 import { personnelService } from '../../services/personnelService';
 import { hierarchyService } from '../../services/hierarchyService';
@@ -218,15 +219,35 @@ export const PersonnelView: React.FC = () => {
               {isLoading && personnelList.length === 0 ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    <td colSpan={7} className="py-3 px-4">
-                      <div className="h-4 bg-slate-100 rounded w-full" />
-                    </td>
+                    <td className="py-3 px-4"><div className="h-4 bg-slate-100 rounded w-16" /></td>
+                    <td className="py-3 px-4"><div className="h-4 bg-slate-100 rounded w-36" /></td>
+                    <td className="py-3 px-4"><div className="h-4 bg-slate-100 rounded w-40" /></td>
+                    <td className="py-3 px-4"><div className="h-4 bg-slate-100 rounded w-28" /></td>
+                    <td className="py-3 px-4"><div className="h-4 bg-slate-100 rounded w-32" /></td>
+                    <td className="py-3 px-3"><div className="h-4 bg-slate-100 rounded w-12 mx-auto" /></td>
+                    <td className="py-3 px-4"><div className="h-4 bg-slate-100 rounded w-24 mx-auto" /></td>
                   </tr>
                 ))
               ) : personnelList.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-10 text-center text-slate-500">
-                    Arama kriterlerinize uygun personel bulunamadı.
+                  <td colSpan={7} className="py-12 text-center">
+                    <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <h3 className="text-base font-bold text-slate-800">Personel Kaydı Bulunamadı</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
+                      Arama kriterlerinize uygun personel bulunamadı.
+                    </p>
+                    {(searchInput || urlDept) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSearchInput('');
+                          updateParams({ q: undefined, departmentId: undefined, page: 0 });
+                        }}
+                        className="mt-4 inline-flex items-center px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                      >
+                        Filtreleri Sıfırla
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (

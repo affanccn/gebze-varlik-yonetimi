@@ -607,9 +607,16 @@ export const AssetsView: React.FC = () => {
       {/* Main Table */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         {isLoading && assets.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-3 text-blue-600" />
-            <p className="text-sm font-medium">Demirbaş kayıtları yükleniyor...</p>
+          <div className="p-6 space-y-3" aria-busy="true" aria-label="Demirbaş kayıtları yükleniyor">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-6 gap-4 items-center py-2.5 border-b border-slate-100 animate-pulse">
+                <div className="h-4 bg-slate-100 rounded col-span-1" />
+                <div className="h-4 bg-slate-100 rounded col-span-2" />
+                <div className="h-4 bg-slate-100 rounded col-span-1" />
+                <div className="h-4 bg-slate-100 rounded col-span-1" />
+                <div className="h-4 bg-slate-100 rounded col-span-1" />
+              </div>
+            ))}
           </div>
         ) : assets.length === 0 ? (
           <div className="p-12 text-center">

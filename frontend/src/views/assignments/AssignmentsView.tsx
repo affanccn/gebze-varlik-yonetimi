@@ -323,15 +323,38 @@ export const AssignmentsView: React.FC = () => {
       </div>
 
       {/* TanStack Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         {isLoading ? (
-          <div className="p-12 text-center text-slate-500">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto text-blue-600 mb-2" />
-            <span>Zimmet fişleri yükleniyor...</span>
+          <div className="p-6 space-y-3" aria-busy="true" aria-label="Zimmet fişleri yükleniyor">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-6 gap-4 items-center py-2.5 border-b border-slate-100 animate-pulse">
+                <div className="h-4 bg-slate-100 rounded col-span-1" />
+                <div className="h-4 bg-slate-100 rounded col-span-2" />
+                <div className="h-4 bg-slate-100 rounded col-span-1" />
+                <div className="h-4 bg-slate-100 rounded col-span-1" />
+                <div className="h-4 bg-slate-100 rounded col-span-1" />
+              </div>
+            ))}
           </div>
         ) : filteredData.length === 0 ? (
-          <div className="p-12 text-center text-slate-500">
-            Filtrelere uygun zimmet kaydı bulunamadı.
+          <div className="p-12 text-center">
+            <FileCheck className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+            <h3 className="text-base font-bold text-slate-800">Zimmet Kaydı Bulunamadı</h3>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-md mx-auto">
+              Filtrelere uygun zimmet kaydı bulunamadı. Arama metnini veya durum filtresini temizleyebilirsiniz.
+            </p>
+            {(globalFilter || statusFilter !== 'ALL') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setGlobalFilter('');
+                  setStatusFilter('ALL');
+                }}
+                className="mt-4 inline-flex items-center px-4 py-2 text-xs font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+              >
+                Filtreleri Sıfırla
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto max-h-[calc(100vh-320px)] overflow-y-auto scrollbar-thin">

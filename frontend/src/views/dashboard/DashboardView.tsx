@@ -118,7 +118,7 @@ export const DashboardView: React.FC = () => {
       </div>
 
       {/* 8 Temel KPI Kartı */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Toplam Varlık"
           value={dashboard.totalAssets}
@@ -182,35 +182,76 @@ export const DashboardView: React.FC = () => {
         {/* Yaşam Döngüsü Durum Dağılımı */}
         <Card
           title="Varlık Yaşam Döngüsü Analizi"
-          subtitle="11 yaşam döngüsü durumu bazında demirbaş adedi ve parasal değeri"
+          subtitle="Yaşam döngüsü durumları bazında demirbaş adedi, oran ve parasal değer dağılımı"
         >
-          <div className="space-y-3 pt-1">
+          <div className="space-y-3.5 pt-1">
             {(!dashboard.lifecycleDistribution || dashboard.lifecycleDistribution.length === 0) ? (
-              <p className="text-xs text-slate-500 py-4 text-center">Veri bulunmuyor</p>
+              <p className="text-xs text-slate-500 py-6 text-center">Yaşam döngüsü verisi bulunmuyor.</p>
             ) : (
-              dashboard.lifecycleDistribution.map((item, idx) => {
-                const pct = dashboard.totalAssets > 0 ? Math.round((item.count / dashboard.totalAssets) * 100) : 0;
-                return (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <StatusBadge status={item.status} />
-                        <span className="font-semibold text-slate-800">{item.count} adet</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-slate-500 text-[11px]">%{pct}</span>
-                        <strong className="text-slate-900 font-mono">{formatCurrency(item.totalValue)}</strong>
-                      </div>
-                    </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+              <>
+                {/* Stacked Multi-Segment Overview Bar */}
+                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex p-0.5 gap-0.5 border border-slate-200/70">
+                  {dashboard.lifecycleDistribution.map((item, idx) => {
+                    const pct = dashboard.totalAssets > 0 ? Math.max(2, Math.round((item.count / dashboard.totalAssets) * 100)) : 0;
+                    const st = (item.status || '').toUpperCase();
+                    const segColor = st.includes('KULLANIM')
+                      ? 'bg-blue-600'
+                      : st.includes('ZIMMET')
+                      ? 'bg-emerald-500'
+                      : st.includes('BAKIM')
+                      ? 'bg-amber-500'
+                      : st.includes('HURDA') || st.includes('ZAYIAT')
+                      ? 'bg-rose-500'
+                      : 'bg-indigo-500';
+                    return (
                       <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.max(4, pct)}%` }}
+                        key={idx}
+                        className={`${segColor} h-full first:rounded-l-full last:rounded-r-full transition-all duration-500`}
+                        style={{ width: `${pct}%` }}
+                        title={`${item.status}: ${item.count} adet (%${pct})`}
                       />
-                    </div>
-                  </div>
-                );
-              })
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-2.5 pt-1">
+                  {dashboard.lifecycleDistribution.map((item, idx) => {
+                    const pct = dashboard.totalAssets > 0 ? Math.round((item.count / dashboard.totalAssets) * 100) : 0;
+                    const st = (item.status || '').toUpperCase();
+                    const barColor = st.includes('KULLANIM')
+                      ? 'from-blue-600 to-blue-500'
+                      : st.includes('ZIMMET')
+                      ? 'from-emerald-600 to-teal-500'
+                      : st.includes('BAKIM')
+                      ? 'from-amber-500 to-amber-400'
+                      : st.includes('HURDA') || st.includes('ZAYIAT')
+                      ? 'from-rose-600 to-rose-500'
+                      : 'from-indigo-600 to-indigo-500';
+                    return (
+                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50/60 border border-slate-100 hover:border-slate-200 transition-colors space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <StatusBadge status={item.status} />
+                            <span className="font-bold text-slate-800">{item.count} adet</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[11px] font-semibold">
+                              %{pct}
+                            </span>
+                            <strong className="text-slate-900 font-mono">{formatCurrency(item.totalValue)}</strong>
+                          </div>
+                        </div>
+                        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                          <div
+                            className={`bg-gradient-to-r ${barColor} h-2 rounded-full transition-all duration-500`}
+                            style={{ width: `${Math.max(4, pct)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         </Card>
@@ -218,30 +259,33 @@ export const DashboardView: React.FC = () => {
         {/* Yıllık Edinim ve Harcama Trendi */}
         <Card
           title="Yıllık Varlık Edinim ve Yatırım Trendi"
-          subtitle="Kayıtlı edinim yıllarına göre demirbaş sayısı ve yatırım tutarı"
+          subtitle="Kayıtlı edinim yıllarına göre demirbaş sayısı ve kümülatif yatırım tutarı"
         >
           <div className="space-y-3 pt-1">
             {(!dashboard.acquisitionTrends || dashboard.acquisitionTrends.length === 0) ? (
-              <p className="text-xs text-slate-500 py-4 text-center">Veri bulunmuyor</p>
+              <p className="text-xs text-slate-500 py-6 text-center">Yıllık edinim verisi bulunmuyor.</p>
             ) : (
               dashboard.acquisitionTrends.map((item, idx) => {
                 const maxVal = Math.max(...(dashboard.acquisitionTrends || []).map((t) => t.totalValue), 1);
                 const pct = Math.round((item.totalValue / maxVal) * 100);
                 return (
-                  <div key={idx} className="space-y-1">
+                  <div key={idx} className="p-2.5 rounded-xl bg-slate-50/60 border border-slate-100 hover:border-slate-200 transition-colors space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-slate-800 font-mono bg-slate-100 px-2 py-0.5 rounded">
-                        {item.year || 'Tanımsız'}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-slate-600 font-medium">{item.count} varlık</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-gebze-navy font-mono bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-md">
+                          {item.year || 'Tanımsız'}
+                        </span>
+                        <span className="text-slate-600 font-semibold">{item.count} varlık</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-slate-400 font-mono">%{pct}</span>
                         <strong className="text-emerald-700 font-mono">{formatCurrency(item.totalValue)}</strong>
                       </div>
                     </div>
                     <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                       <div
-                        className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.max(4, pct)}%` }}
+                        className="bg-gradient-to-r from-teal-600 to-emerald-500 h-2 rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(6, pct)}%` }}
                       />
                     </div>
                   </div>
@@ -309,7 +353,7 @@ export const DashboardView: React.FC = () => {
         title="Kurumsal Müdürlükler Varlık Dağılımı"
         subtitle="Müdürlük bazında toplam, aktif, depodaki ve bakımdaki varlık sayıları"
         action={
-          <div className="w-64">
+          <div className="w-full sm:w-64">
             <SearchInput
               value={deptSearch}
               onChange={setDeptSearch}

@@ -23,7 +23,7 @@ export const Card: React.FC<CardProps> = ({
             {title && <h3 className="text-base font-bold text-slate-800 tracking-tight">{title}</h3>}
             {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
           </div>
-          {action && <div className="flex items-center gap-2 shrink-0">{action}</div>}
+          {action && <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">{action}</div>}
         </div>
       )}
       <div className="p-5">{children}</div>
