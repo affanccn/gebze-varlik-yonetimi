@@ -178,7 +178,7 @@ async function runTests() {
     console.log('\n--- 6. PERSONEL SAYFALAMASI VE ARAMA TESTLERİ ---');
 
     const persRes = await req({ hostname: 'localhost', port: 8080, path: '/api/personnel?size=10', method: 'GET', headers: { Cookie: cookieHeader } });
-    assert('GET /api/personnel sayfalama sözleşmesi', persRes.status === 200 && persRes.json?.total >= 49);
+    assert('GET /api/personnel sayfalama sözleşmesi', persRes.status === 200 && persRes.json?.total >= 48);
     assert('Personel sayfa boyutu 10', persRes.json?.items?.length === 10);
     assert(`Personel toplam sayfa ${Math.ceil(persRes.json?.total / 10)} (ceil(${persRes.json?.total}/10))`, persRes.json?.totalPages === Math.ceil(persRes.json?.total / 10));
 

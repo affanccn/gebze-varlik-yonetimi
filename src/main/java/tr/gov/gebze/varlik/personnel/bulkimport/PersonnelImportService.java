@@ -356,6 +356,7 @@ public class PersonnelImportService {
                         map.put(deptId + ":" + name.trim().toLowerCase(TR_LOCALE), id);
                         map.put("ANY:" + name.trim().toLowerCase(TR_LOCALE), id);
                     }
+                    return id;
                 }).list();
         return map;
     }

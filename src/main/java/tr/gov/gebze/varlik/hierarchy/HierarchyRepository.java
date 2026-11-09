@@ -64,8 +64,15 @@ public class HierarchyRepository {
 
     public Long saveDepartment(Department d) {
         String sql = """
-            INSERT INTO departments (code, name, manager_name, phone, email, display_order, is_active)
-            VALUES (:code, :name, :managerName, :phone, :email, :displayOrder, :isActive)
+            MERGE INTO departments tgt
+            USING (SELECT :code AS code FROM dual) src
+            ON (tgt.code = src.code)
+            WHEN MATCHED THEN
+              UPDATE SET tgt.name = :name, tgt.manager_name = :managerName, tgt.phone = :phone,
+                         tgt.email = :email, tgt.display_order = :displayOrder, tgt.is_active = :isActive
+            WHEN NOT MATCHED THEN
+              INSERT (code, name, manager_name, phone, email, display_order, is_active)
+              VALUES (:code, :name, :managerName, :phone, :email, :displayOrder, :isActive)
             """;
         jdbcClient.sql(sql)
                 .param("code", d.code())
@@ -149,8 +156,16 @@ public class HierarchyRepository {
 
     public Long saveSubUnit(SubUnit s) {
         String sql = """
-            INSERT INTO sub_units (department_id, parent_unit_id, code, name, unit_type, manager_name, phone, description, is_active)
-            VALUES (:deptId, :parentId, :code, :name, :unitType, :managerName, :phone, :description, :isActive)
+            MERGE INTO sub_units tgt
+            USING (SELECT :code AS code FROM dual) src
+            ON (tgt.code = src.code)
+            WHEN MATCHED THEN
+              UPDATE SET tgt.department_id = :deptId, tgt.parent_unit_id = :parentId, tgt.name = :name,
+                         tgt.unit_type = :unitType, tgt.manager_name = :managerName, tgt.phone = :phone,
+                         tgt.description = :description, tgt.is_active = :isActive
+            WHEN NOT MATCHED THEN
+              INSERT (department_id, parent_unit_id, code, name, unit_type, manager_name, phone, description, is_active)
+              VALUES (:deptId, :parentId, :code, :name, :unitType, :managerName, :phone, :description, :isActive)
             """;
         jdbcClient.sql(sql)
                 .param("deptId", s.departmentId())
@@ -235,8 +250,16 @@ public class HierarchyRepository {
 
     public Long saveBuilding(Building b) {
         String sql = """
-            INSERT INTO buildings (code, name, building_type, address, phone, total_floors, description, is_active)
-            VALUES (:code, :name, :type, :address, :phone, :floors, :description, :isActive)
+            MERGE INTO buildings tgt
+            USING (SELECT :code AS code FROM dual) src
+            ON (tgt.code = src.code)
+            WHEN MATCHED THEN
+              UPDATE SET tgt.name = :name, tgt.building_type = :type, tgt.address = :address,
+                         tgt.phone = :phone, tgt.total_floors = :floors, tgt.description = :description,
+                         tgt.is_active = :isActive
+            WHEN NOT MATCHED THEN
+              INSERT (code, name, building_type, address, phone, total_floors, description, is_active)
+              VALUES (:code, :name, :type, :address, :phone, :floors, :description, :isActive)
             """;
         jdbcClient.sql(sql)
                 .param("code", b.code())
@@ -306,8 +329,15 @@ public class HierarchyRepository {
 
     public Long saveFloor(Floor f) {
         String sql = """
-            INSERT INTO floors (building_id, floor_code, floor_name, floor_order, description, is_active)
-            VALUES (:bldId, :code, :name, :orderNum, :description, :isActive)
+            MERGE INTO floors tgt
+            USING (SELECT :bldId AS building_id, :code AS floor_code FROM dual) src
+            ON (tgt.building_id = src.building_id AND tgt.floor_code = src.floor_code)
+            WHEN MATCHED THEN
+              UPDATE SET tgt.floor_name = :name, tgt.floor_order = :orderNum,
+                         tgt.description = :description, tgt.is_active = :isActive
+            WHEN NOT MATCHED THEN
+              INSERT (building_id, floor_code, floor_name, floor_order, description, is_active)
+              VALUES (:bldId, :code, :name, :orderNum, :description, :isActive)
             """;
         jdbcClient.sql(sql)
                 .param("bldId", f.buildingId())
@@ -450,9 +480,18 @@ public class HierarchyRepository {
 
     public Long saveRoom(Room r) {
         String sql = """
-            INSERT INTO rooms (building_id, floor_id, room_number, name, room_type, department_id, sub_unit_id,
-                               responsible_person, capacity, qr_code, description, is_active)
-            VALUES (:bldId, :flrId, :num, :name, :type, :deptId, :subId, :resp, :cap, :qr, :desc, :isActive)
+            MERGE INTO rooms tgt
+            USING (SELECT :bldId AS building_id, :num AS room_number FROM dual) src
+            ON (tgt.building_id = src.building_id AND tgt.room_number = src.room_number)
+            WHEN MATCHED THEN
+              UPDATE SET tgt.floor_id = :flrId, tgt.name = :name, tgt.room_type = :type,
+                         tgt.department_id = :deptId, tgt.sub_unit_id = :subId,
+                         tgt.responsible_person = :resp, tgt.capacity = :cap,
+                         tgt.qr_code = :qr, tgt.description = :desc, tgt.is_active = :isActive
+            WHEN NOT MATCHED THEN
+              INSERT (building_id, floor_id, room_number, name, room_type, department_id, sub_unit_id,
+                      responsible_person, capacity, qr_code, description, is_active)
+              VALUES (:bldId, :flrId, :num, :name, :type, :deptId, :subId, :resp, :cap, :qr, :desc, :isActive)
             """;
         jdbcClient.sql(sql)
                 .param("bldId", r.buildingId())
@@ -468,7 +507,10 @@ public class HierarchyRepository {
                 .param("desc", r.description())
                 .param("isActive", r.isActive() == null ? 1 : r.isActive())
                 .update();
-        return jdbcClient.sql("SELECT id FROM rooms WHERE qr_code = :qr").param("qr", r.qrCode()).query(Long.class).single();
+        return jdbcClient.sql("SELECT id FROM rooms WHERE building_id = :bldId AND room_number = :num")
+                .param("bldId", r.buildingId())
+                .param("num", r.roomNumber())
+                .query(Long.class).single();
     }
 
     public void updateRoom(Room r) {

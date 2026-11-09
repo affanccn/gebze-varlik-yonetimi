@@ -42,14 +42,56 @@ public class PersonnelService {
         if (reg == null || reg.isBlank()) {
             reg = "SCL-" + (1000 + (int)(Math.random() * 9000));
         }
+        reg = reg.trim();
         String fullName = req.firstName().trim() + " " + req.lastName().trim();
+        String title = req.title() == null || req.title().isBlank() ? "Personel" : req.title().trim();
+
+        var existingOpt = jdbcClient.sql("SELECT id, is_active, is_deleted FROM personnel WHERE registration_number = :reg ORDER BY id DESC FETCH FIRST 1 ROWS ONLY")
+                .param("reg", reg)
+                .query((rs, r) -> new long[]{rs.getLong("id"), rs.getInt("is_active"), rs.getInt("is_deleted")})
+                .optional();
+
+        if (existingOpt.isPresent()) {
+            long[] existing = existingOpt.get();
+            long existingId = existing[0];
+            jdbcClient.sql("""
+                UPDATE personnel SET
+                    first_name = :fname,
+                    last_name = :lname,
+                    full_name = :fullname,
+                    title = :title,
+                    department_id = :deptId,
+                    sub_unit_id = :subId,
+                    room_id = :roomId,
+                    phone = :phone,
+                    email = :email,
+                    is_active = 1,
+                    is_deleted = 0,
+                    deleted_at = NULL,
+                    deleted_by = NULL
+                WHERE id = :id
+            """)
+            .param("fname", req.firstName().trim())
+            .param("lname", req.lastName().trim())
+            .param("fullname", fullName)
+            .param("title", title)
+            .param("deptId", req.departmentId())
+            .param("subId", req.subUnitId())
+            .param("roomId", req.roomId())
+            .param("phone", req.phone())
+            .param("email", req.email())
+            .param("id", existingId)
+            .update();
+            return findById(existingId);
+        }
+
         Personnel p = new Personnel(
                 null,
-                reg.trim(),
+                reg,
                 req.firstName().trim(),
                 req.lastName().trim(),
                 fullName,
-                req.title() == null || req.title().isBlank() ? "Personel" : req.title().trim(),
+                title,
                 req.departmentId(),
                 null,
                 req.subUnitId(),

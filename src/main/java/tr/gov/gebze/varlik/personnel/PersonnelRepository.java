@@ -170,7 +170,7 @@ public class PersonnelRepository {
                 .param("phone", p.phone())
                 .param("email", p.email())
                 .update();
-        return jdbcClient.sql("SELECT id FROM personnel WHERE registration_number = :reg")
+        return jdbcClient.sql("SELECT id FROM personnel WHERE registration_number = :reg ORDER BY id DESC FETCH FIRST 1 ROWS ONLY")
                 .param("reg", p.registrationNumber())
                 .query(Long.class).single();
     }

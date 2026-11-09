@@ -701,6 +701,12 @@ UPDATE asset_assignments SET status = 'IADE_EDILDI', returned_at = CURRENT_TIMES
 UPDATE system_users SET full_name = UNISTR('Sistem Y\\00f6neticisi') WHERE username = 'admin';
 DELETE FROM system_users WHERE username = 'test_sec_user_tmp';
 UPDATE personnel SET is_active = 1, is_deleted = 0, deleted_at = NULL, deleted_by = NULL WHERE id = 1;
+UPDATE departments SET is_active = 1 WHERE id = 1;
+UPDATE buildings SET is_active = 1 WHERE id = 1;
+UPDATE floors SET is_active = 1 WHERE id = 1;
+UPDATE rooms SET is_active = 1 WHERE id = 1;
+UPDATE sub_units SET is_active = 1 WHERE id = 1;
+UPDATE asset_categories SET is_active = 1 WHERE id = 1;
 UPDATE personnel SET is_active = 0, is_deleted = 1, deleted_at = CURRENT_TIMESTAMP, deleted_by = 'test_cleanup' WHERE registration_number LIKE 'TEST-%';
 UPDATE departments SET is_active = 0 WHERE code LIKE 'TEST-%' OR code LIKE 'CSRF-%';
 UPDATE buildings SET is_active = 0 WHERE code LIKE 'TEST-%';
