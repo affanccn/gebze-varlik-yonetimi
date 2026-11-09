@@ -97,7 +97,7 @@ WHEN MATCHED THEN
     WHERE aa.personnel_id IS NULL;
 
 -- 7. Eksik Yabancı Anahtar ve Sorgu Performans İndeksleri
-CREATE INDEX idx_inv_audits_scope ON inventory_audits (department_id, building_id, floor_id);
+CREATE INDEX idx_inv_audits_scope ON inventory_audits (department_id, building_id);
 CREATE INDEX idx_sys_users_dept   ON system_users (department_id);
 CREATE INDEX idx_sys_users_pers   ON system_users (personnel_id);
 CREATE INDEX idx_rooms_bld        ON rooms (building_id);
