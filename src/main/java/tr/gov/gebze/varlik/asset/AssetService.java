@@ -138,7 +138,14 @@ public class AssetService {
 
     private String escapeCsv(String value) {
         if (value == null) return "\"\"";
-        return "\"" + value.replace("\"", "\"\"") + "\"";
+        String sanitized = value;
+        if (!sanitized.isEmpty()) {
+            char first = sanitized.charAt(0);
+            if (first == '=' || first == '+' || first == '-' || first == '@') {
+                sanitized = "'" + sanitized;
+            }
+        }
+        return "\"" + sanitized.replace("\"", "\"\"") + "\"";
     }
 
     public List<Asset> findAll(

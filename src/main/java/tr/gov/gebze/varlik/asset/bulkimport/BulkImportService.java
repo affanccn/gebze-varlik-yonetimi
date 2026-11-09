@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -30,6 +31,11 @@ public class BulkImportService {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
     private static final int MAX_ROWS = 2000;
+
+    static {
+        ZipSecureFile.setMinInflateRatio(0.005);
+        ZipSecureFile.setMaxEntrySize(50L * 1024 * 1024);
+    }
 
     private static final DateTimeFormatter ISO_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter TR_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");

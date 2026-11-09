@@ -1,11 +1,14 @@
 package tr.gov.gebze.varlik.security;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Service
 public class SecurityAuditService {
@@ -16,6 +19,24 @@ public class SecurityAuditService {
 
     public SecurityAuditService(JdbcClient jdbcClient) {
         this.jdbcClient = jdbcClient;
+    }
+
+    public static String resolveCurrentClientIp() {
+        try {
+            if (RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attrs) {
+                HttpServletRequest req = attrs.getRequest();
+                String xff = req.getHeader("X-Forwarded-For");
+                if (xff != null && !xff.isBlank()) {
+                    return xff.split(",")[0].trim();
+                }
+                String remoteAddr = req.getRemoteAddr();
+                if (remoteAddr != null && !remoteAddr.isBlank()) {
+                    return remoteAddr;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return "127.0.0.1";
     }
 
     /**

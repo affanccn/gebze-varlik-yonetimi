@@ -2,7 +2,7 @@ package tr.gov.gebze.varlik.personnel.bulkimport;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Map;
+import java.util.Locale;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -10,12 +10,13 @@ import org.springframework.web.multipart.MultipartFile;
 import tr.gov.gebze.varlik.common.ApiException;
 import tr.gov.gebze.varlik.common.AuthService;
 import tr.gov.gebze.varlik.common.UserSession;
-import tr.gov.gebze.varlik.security.SystemUserDetails;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
 @RequestMapping("/api/personnel")
 public class PersonnelImportController {
+
+    private static final long MAX_FILE_SIZE = 5L * 1024 * 1024; // 5 MB
 
     private final PersonnelImportService importService;
     private final AuthService authService;
@@ -41,6 +42,20 @@ public class PersonnelImportController {
         return session;
     }
 
+    private void validateUploadedFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Yüklenecek Excel dosyası boş olamaz.");
+        }
+        String originalName = file.getOriginalFilename();
+        if (originalName == null || !originalName.toLowerCase(Locale.ROOT).endsWith(".xlsx")) {
+            throw new ApiException(HttpStatus.BAD_REQUEST,
+                    "Yalnızca .xlsx uzantılı modern Excel dosyaları kabul edilmektedir (.xls veya CSV desteklenmez).");
+        }
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Dosya boyutu maksimum sınırı (5 MB) aşamaz.");
+        }
+    }
+
     @GetMapping("/export-template")
     public void exportTemplate(
             @RequestHeader(value = "X-Auth-Token", required = false) String token,
@@ -62,9 +77,7 @@ public class PersonnelImportController {
             @RequestParam("file") MultipartFile file
     ) throws IOException {
         UserSession session = requirePersonnelManageAccess(token);
-        if (file.isEmpty()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Yüklenecek Excel dosyası boş olamaz.");
-        }
+        validateUploadedFile(file);
         Long deptId = session.departmentId() != null ? session.departmentId() :
                 (tenantQueryScope.getCurrentUser() != null ? tenantQueryScope.getCurrentUser().getDepartmentId() : null);
 
@@ -77,9 +90,7 @@ public class PersonnelImportController {
             @RequestParam("file") MultipartFile file
     ) throws IOException {
         UserSession session = requirePersonnelManageAccess(token);
-        if (file.isEmpty()) {
-            throw new ApiException(HttpStatus.BAD_REQUEST, "Yüklenecek Excel dosyası boş olamaz.");
-        }
+        validateUploadedFile(file);
         Long deptId = session.departmentId() != null ? session.departmentId() :
                 (tenantQueryScope.getCurrentUser() != null ? tenantQueryScope.getCurrentUser().getDepartmentId() : null);
 

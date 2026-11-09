@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.common.CursorResponse;
 import tr.gov.gebze.varlik.common.PageResponse;
 import tr.gov.gebze.varlik.common.SortValidator;
+import tr.gov.gebze.varlik.security.SecurityAuditService;
 
 @Service
 public class EnterpriseService {
@@ -43,7 +44,7 @@ public class EnterpriseService {
     @Transactional
     public void addStockTransaction(Long stockItemId, String txType, Double quantity, Long deptId, String deptName, String recipient, String actor, String notes) {
         repository.addStockTransaction(stockItemId, txType, quantity, deptId, deptName, recipient, actor, notes);
-        repository.logAction("STOK_HAREKETI", "STOCK", String.valueOf(stockItemId), actor, actor, "127.0.0.1",
+        repository.logAction("STOK_HAREKETI", "STOCK", String.valueOf(stockItemId), actor, actor, SecurityAuditService.resolveCurrentClientIp(),
                 txType + " işlemi: " + quantity + " birim aktarıldı. Not: " + (notes != null ? notes : "-"));
     }
 
@@ -58,7 +59,7 @@ public class EnterpriseService {
     @Transactional
     public void updateVehicleStatus(Long id, String status, Integer km, String driver, String actor) {
         repository.updateVehicleStatus(id, status, km, driver);
-        repository.logAction("ARAC_GUNCELLEME", "FLEET", String.valueOf(id), actor, actor, "127.0.0.1",
+        repository.logAction("ARAC_GUNCELLEME", "FLEET", String.valueOf(id), actor, actor, SecurityAuditService.resolveCurrentClientIp(),
                 "Araç durumu: " + status + ", KM: " + km + ", Sürücü: " + driver);
     }
 
@@ -81,7 +82,7 @@ public class EnterpriseService {
     @Transactional
     public AuditScanResult recordAuditScan(Long auditId, String assetCode, String scannedLoc, String scannedBy) {
         AuditScanResult result = repository.recordAuditScan(auditId, assetCode, scannedLoc, scannedBy);
-        repository.logAction("SAYIM_TARA", "AUDIT", String.valueOf(auditId), scannedBy, scannedBy, "127.0.0.1",
+        repository.logAction("SAYIM_TARA", "AUDIT", String.valueOf(auditId), scannedBy, scannedBy, SecurityAuditService.resolveCurrentClientIp(),
                 assetCode + " nolu varlık okutuldu (" + result.matchStatus() + "). Konum: " + scannedLoc);
         return result;
     }
@@ -128,7 +129,7 @@ public class EnterpriseService {
     @Transactional
     public void updateSetting(String key, String val, String actor) {
         repository.updateSetting(key, val);
-        repository.logAction("SISTEM_AYARI", "SETTING", key, actor, actor, "127.0.0.1",
+        repository.logAction("SISTEM_AYARI", "SETTING", key, actor, actor, SecurityAuditService.resolveCurrentClientIp(),
                 key + " parametresi güncellendi: " + val);
     }
 

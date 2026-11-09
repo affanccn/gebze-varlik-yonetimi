@@ -307,49 +307,61 @@ public class EnterpriseController {
             writer.println("Tasınır Hesap Kodu;Varlık Kodu;Demirbaş Adı;Kategori;Müdürlük / Ambar;Konum;Miktar;Ölçü Birimi;Birim Değer (TL);Toplam Tutar (TL);Durum;Kondisyon");
             for (Form13ReportItem item : enterpriseService.generateForm13Report(departmentId)) {
                 writer.println(String.format("%s;%s;\"%s\";\"%s\";\"%s\";\"%s\";%d;%s;%.2f;%.2f;%s;%s",
-                        item.accountCode(), item.assetCode(),
-                        item.assetName().replace("\"", "\"\""),
-                        item.category().replace("\"", "\"\""),
-                        item.departmentName().replace("\"", "\"\""),
-                        item.location().replace("\"", "\"\""),
+                        sanitizeCsvField(item.accountCode()), sanitizeCsvField(item.assetCode()),
+                        sanitizeCsvField(item.assetName()),
+                        sanitizeCsvField(item.category()),
+                        sanitizeCsvField(item.departmentName()),
+                        sanitizeCsvField(item.location()),
                         item.quantity(), item.unit(), item.unitPrice(), item.totalPrice(),
-                        item.status(), item.conditionStatus()));
+                        sanitizeCsvField(item.status()), sanitizeCsvField(item.conditionStatus())));
             }
         } else if ("disposal".equalsIgnoreCase(type)) {
             response.setHeader("Content-Disposition", "attachment; filename=\"Hurda_Terkin_ve_Zayiat_Raporu.csv\"");
             writer.println("Varlık Kodu;Demirbaş Adı;Kategori;Müdürlük;Durum;Edinim Bedeli (TL);Edinim Tarihi;Terkin Tarihi;Terkin Gerekçesi");
             for (DisposalReportItem item : enterpriseService.generateDisposalReport()) {
                 writer.println(String.format("%s;\"%s\";\"%s\";\"%s\";%s;%.2f;%s;%s;\"%s\"",
-                        item.assetCode(),
-                        item.assetName().replace("\"", "\"\""),
-                        item.category().replace("\"", "\"\""),
-                        item.departmentName().replace("\"", "\"\""),
-                        item.lifecycleStatus(),
+                        sanitizeCsvField(item.assetCode()),
+                        sanitizeCsvField(item.assetName()),
+                        sanitizeCsvField(item.category()),
+                        sanitizeCsvField(item.departmentName()),
+                        sanitizeCsvField(item.lifecycleStatus()),
                         item.originalValue(),
                         item.acquisitionDate(),
                         item.disposalDate(),
-                        item.disposalReason().replace("\"", "\"\"")));
+                        sanitizeCsvField(item.disposalReason())));
             }
         } else {
             response.setHeader("Content-Disposition", "attachment; filename=\"Amortisman_ve_Defter_Degeri_Raporu.csv\"");
             writer.println("Varlık Kodu;Demirbaş Adı;Kategori;Müdürlük;Edinim Tarihi;İlk Bedel (TL);Faydalı Ömür (Yıl);Yıllık Oran;Birikmiş Amortisman (TL);Net Defter Değeri (TL);Durum");
             for (DepreciationReportItem item : enterpriseService.calculateDepreciation()) {
                 writer.println(String.format("%s;\"%s\";\"%s\";\"%s\";%s;%.2f;%d;%.1f;%.2f;%.2f;%s",
-                        item.assetCode(),
-                        item.assetName().replace("\"", "\"\""),
-                        item.category().replace("\"", "\"\""),
-                        item.departmentName().replace("\"", "\"\""),
+                        sanitizeCsvField(item.assetCode()),
+                        sanitizeCsvField(item.assetName()),
+                        sanitizeCsvField(item.category()),
+                        sanitizeCsvField(item.departmentName()),
                         item.acquisitionDate(),
                         item.originalValue(),
                         item.usefulLifeYears(),
                         item.annualDepreciationRate(),
                         item.accumulatedDepreciation(),
                         item.currentBookValue(),
-                        item.status()));
+                        sanitizeCsvField(item.status())));
             }
         }
 
         writer.flush();
+    }
+
+    private String sanitizeCsvField(String value) {
+        if (value == null) return "";
+        String sanitized = value;
+        if (!sanitized.isEmpty()) {
+            char first = sanitized.charAt(0);
+            if (first == '=' || first == '+' || first == '-' || first == '@') {
+                sanitized = "'" + sanitized;
+            }
+        }
+        return sanitized.replace("\"", "\"\"");
     }
 
     // 9. OTOMATİK UYARILAR

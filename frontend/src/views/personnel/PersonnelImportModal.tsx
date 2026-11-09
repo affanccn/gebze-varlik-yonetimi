@@ -118,7 +118,7 @@ export const PersonnelImportModal: React.FC<PersonnelImportModalProps> = ({
           <input
             type="file"
             id="personnel-excel-upload"
-            accept=".xlsx, .xls"
+            accept=".xlsx"
             onChange={handleFileChange}
             className="hidden"
           />

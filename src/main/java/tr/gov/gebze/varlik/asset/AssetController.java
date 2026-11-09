@@ -25,6 +25,7 @@ import tr.gov.gebze.varlik.lifecycle.AssetLifecycleService;
 import tr.gov.gebze.varlik.lifecycle.AssetLifecycleStatus;
 import tr.gov.gebze.varlik.movement.MaintenanceService;
 import tr.gov.gebze.varlik.movement.MovementService;
+import tr.gov.gebze.varlik.security.SecurityAuditService;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @RestController
@@ -38,6 +39,7 @@ public class AssetController {
     private final AuthService authService;
     private final TenantQueryScope tenantQueryScope;
     private final AssetLifecycleService assetLifecycleService;
+    private final SecurityAuditService securityAuditService;
 
     public AssetController(
             AssetService assetService,
@@ -46,7 +48,8 @@ public class AssetController {
             MaintenanceService maintenanceService,
             AuthService authService,
             TenantQueryScope tenantQueryScope,
-            AssetLifecycleService assetLifecycleService
+            AssetLifecycleService assetLifecycleService,
+            SecurityAuditService securityAuditService
     ) {
         this.assetService = assetService;
         this.movementService = movementService;
@@ -55,6 +58,7 @@ public class AssetController {
         this.authService = authService;
         this.tenantQueryScope = tenantQueryScope;
         this.assetLifecycleService = assetLifecycleService;
+        this.securityAuditService = securityAuditService;
     }
 
     @GetMapping
@@ -118,6 +122,19 @@ public class AssetController {
         }
         String searchQuery = (query != null && !query.isBlank()) ? query : q;
         String sortParam = (sortBy != null && !sortBy.isBlank()) ? sortBy : sort;
+
+        var currentUser = tenantQueryScope.getCurrentUser();
+        String actorUsername = currentUser != null ? currentUser.getUsername() : "anonim";
+        String actorFullName = currentUser != null ? currentUser.getFullName() : actorUsername;
+        securityAuditService.logAction(
+                "DATA_EXPORT",
+                "ASSET",
+                "CSV",
+                actorUsername,
+                actorFullName,
+                SecurityAuditService.resolveCurrentClientIp(),
+                "Varlık envanteri CSV formatında dışa aktarıldı."
+        );
 
         assetService.exportAssetsCsv(
                 response, searchQuery, category, unit, status, condition, warrantyFilter, sortParam,

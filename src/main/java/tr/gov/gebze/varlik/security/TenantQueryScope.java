@@ -262,7 +262,7 @@ public class TenantQueryScope {
     }
 
     private void logAndThrowAccessDenied(String method, String uri, String reason) {
-        securityAuditService.logAccessDenied(getCurrentUsername(), "127.0.0.1", method, uri, reason);
+        securityAuditService.logAccessDenied(getCurrentUsername(), SecurityAuditService.resolveCurrentClientIp(), method, uri, reason);
         throw new ApiException(HttpStatus.FORBIDDEN, "Bu işlem için yetkiniz bulunmamaktadır: " + reason);
     }
 }

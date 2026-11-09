@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.gov.gebze.varlik.asset.Asset;
 import tr.gov.gebze.varlik.asset.AssetRepository;
 import tr.gov.gebze.varlik.common.ApiException;
+import tr.gov.gebze.varlik.security.SecurityAuditService;
 import tr.gov.gebze.varlik.security.TenantQueryScope;
 
 @Service
@@ -102,17 +103,19 @@ public class AssetLifecycleService {
         String description = String.format("Yaşam döngüsü durumu değiştirildi: %s -> %s. Gerekçe: %s",
                 currentStatus.getLabel(), targetStatus.getLabel(), (reason != null ? reason : "Operasyonel süreç"));
 
+        String clientIp = SecurityAuditService.resolveCurrentClientIp();
         try {
             jdbcClient.sql("""
                 INSERT INTO system_audit_logs (
                     action_type, entity_type, entity_id, actor_username, actor_name, ip_address, description, old_value_json, new_value_json
                 ) VALUES (
-                    'LIFECYCLE_TRANSITION', 'ASSET', :entityId, :username, :actorName, '127.0.0.1', :description, :oldJson, :newJson
+                    'LIFECYCLE_TRANSITION', 'ASSET', :entityId, :username, :actorName, :clientIp, :description, :oldJson, :newJson
                 )
             """)
             .param("entityId", String.valueOf(assetId))
             .param("username", actor)
             .param("actorName", currentUser != null ? currentUser.getFullName() : actor)
+            .param("clientIp", clientIp)
             .param("description", description)
             .param("oldJson", oldJson)
             .param("newJson", newJson)
@@ -122,12 +125,13 @@ public class AssetLifecycleService {
                 INSERT INTO system_audit_logs (
                     action_type, entity_type, entity_id, actor_username, actor_name, ip_address, description
                 ) VALUES (
-                    'LIFECYCLE_TRANSITION', 'ASSET', :entityId, :username, :actorName, '127.0.0.1', :description
+                    'LIFECYCLE_TRANSITION', 'ASSET', :entityId, :username, :actorName, :clientIp, :description
                 )
             """)
             .param("entityId", String.valueOf(assetId))
             .param("username", actor)
             .param("actorName", currentUser != null ? currentUser.getFullName() : actor)
+            .param("clientIp", clientIp)
             .param("description", description)
             .update();
         }
