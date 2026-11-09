@@ -103,7 +103,8 @@ html.dark .bg-slate-50\/80 {
   background-color: #17233f !important;
 }
 
-html.dark .bg-slate-100 {
+html.dark .bg-slate-100,
+html.dark .bg-gebze-navy\/5 {
   background-color: #1e2d4f !important;
   color: #e2e8f0;
 }
