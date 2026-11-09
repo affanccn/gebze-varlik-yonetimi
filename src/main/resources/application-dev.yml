@@ -20,3 +20,4 @@ app:
       enabled: ${SECURITY_HSTS_ENABLED:false}
     cookie:
       secure: ${COOKIE_SECURE:false}
+

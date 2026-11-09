@@ -117,3 +117,4 @@ END;
 
 -- İlk kurulumda tablolar oluştuktan sonra çalıştırmak için:
 -- EXEC VARLIK_OWNER.PRC_GRANT_RUNTIME_PRIVS;
+

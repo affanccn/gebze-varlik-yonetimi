@@ -481,3 +481,4 @@ CREATE TABLE system_settings (
     description VARCHAR2(255 CHAR),
     updated_at  TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
+
