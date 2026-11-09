@@ -454,9 +454,9 @@ export const AssetsView: React.FC = () => {
   return (
     <div className="space-y-5">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
             Demirbaş ve Varlık Envanteri
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -464,13 +464,13 @@ export const AssetsView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             id="btn-export-assets-csv"
             data-action="export-assets-csv"
             onClick={handleExportCsv}
-            className="inline-flex items-center px-3.5 py-2 rounded-xl bg-white text-slate-700 border border-slate-300 text-sm font-semibold hover:bg-slate-50 shadow-xs transition-colors shrink-0"
+            className="inline-flex items-center px-3.5 py-2 rounded-xl bg-white text-slate-700 border border-slate-300 text-xs sm:text-sm font-semibold hover:bg-slate-50 shadow-xs transition-all shrink-0"
             title="Filtrelenmiş varlıkları CSV (Excel) formatında indir"
           >
             <Download className="w-4 h-4 mr-2 text-blue-600" />
@@ -483,7 +483,7 @@ export const AssetsView: React.FC = () => {
               id="btn-open-bulk-import"
               data-action="open-bulk-import"
               onClick={() => setIsBulkImportOpen(true)}
-              className="inline-flex items-center px-3.5 py-2 rounded-xl bg-white text-slate-700 border border-slate-300 text-sm font-semibold hover:bg-slate-50 shadow-xs transition-colors shrink-0"
+              className="inline-flex items-center px-3.5 py-2 rounded-xl bg-white text-slate-700 border border-slate-300 text-xs sm:text-sm font-semibold hover:bg-slate-50 shadow-xs transition-all shrink-0"
             >
               <FileSpreadsheet className="w-4 h-4 mr-2 text-emerald-600" />
               Excel ile Toplu Aktar
@@ -498,7 +498,7 @@ export const AssetsView: React.FC = () => {
                 setAssetToEdit(null);
                 setIsFormOpen(true);
               }}
-              className="inline-flex items-center px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 shadow-sm transition-colors shrink-0"
+              className="inline-flex items-center px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white text-xs sm:text-sm font-semibold hover:from-blue-700 hover:to-blue-800 shadow-sm transition-all shrink-0"
             >
               <Plus className="w-4 h-4 mr-2" />
               Yeni Varlık Ekle

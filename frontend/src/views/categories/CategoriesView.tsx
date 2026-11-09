@@ -77,7 +77,7 @@ export const CategoriesView: React.FC = () => {
               <div
                 key={cat.id}
                 onClick={() => setSelectedCat(cat)}
-                className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between group"
+                className="bg-white rounded-2xl border border-slate-200 border-t-4 border-t-blue-600 p-5 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-blue-300 transition-all duration-200 cursor-pointer flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">

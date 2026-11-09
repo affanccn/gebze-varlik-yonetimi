@@ -208,7 +208,7 @@ export const LocationsView: React.FC = () => {
             <div
               key={room.id}
               onClick={() => setSelectedRoomId(room.id)}
-              className="bg-white rounded-xl border border-slate-200 p-4 shadow-2xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer flex flex-col justify-between group"
+              className="bg-white rounded-2xl border border-slate-200 border-t-4 border-t-navy-800 p-4 shadow-xs hover:shadow-md hover:-translate-y-0.5 hover:border-blue-300 transition-all duration-200 cursor-pointer flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
