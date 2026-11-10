@@ -22,17 +22,17 @@ export interface GlowCardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const glowColorMap: Record<string, { base: number; spread: number; saturation?: number; lightness?: number }> = {
-  blue: { base: 215, spread: 180, saturation: 100, lightness: 65 },
-  purple: { base: 275, spread: 220, saturation: 100, lightness: 70 },
-  green: { base: 125, spread: 180, saturation: 100, lightness: 60 },
-  emerald: { base: 155, spread: 180, saturation: 100, lightness: 60 },
-  teal: { base: 175, spread: 180, saturation: 100, lightness: 60 },
-  amber: { base: 38, spread: 180, saturation: 100, lightness: 60 },
-  orange: { base: 26, spread: 180, saturation: 100, lightness: 60 },
-  red: { base: 0, spread: 180, saturation: 100, lightness: 65 },
-  rose: { base: 350, spread: 180, saturation: 100, lightness: 65 },
-  indigo: { base: 245, spread: 180, saturation: 100, lightness: 70 },
-  slate: { base: 215, spread: 80, saturation: 60, lightness: 70 },
+  blue: { base: 215, spread: 180, saturation: 100, lightness: 60 },
+  purple: { base: 275, spread: 220, saturation: 100, lightness: 65 },
+  green: { base: 125, spread: 180, saturation: 100, lightness: 55 },
+  emerald: { base: 155, spread: 180, saturation: 100, lightness: 55 },
+  teal: { base: 175, spread: 180, saturation: 100, lightness: 55 },
+  amber: { base: 38, spread: 180, saturation: 100, lightness: 55 },
+  orange: { base: 26, spread: 180, saturation: 100, lightness: 55 },
+  red: { base: 0, spread: 180, saturation: 100, lightness: 60 },
+  rose: { base: 350, spread: 180, saturation: 100, lightness: 60 },
+  indigo: { base: 245, spread: 180, saturation: 100, lightness: 65 },
+  slate: { base: 215, spread: 80, saturation: 60, lightness: 65 },
 };
 
 const sizeMap = {
@@ -74,7 +74,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
   }, []);
 
   const colorConfig = glowColorMap[glowColor] || glowColorMap.blue;
-  const { base, spread, saturation = 100, lightness = 65 } = colorConfig;
+  const { base, spread, saturation = 100, lightness = 60 } = colorConfig;
 
   // Determine sizing
   const getSizeClasses = () => {
@@ -92,21 +92,11 @@ const GlowCard: React.FC<GlowCardProps> = ({
       '--lightness': lightness,
       '--radius': '16',
       '--border': '2',
-      '--backdrop': 'hsl(0 0% 60% / 0.12)',
-      '--backup-border': 'var(--backdrop)',
       '--size': '280',
-      '--outer': '1',
       '--border-size': 'calc(var(--border, 2) * 1px)',
       '--spotlight-size': 'calc(var(--size, 280) * 1px)',
       '--hue': 'calc(var(--base) + (var(--xp, 0) * var(--spread, 0)))',
-      '--spotlight-color': 'hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 65) * 1%))',
-      backgroundImage: `radial-gradient(
-        var(--spotlight-size) var(--spotlight-size) at
-        var(--x, -1000px)
-        var(--y, -1000px),
-        hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 70) * 1%) / var(--bg-spot-opacity, 0.05)), transparent 100%
-      )`,
-      backgroundColor: 'var(--backdrop, transparent)',
+      '--spotlight-color': 'hsl(var(--hue, 210) calc(var(--saturation, 100) * 1%) calc(var(--lightness, 60) * 1%))',
       position: 'relative' as const,
       touchAction: 'pan-y' as const,
     };
@@ -145,7 +135,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
         var(--y, -1000px),
         var(--spotlight-color), transparent 100%
       );
-      filter: brightness(1.5);
+      filter: brightness(1.4);
     }
     
     [data-glow]::after {
@@ -168,7 +158,7 @@ const GlowCard: React.FC<GlowCardProps> = ({
         var(--spotlight-color), transparent 70%
       );
       filter: blur(16px);
-      opacity: 0.18;
+      opacity: 0.10;
       pointer-events: none;
       border: none;
       z-index: 0;
@@ -195,8 +185,6 @@ const GlowCard: React.FC<GlowCardProps> = ({
           rounded-2xl 
           relative 
           ${customSize ? '' : 'grid grid-rows-[1fr_auto] p-4 gap-4'}
-          shadow-[0_1rem_2rem_-1rem_black] 
-          backdrop-blur-[5px]
           ${className}
         `}
       >

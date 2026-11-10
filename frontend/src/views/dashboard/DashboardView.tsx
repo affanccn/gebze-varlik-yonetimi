@@ -183,8 +183,6 @@ export const DashboardView: React.FC = () => {
         <Card
           title="Varlık Yaşam Döngüsü Analizi"
           subtitle="Yaşam döngüsü durumları bazında demirbaş adedi, oran ve parasal değer dağılımı"
-          glow
-          glowColor="blue"
         >
           <div className="space-y-3.5 pt-1">
             {(!dashboard.lifecycleDistribution || dashboard.lifecycleDistribution.length === 0) ? (
@@ -262,8 +260,6 @@ export const DashboardView: React.FC = () => {
         <Card
           title="Yıllık Varlık Edinim ve Yatırım Trendi"
           subtitle="Kayıtlı edinim yıllarına göre demirbaş sayısı ve kümülatif yatırım tutarı"
-          glow
-          glowColor="emerald"
         >
           <div className="space-y-3 pt-1">
             {(!dashboard.acquisitionTrends || dashboard.acquisitionTrends.length === 0) ? (

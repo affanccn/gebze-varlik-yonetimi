@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -25,13 +26,14 @@ export const Modal: React.FC<ModalProps> = ({
       }
     };
     if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        window.removeEventListener('keydown', handleKeyDown);
+      };
     }
-    return () => {
-      document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
@@ -45,41 +47,56 @@ export const Modal: React.FC<ModalProps> = ({
     '4xl': 'max-w-4xl',
   }[maxWidth];
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
+  const modalContent = (
+    <div
+      className="fixed inset-0 z-[9999] overflow-y-auto overscroll-y-contain flex items-center justify-center p-3 sm:p-5 md:p-6"
+      role="presentation"
+    >
+      {/* Arka Plan Karartma (Backdrop) */}
       <div
-        className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-slate-950/65 backdrop-blur-sm transition-opacity"
         onClick={onClose}
+        aria-hidden="true"
       />
 
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div
-          role="dialog"
-          aria-modal="true"
-          className={`relative w-full ${maxWidthClass} bg-white rounded-2xl shadow-2xl border border-slate-200/90 overflow-hidden transform transition-all animate-page-enter`}
-        >
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">{title}</h3>
-              {subtitle && <p className="text-xs text-slate-500 mt-0.5 font-medium">{subtitle}</p>}
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Kapat"
-              className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-200/60 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* Modal Kutusu (Portal ile doğrudan document.body'ye bağlı, viewport merkezli) */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        className={`relative w-full ${maxWidthClass} my-auto text-left bg-white dark:bg-[#111c33] rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-700/80 transform transition-all animate-page-enter flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3.5rem)] z-10`}
+      >
+        {/* Başlık ve Kapat Butonu (Sticky, asla ekrandan taşmaz) */}
+        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/70 flex items-center justify-between shrink-0 rounded-t-2xl">
+          <div className="min-w-0 pr-4">
+            <h3 id="modal-title" className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-slate-100 tracking-tight truncate">
+              {title}
+            </h3>
+            {subtitle && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium truncate">
+                {subtitle}
+              </p>
+            )}
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Kapat"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-xl hover:bg-slate-200/70 dark:hover:bg-slate-800 transition-colors shrink-0"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Body */}
-          <div className="p-6 max-h-[calc(85vh-8rem)] overflow-y-auto">{children}</div>
+        {/* Kaydırılabilir Gövde */}
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 overscroll-contain text-slate-800 dark:text-slate-200">
+          {children}
         </div>
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };
 
+export default Modal;

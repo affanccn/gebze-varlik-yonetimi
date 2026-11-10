@@ -33,9 +33,9 @@ export const StatCard: React.FC<StatCardProps> = ({
   const isLong = valStr.length > 9;
 
   const content = (
-    <div className="w-full flex items-start justify-between gap-4 p-4 sm:p-5 relative z-10">
+    <div className="w-full flex items-start justify-between gap-4 p-4 sm:p-5 relative z-10 bg-white dark:bg-[#111c33] rounded-2xl">
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
           {title}
         </p>
         <p
@@ -45,13 +45,13 @@ export const StatCard: React.FC<StatCardProps> = ({
               : isLong
               ? 'text-xl sm:text-2xl lg:text-3xl'
               : 'text-2xl sm:text-3xl'
-          } font-extrabold text-slate-900 mt-1.5 tracking-tight truncate`}
+          } font-extrabold text-slate-900 dark:text-white mt-1.5 tracking-tight truncate`}
           title={valStr}
         >
           {value}
         </p>
         {subtitle && (
-          <p className="text-xs text-slate-500 mt-1 font-medium truncate">{subtitle}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium truncate">{subtitle}</p>
         )}
       </div>
       {icon && (
@@ -67,7 +67,7 @@ export const StatCard: React.FC<StatCardProps> = ({
       <GlowCard
         glowColor={color}
         customSize
-        className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default"
+        className="bg-white dark:bg-[#111c33] rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default"
       >
         {content}
       </GlowCard>
@@ -76,7 +76,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 
   return (
     <div
-      className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default"
+      className="bg-white dark:bg-[#111c33] rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default"
     >
       {content}
     </div>
