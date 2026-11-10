@@ -1,12 +1,14 @@
 import React from 'react';
+import { GlowCard } from '../ui/spotlight-card';
 
-interface StatCardProps {
+export interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
   icon?: React.ReactNode;
   trend?: string;
   color?: 'blue' | 'emerald' | 'amber' | 'rose' | 'indigo' | 'slate';
+  glow?: boolean;
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -15,6 +17,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   subtitle,
   icon,
   color = 'blue',
+  glow = true,
 }) => {
   const colorMap = {
     blue: 'bg-blue-50 text-gebze-navy border-blue-200/80',
@@ -25,23 +28,12 @@ export const StatCard: React.FC<StatCardProps> = ({
     slate: 'bg-slate-100 text-slate-700 border-slate-200/80',
   };
 
-  const accentBarMap = {
-    blue: 'border-t-blue-600',
-    emerald: 'border-t-emerald-600',
-    amber: 'border-t-amber-500',
-    rose: 'border-t-rose-600',
-    indigo: 'border-t-indigo-600',
-    slate: 'border-t-slate-600',
-  };
-
   const valStr = String(value ?? '');
   const isVeryLong = valStr.length > 13;
   const isLong = valStr.length > 9;
 
-  return (
-    <div
-      className={`bg-white rounded-2xl border border-slate-200/90 border-t-4 ${accentBarMap[color]} shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-4 sm:p-5 flex items-start justify-between gap-4`}
-    >
+  const content = (
+    <div className="w-full flex items-start justify-between gap-4 p-4 sm:p-5 relative z-10">
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
           {title}
@@ -69,5 +61,26 @@ export const StatCard: React.FC<StatCardProps> = ({
       )}
     </div>
   );
+
+  if (glow) {
+    return (
+      <GlowCard
+        glowColor={color}
+        customSize
+        className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default"
+      >
+        {content}
+      </GlowCard>
+    );
+  }
+
+  return (
+    <div
+      className="bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-default"
+    >
+      {content}
+    </div>
+  );
 };
 
+export default StatCard;
